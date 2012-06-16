@@ -11,7 +11,7 @@ TODO: give a cool and sensible brief description
 
 build.py script:
 
-<code>
+<pre>
   from pyant import *
   
   Project.defaultTarget = 'install'
@@ -37,9 +37,9 @@ build.py script:
   class install(Target):
     DependsOn = [prepare, compile, precompile]
     def Run(self):
-      Echo('''enter install, level=LogLevel.WARNING)
+      Echo('enter install', level=LogLevel.WARNING)
       Echo(Env.cwd)
-</code>
+</pre>
     
 run it:
 
@@ -67,6 +67,5 @@ and output will be:
   Build: SUCCESSFUL
      At: 2012-06-17T00:28:29.099000
    Time: 0:00:00.055000
-   
 </pre>
    
