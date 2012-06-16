@@ -1,15 +1,17 @@
-pyant
-=====
+# pyant
 
 The Ant in Python (the working name)
 
--- DRAFT --
+## Draft
  
 Build system and build scripts in pure python.
 TODO: give a cool and sensible brief description 
 
+## Example
+
 build.py script:
 
+<code>
   from pyant import *
   
   Project.defaultTarget = 'install'
@@ -37,13 +39,17 @@ build.py script:
     def Run(self):
       Echo('''enter install, level=LogLevel.WARNING)
       Echo(Env.cwd)
+</code>
     
 run it:
 
+<pre>
   $> pyant
+</pre>
 
-output:
+and output will be:
 
+<pre>
   Buildfile: P:\pyant\a.py
   
   prepare:
@@ -61,4 +67,6 @@ output:
   Build: SUCCESSFUL
      At: 2012-06-17T00:28:29.099000
    Time: 0:00:00.055000
+   
+</pre>
    
