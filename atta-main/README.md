@@ -1,10 +1,10 @@
-# pyant
-
-The Ant in Python (the working name)
+The Ant In Python (the working name)                                 {#mainpage}
+====================================
 
 ## Draft
  
 Build system and build scripts in pure python.
+
 TODO: give a cool and sensible brief description 
 
 ## Example
@@ -38,7 +38,6 @@ build.py script:
     DependsOn = [prepare, compile, precompile]
     def Run(self):
       Echo('enter install', level=LogLevel.WARNING)
-      Echo(Env.cwd)
 </pre>
     
 run it:
@@ -50,7 +49,7 @@ run it:
 and output will be:
 
 <pre>
-  Buildfile: P:\pyant\a.py
+  Buildfile: build.py
   
   prepare:
   
@@ -62,7 +61,6 @@ and output will be:
   
   install:
       Echo: enter install
-      Echo: P:\pyant
   
   Build: SUCCESSFUL
      At: 2012-06-17T00:28:29.099000
