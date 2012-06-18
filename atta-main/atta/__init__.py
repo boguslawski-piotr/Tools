@@ -5,17 +5,31 @@
 #
 
 __all__ = [
+           # Globals
+           'atta',
+           'project',
+           'file',
+
            # Enums & Classes
            'LogLevel',
-           'Env',
            'Project',
            'Target',
+           'Task',
            
            # Tasks
            'Echo',
            'Exec',
-           'PyExec'
+           'PyExec',
           ]
+
+global atta
+atta = None
+
+global project
+project = None
+
+global file
+file = None
 
 ## \defgroup Utils Utils
 #
@@ -25,7 +39,7 @@ from Log import LogLevel
 ##  \defgroup Targets Targets
 #
 
-from BaseClasses import Env, Project, Target
+from BaseClasses import Target, Task
 
 ## \defgroup Tasks Tasks
 # All available tasks.

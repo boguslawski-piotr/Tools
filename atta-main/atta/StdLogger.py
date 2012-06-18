@@ -17,7 +17,7 @@ class Logger(ILogger):
       print msg
       
   def _HandleBuild(self, msg, **args):
-    if 'build' in args:
+    if 'project' in args:
       if 'start' in args:
         pass
       if 'end' in args:

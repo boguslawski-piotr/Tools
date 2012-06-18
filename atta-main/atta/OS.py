@@ -19,7 +19,16 @@ def RemoveExt(fileName):
   i = fileName.rfind('.')
   return fileName if i <= 0 else fileName[0:i];
   
-## Works like os.makedirs but not throwing an exception if path not exists.
+## Works like os.remove but not throwing an exception if path not exists.
+#  \ingroup Utils 
+def Remove(path):
+  try:
+    os.remove(path)
+  except os.error as e:
+    if e.errno != os.errno.ENOENT:
+      raise
+
+## Works like os.makedirs but not throwing an exception if path exists.
 #  \ingroup Utils 
 def MakeDirs(path):
   try:

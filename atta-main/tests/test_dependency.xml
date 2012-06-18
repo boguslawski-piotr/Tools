@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="depenency" default="install">
+
+  <target name="init"><echo>init</echo></target>
+  
+  <target name="prepare"><echo>prepare</echo></target>
+  
+  <target name="precompile" depends="init, prepare"><echo>precompile</echo></target>
+  
+  <target name="compile" depends="prepare, precompile"><echo>compile</echo></target>
+  
+  <target name="install" depends="prepare, compile, precompile"><echo>install</echo></target>
+</project>

@@ -6,19 +6,18 @@ import re
 from atta import *
 from atta.OS import *
 from atta.Properties import Properties
-from atta.BaseClasses import Program
 
-Project.defaultTarget = 'help'
+print atta.versionName
+print atta.version
+
+project.defaultTarget = 'help'
 
 prop = Properties()
 prop.Open('build.properties')
 
-atta = Properties()
-atta.Open('atta.properties')
-
 class help(Target):
   def Run(self):
-    Echo(Program.name + ' v' + Program.version + \
+    Echo(atta.name + ' v' + atta.versionName + \
 '''
 Usage: atta [target]
 
@@ -32,6 +31,14 @@ class clean(Target):
     for fileName in glob.glob('*/*.py?'): os.remove(fileName)
     for fileName in glob.glob('*.py?'): os.remove(fileName)
     shutil.rmtree('docs', True)
+
+class tests(Target):
+  def Run(self):
+    for fileName in glob.glob('tests/test*.py'):
+      project.RunProject(None, fileName, '')
+    
+##
+#
 
 def MD2DoxygenMD(lineNo, line):
   if lineNo == 1: 
@@ -61,11 +68,6 @@ class makedocs(Target):
     os.remove('README_.md')
     #Exec('docs\index.html')
 
-class tests(Target):
-  def Run(self):
-    for fileName in glob.glob('tests/*.py'):
-      Exec('atta', ['-f', fileName])
-    
 class makedocs_old(Target):
   def Run(self):
     # TODO: task typu GlobEx - z wyrazeniemi regularnymi i chodzeniem po wszystkich katalogach, includes, excludes, itp. (walk?)

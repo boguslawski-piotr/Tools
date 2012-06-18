@@ -5,7 +5,8 @@ import os
 import stat
 import atta.OS
 
-Project.defaultTarget = 'test'
+Echo('In: ' + file.name)
+project.defaultTarget = 'test'
 
 class test(Target):
   def Run(self):

@@ -3,101 +3,41 @@
 ## \brief  atta main
 #  \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 
+import sysconfig
 import sys
-import importlib
+import os
 
-from atta.BaseClasses import *
-from atta.Log import *
-from atta.Properties import Properties
-from atta.OS import *
+from atta.Atta import Atta
+from atta.Log import LogLevel, Log, LoggerBridge
+import atta
 
-#===============================================================================
-# Consts
-#===============================================================================
+minPythonVersion = '2.7'
 
-defaultBuildFile = 'build.py'
+def Main():
+  if LoggerBridge.LoggerClass is None:
+    LoggerBridge.LoggerClass = atta.StdLogger.Logger
 
-#===============================================================================
-# Environment & parameters
-#===============================================================================
-
-Program.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
-
-props = Properties()
-props.Open(os.path.join(Program.dirName, 'atta.properties'))
-
-Program.version = props.Get('version', '0.0')
-
-import argparse
-
-argsParser = argparse.ArgumentParser(
-  prog = Program.name,
-  formatter_class=argparse.RawDescriptionHelpFormatter,
-  description = 
-  Program.name + ' v' + Program.version + 
-  '''
-  ''',
-  epilog = 
-    'Bugs found, suggestions for improvements, etc. \nplease send to: boguslawski.piotr@gmail.com'
-)
-
-argsParser.add_argument(
-  'target', nargs = '*', default = '',
-  help = ''
-)
-argsParser.add_argument(
-  '-f', nargs = 1, default = [defaultBuildFile], metavar = 'file',
-  help = 'use given buildfile'
-)
-argsParser.add_argument(
-  '-ll', nargs = 1, metavar = 'level', type = int, choices = [0,1,2,3,4], 
-  help = 'log level'
-)
-argsParser.add_argument(
-  '-lc', nargs = 1, metavar = 'module',
-  help = 'use given Logger class from module'
-)
-
-args = argsParser.parse_args()
-Program.args = args
-
-if args.ll:
-  logLevel = args.ll[0]
-if args.lc:
-  script = 'import ' + args.lc[0] + \
-           '\nLoggerBridge.LoggerClass = ' + args.lc[0] + '.Logger\n'
-  exec(script)
-else:
-  from atta.StdLogger import Logger
-  LoggerBridge.LoggerClass = Logger
+  try:
+    if int(sysconfig.get_python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
+      raise SystemError('Wrong version of Python. Requires {0} and {1} were detected.'.format(minPythonVersion, sysconfig.get_python_version()))
+     
+    _atta = Atta(os.environ,
+                 os.path.dirname(os.path.realpath(sys.argv[0])), 
+                 sys.argv[1:])
+    _atta.Run()
+    return 0
   
-Project.dirName = os.path.normpath(os.path.realpath(os.path.dirname(args.f[0])))
-Project.fileName = os.path.join(Project.dirName, RemoveExt(os.path.basename(args.f[0])) + '.py')
+  except Exception, e:
+    if LogLevel.actual <= LogLevel.VERBOSE:
+      raise
+    else:
+      Log(e, level = LogLevel.ERROR)
+      return 1
+    
+if __name__ == "__main__":
+  sys.exit(Main())
 
-Env.chdir(Project.dirName)
-Env.SetAttrsFromSystem()
 
-Program.Dump();
-Env.Dump();
-Project.Dump();
-Log(' ', level=LogLevel.DEBUG)
-
-#===============================================================================
-# Main 
-#===============================================================================
-
-try:
-  build = Build()
-  build.Start()
-  
-  buildFileName = os.path.join(Project.dirName, Project.fileName)
-  Log('Buildfile: ' + buildFileName)
-  if not os.path.exists(buildFileName):
-    raise IOError(os.errno.ENOENT, 'Buildfile: {0} does not exists!'.format(buildFileName))
-  
-  sys.path.append(Project.dirName)
-  buildFile = importlib.import_module(RemoveExt(os.path.basename(Project.fileName)))
-  
 #  buildFile = open(Project.buildFile, 'r')
 #  script = ''
 #  for line in buildFile.readlines():
@@ -106,30 +46,3 @@ try:
 #  script = build.ParseScript(script)
 #  exec(script)
   
-  if len(args.target) <= 0 or len(args.target[0]) <= 0:
-    args.target = [Project.defaultTarget]
-    if len(args.target) <= 0 or len(args.target[0]) <= 0:
-      build.End(Build.SUCCESSFUL);
-      sys.exit(0)
-  
-  script = ''
-  for targetName in args.target:
-    script = script + '\nbuild.Run(buildFile.' + targetName + ')'
-#    script = script + '\nbuild.Run(' + targetName + ')'
-  script = build.ParseScript(script)
-  exec(script)
-
-except ImportError, e:
-  build.End(Build.FAILED, e)
-  Log(e, level = LogLevel.ERROR)
-  sys.exit(1)
-except Exception, e:
-  build.End(Build.FAILED, e)
-  if logLevel == LogLevel.DEBUG:
-    raise
-  else:
-    Log(e, level = LogLevel.ERROR)
-    sys.exit(1)
-
-build.End(Build.SUCCESSFUL)
-sys.exit(0)

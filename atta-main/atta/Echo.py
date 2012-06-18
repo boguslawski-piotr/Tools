@@ -24,13 +24,13 @@
 #                 \type boolean 
 #                 \def False
 #
-# \uc Echo.py
+# \uc test_echo.py
 #
 # \impl{atta.Echo.Echo}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
-# \example Echo.py
+# \example test_echo.py
 # Echo task use cases.
 
 import os

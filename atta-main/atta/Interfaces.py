@@ -4,7 +4,7 @@
 #
 #special arguments
 #  
-#  build
+#  project
 #    start
 #    end
 #    status

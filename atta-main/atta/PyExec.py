@@ -11,13 +11,13 @@
 #
 # \copydoc ExecTaskFamilyReturns
 #
-# \uc pyexec.py
+# \uc test_pyexec.py
 #
 # \impl{atta.PyExec.PyExec}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
-# \example pyexec.py
+# \example test_pyexec.py
 # PyExec task use cases.
 
 import sys

@@ -2,9 +2,9 @@
 
 from atta import *
 
-Project.defaultTarget = 'test'
+project.defaultTarget = 'test'
 
 class test(Target):
   def Run(self):
     Echo('PyExec test')
-    PyExec('pyexec_1', ['1','2','3'], useShell = False)
+    PyExec('external', ['1','2','3'], useShell = False)

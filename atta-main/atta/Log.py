@@ -15,16 +15,20 @@ class LogLevel:
   WARNING = 3
   ERROR = 4
   
-## Actual log level.
-global logLevel
-logLevel = LogLevel.INFO
-
+  ## Actual log level.
+  actual = INFO
+  
+  ## Returs True if log is enabled for specified \p level.
+  @staticmethod
+  def LogAllowed(level):
+    return level >= LogLevel.actual
+  
 ## Sends message and parameters to the log.
 #  More information about logs can be found 
 #  in \link atta.Interfaces.ILogger \endlink. 
 def Log(msg, **args):
   level = args.get('level', LogLevel.INFO)
-  if _LogAllowed(level):
+  if LogLevel.LogAllowed(level):
     LoggerBridge.Log(msg, **args)
 
 ## Sends parameters to the log.
@@ -33,5 +37,3 @@ def Log(msg, **args):
 def LogNM(**args):
   Log('', **args)
   
-def _LogAllowed(level):
-  return level >= logLevel

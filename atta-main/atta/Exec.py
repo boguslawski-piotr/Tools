@@ -17,13 +17,13 @@
 # Parameters: os and osFamily \n
 # Delete last empty line from output (?) \n
 #
-# \uc exec.py
+# \uc test_exec.py
 #
 # \impl{atta.Exec.Exec}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
-# \example exec.py
+# \example test_exec.py
 # Exec task use cases.
 
 ## \defgroup ExecTaskFamilyParams Common parameters: Exec tasks family
