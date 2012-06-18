@@ -1,25 +1,65 @@
-from atta import *
-from atta.OS import *
 import os
 import glob
 import shutil
 import re
 
+from atta import *
+from atta.OS import *
+from atta.Properties import Properties
+from atta.BaseClasses import Program
+
 Project.defaultTarget = 'help'
+
+prop = Properties()
+prop.Open('build.properties')
+
+atta = Properties()
+atta.Open('atta.properties')
 
 class help(Target):
   def Run(self):
-    Echo('this is help...')
+    Echo(Program.name + ' v' + Program.version + \
+'''
+Usage: atta [target]
+
+Available targes:
+  makedocs
+  clean
+''')
     
 class clean(Target):
   def Run(self):
     for fileName in glob.glob('*/*.py?'): os.remove(fileName)
     for fileName in glob.glob('*.py?'): os.remove(fileName)
     shutil.rmtree('docs', True)
+
+def MD2DoxygenMD(lineNo, line):
+  if lineNo == 1: 
+    line = line.replace('\n', '') + ' {#mainpage}\n'
+  line = line.replace('```python', '~~~{.py}')
+  line = line.replace('```', '~~~')
+  return line
+
+## TODO: make Task from this function
+def LineFilter(inFile, filterFunc, outFile = None):
+  # TODO: handle file-like objects, FileSet, etc.
+  contens = ''
+  with open(inFile, 'r') as f:
+    lineNo = 1
+    for line in f.readlines():
+      contens = contens + filterFunc(lineNo, line)
+      lineNo += 1
+  if outFile is not None:
+    with open(outFile, 'w') as f:
+      f.write(contens)
+  return contens
   
 class makedocs(Target):
   def Run(self):
-    Exec('doxygen')
+    LineFilter('README.md', MD2DoxygenMD, 'README_.md')    
+    Exec(prop.Get('doxygen.exe', 'doxygen'))
+    os.remove('README_.md')
+    #Exec('docs\index.html')
 
 class tests(Target):
   def Run(self):

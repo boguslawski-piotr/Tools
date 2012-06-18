@@ -23,9 +23,10 @@ defaultBuildFile = 'build.py'
 
 Program.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-# TODO: read atta.properties
-#p = Properties()
-Program.version = '0.1'
+props = Properties()
+props.Open(os.path.join(Program.dirName, 'atta.properties'))
+
+Program.version = props.Get('version', '0.0')
 
 import argparse
 

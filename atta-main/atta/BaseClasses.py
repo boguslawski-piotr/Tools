@@ -6,7 +6,7 @@ from atta.Log import LogLevel, Log, LogNM
 ## Program class 
 #  TODO: description
 class Program():
-  name = 'atta'
+  name = 'Atta'
   description = ''
   version = None
   

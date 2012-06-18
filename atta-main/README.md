@@ -1,19 +1,19 @@
-Atta                                                                 {#mainpage}
+Atta
 ====
 
-## Draft
+## Introduction
  
-Atta 'will be' a FREE build tool, targets-tasks driven, developed in pure Python.
+Atta is a FREE build tool, targets-tasks driven, developed in pure Python.
 
 Similar in philosophy to the Ant, NAnt, etc. but without the use of XML syntax nightmare.
 
 TODO: give a cool and sensible extended description 
 
-## Example
+## Philosophy example
 
 build.py script:
 
-<pre>
+```python
   from atta import *
   
   Project.defaultTarget = 'install'
@@ -39,9 +39,9 @@ build.py script:
     DependsOn = [prepare, compile, precompile]
     def Run(self):
       Echo('enter install', level = LogLevel.WARNING)
-</pre>
+```
     
-run it:
+run Atta:
 
 <pre>
   $> atta

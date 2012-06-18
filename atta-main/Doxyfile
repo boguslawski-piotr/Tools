@@ -193,11 +193,13 @@ TAB_SIZE               = 2
 # will result in a user-defined paragraph with heading "Side Effects:".
 # You can put \n's in the value part of an alias to insert newlines.
 
-ALIASES += type="<br> \e Type:"
-ALIASES += def="<br> \e Default:"
-ALIASES += task{1}="<h1>\1</h1>"
-ALIASES += uc="<b>Use cases:</b> \include"
+ALIASES += type="<BR> \e Type:"
+ALIASES += def="<BR> \e Default:"
+ALIASES += task{1}="<H1>\1</H1>"
+ALIASES += uc="<B>Use cases:</B> \include"
 ALIASES += impl{1}="\see \link \1 Implementation \endlink"
+ALIASES += rval="\b "
+ALIASES += rvalN="<BR> \arg \b "
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding
@@ -659,7 +661,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = README.md atta
+INPUT                  = README_.md atta
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is

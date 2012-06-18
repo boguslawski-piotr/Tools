@@ -8,20 +8,18 @@
 #                    \type string 
 #
 # \copydoc ExecTaskFamilyParams
+#
+# \copydoc ExecTaskFamilyReturns
 #  
-# \return object with two attributtes \n
-# \type int returnCode
-# \type string output
-#
-# \uc exec.py
-#
-# \impl{atta.Exec.Exec}
-#
 # \todo 
 # Read stdout during the execution process \n
 # Allow transfer of new environment variables to the process \n
 # Parameters: os and osFamily \n
 # Delete last empty line from output (?) \n
+#
+# \uc exec.py
+#
+# \impl{atta.Exec.Exec}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
@@ -37,6 +35,16 @@
 # \tparam failOnError
 # \tparam logOutput
 # \tparam useSheel 
+# @}
+
+## \defgroup ExecTaskFamilyReturns Common returns: Exec tasks family
+# @{
+# \return Object with two attributtes:
+#         \rvalN returnCode Exit code returned by executed command.
+#                           \type int
+#         \rvalN output     Captured contents of stdout and stderr.
+#                           \type string
+#
 # @}
 
 import io
