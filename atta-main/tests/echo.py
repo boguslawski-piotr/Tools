@@ -1,9 +1,9 @@
 ## \brief Echo task tests.
 
-from pyant import *
+from atta import *
 import os
 import stat
-import pyant.OS
+import atta.OS
 
 Project.defaultTarget = 'test'
 

@@ -1,5 +1,5 @@
 import os
-from pyant.Interfaces import ILogger
+from atta.Interfaces import ILogger
 
 ## Default logger.
 class Logger(ILogger):

@@ -1,4 +1,4 @@
-from pyant import *
+from atta import *
 
 Project.defaultTarget = 'install'
 

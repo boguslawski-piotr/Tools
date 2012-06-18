@@ -1,6 +1,6 @@
 ## \brief PyExec task tests.
 
-from pyant import *
+from atta import *
 
 Project.defaultTarget = 'test'
 

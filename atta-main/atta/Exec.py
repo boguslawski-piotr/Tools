@@ -9,9 +9,13 @@
 #
 # \copydoc ExecTaskFamilyParams
 #  
+# \return object with two attributtes \n
+# \type int returnCode
+# \type string output
+#
 # \uc exec.py
 #
-# \impl{pyant.Exec.Exec}
+# \impl{atta.Exec.Exec}
 #
 # \todo 
 # Read stdout during the execution process \n
@@ -39,8 +43,8 @@ import io
 import sys
 import os
 import subprocess
-from pyant.BaseClasses import Task
-from pyant.Log import LogLevel
+from atta.BaseClasses import Task
+from atta.Log import LogLevel
 
 ## Exec task implementation
 class Exec(Task):

@@ -1,6 +1,6 @@
 ## \brief Exec task tests.
 
-from pyant import *
+from atta import *
 
 Project.defaultTarget = 'test'
 
@@ -11,5 +11,7 @@ class test(Target):
     Exec('cmd', ['/c', 'dir', '*.py'])
     Exec('git', ['status'])
     Exec('echo', ['1','2','3'])
-    Echo(Env.cwd)
-    pass
+    e = Exec('echo', ['1','2','3'], logOutput = False, failOnError = False)
+    if e.returnCode == 0:
+      Echo(e.output)
+

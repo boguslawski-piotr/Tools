@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
-## \brief  pyant main
+## \brief  atta main
 #  \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 
 import sys
 import importlib
 
-from pyant.BaseClasses import *
-from pyant.Log import *
-from pyant.Properties import Properties
-from pyant.OS import *
+from atta.BaseClasses import *
+from atta.Log import *
+from atta.Properties import Properties
+from atta.OS import *
 
 #===============================================================================
 # Consts
@@ -23,7 +23,7 @@ defaultBuildFile = 'build.py'
 
 Program.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-# TODO: read pyant.properties
+# TODO: read atta.properties
 #p = Properties()
 Program.version = '0.1'
 
@@ -33,9 +33,9 @@ argsParser = argparse.ArgumentParser(
   prog = Program.name,
   formatter_class=argparse.RawDescriptionHelpFormatter,
   description = 
-  'pyant v' + Program.version + 
+  Program.name + ' v' + Program.version + 
   '''
-  The Ant in Python :)''',
+  ''',
   epilog = 
     'Bugs found, suggestions for improvements, etc. \nplease send to: boguslawski.piotr@gmail.com'
 )
@@ -67,7 +67,7 @@ if args.lc:
            '\nLoggerBridge.LoggerClass = ' + args.lc[0] + '.Logger\n'
   exec(script)
 else:
-  from pyant.StdLogger import Logger
+  from atta.StdLogger import Logger
   LoggerBridge.LoggerClass = Logger
   
 Project.dirName = os.path.normpath(os.path.realpath(os.path.dirname(args.f[0])))

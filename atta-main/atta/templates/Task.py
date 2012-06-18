@@ -14,7 +14,7 @@
 #  
 # \uc [task_name].py
 #
-# \impl{pyant.[task_name].[task_name]}
+# \impl{atta.[task_name].[task_name]}
 #
 # \todo 
 #
@@ -23,8 +23,8 @@
 # \example [task_name].py
 # [task_name] task use cases.
 
-from pyant.BaseClasses import Task
-from pyant.Log import LogLevel
+from atta.BaseClasses import Task
+from atta.Log import LogLevel
 
 # [task_name] task implementation
 class [task_name](Task):

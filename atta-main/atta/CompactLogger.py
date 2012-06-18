@@ -1,4 +1,4 @@
-from pyant import StdLogger
+from atta import StdLogger
 
 ## Compact logger.
 #  This logger omits output of empty target output.

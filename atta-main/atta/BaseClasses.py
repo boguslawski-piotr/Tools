@@ -1,13 +1,15 @@
-from datetime import datetime
 import sys
 import os
-from pyant.Log import LogLevel, Log, LogNM
+from datetime import datetime
+from atta.Log import LogLevel, Log, LogNM
 
 ## Program class 
 #  TODO: description
 class Program():
-  name = 'pyant'
+  name = 'atta'
+  description = ''
   version = None
+  
   dirName = None
   args = None
 

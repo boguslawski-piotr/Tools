@@ -21,7 +21,7 @@ logLevel = LogLevel.INFO
 
 ## Sends message and parameters to the log.
 #  More information about logs can be found 
-#  in \link pyant.Interfaces.ILogger \endlink. 
+#  in \link atta.Interfaces.ILogger \endlink. 
 def Log(msg, **args):
   level = args.get('level', LogLevel.INFO)
   if _LogAllowed(level):
@@ -29,7 +29,7 @@ def Log(msg, **args):
 
 ## Sends parameters to the log.
 #  More information about logs can be found 
-#  in \link pyant.Interfaces.ILogger \endlink. 
+#  in \link atta.Interfaces.ILogger \endlink. 
 def LogNM(**args):
   Log('', **args)
   

@@ -9,7 +9,7 @@
 #                 \def blank line
 # 
 # \tparam level   Control the log level at which this message is reported.
-#                 \type \link pyant.Log.LogLevel LogLevel \endlink
+#                 \type \link atta.Log.LogLevel LogLevel \endlink
 #                 \def INFO
 #          
 # \tparam file    The file name or a file-like object to write the message to.
@@ -26,7 +26,7 @@
 #
 # \uc Echo.py
 #
-# \impl{pyant.Echo.Echo}
+# \impl{atta.Echo.Echo}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
@@ -35,8 +35,8 @@
 
 import os
 import stat
-from pyant.BaseClasses import Task
-from pyant.Log import LogLevel
+from atta.BaseClasses import Task
+from atta.Log import LogLevel
 
 ## Echo task implementation
 class Echo(Task):

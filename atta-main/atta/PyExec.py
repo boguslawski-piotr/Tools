@@ -11,7 +11,7 @@
 #
 # \uc pyexec.py
 #
-# \impl{pyant.PyExec.PyExec}
+# \impl{atta.PyExec.PyExec}
 #
 # \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 #
@@ -20,9 +20,9 @@
 
 import sys
 import os
-from pyant.Exec import Exec
-from pyant.Log import LogLevel
-from pyant.OS import Ext
+from atta.Exec import Exec
+from atta.Log import LogLevel
+from atta.OS import Ext
 
 class PyExec(Exec):
   def __init__(self, fileName, params = [], **tparams):  

@@ -1,18 +1,20 @@
-The Ant In Python (the working name)                                 {#mainpage}
-====================================
+Atta                                                                 {#mainpage}
+====
 
 ## Draft
  
-Build system and build scripts in pure python.
+Atta 'will be' a FREE build tool, targets-tasks driven, developed in pure Python.
 
-TODO: give a cool and sensible brief description 
+Similar in philosophy to the Ant, NAnt, etc. but without the use of XML syntax nightmare.
+
+TODO: give a cool and sensible extended description 
 
 ## Example
 
 build.py script:
 
 <pre>
-  from pyant import *
+  from atta import *
   
   Project.defaultTarget = 'install'
   
@@ -22,7 +24,6 @@ build.py script:
       
     def Run(self):
       Echo('enter prepare')
-      pass
     
   class precompile(Target):
     DependsOn = [prepare]
@@ -37,13 +38,13 @@ build.py script:
   class install(Target):
     DependsOn = [prepare, compile, precompile]
     def Run(self):
-      Echo('enter install', level=LogLevel.WARNING)
+      Echo('enter install', level = LogLevel.WARNING)
 </pre>
     
 run it:
 
 <pre>
-  $> pyant
+  $> atta
 </pre>
 
 and output will be:

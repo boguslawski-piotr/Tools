@@ -1,5 +1,5 @@
-## \package  pyant
-#  \brief    pyant implementation
+## \package  atta
+#  \brief    atta implementation
 #
 # \todo Utility for universal .bat/.sh/.cmd/ etc. invoking (?)
 #
