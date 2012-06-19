@@ -3,12 +3,12 @@ import glob
 import shutil
 import re
 
-from atta import *
 from atta.OS import *
 from atta.Properties import Properties
 from atta.Log import Log, LoggerBridge
+from atta import *
 
-if atta is None or project is None:
+if attai is None or project is None:
   raise SystemError('The program was launched outside the Atta.')
 
 project.defaultTarget = 'help'
@@ -18,7 +18,7 @@ prop.Open('build.properties')
 
 class help(Target):
   def Run(self):
-    Echo(atta.name + ' v' + atta.versionName + \
+    Echo(attai.name + ' v' + attai.versionName + \
 '''
 Usage: atta [target]
 

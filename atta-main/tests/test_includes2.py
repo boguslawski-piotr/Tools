@@ -29,6 +29,6 @@ project.Import('../another_tests/includes2')
 
 project.RunTarget('...another_tests.includes2.includes2')
 
-project.Import('../../Tools/python/AqTools')
+#project.Import('../../Tools/python/AqTools')
 
 project.Import('test_includes2')

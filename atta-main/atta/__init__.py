@@ -1,12 +1,10 @@
 ## \package  atta
 #  \brief    atta implementation
 #
-# \todo Utility for universal .bat/.sh/.cmd/ etc. invoking (?)
-#
 
 __all__ = [
            # Environment
-           'atta',
+           'attai',
            'project',
            'file',
 
@@ -25,8 +23,8 @@ __all__ = [
 ## \defgroup Env Environment
 #
 
-global atta
-atta = None
+global attai
+attai = None
 
 global project
 project = None

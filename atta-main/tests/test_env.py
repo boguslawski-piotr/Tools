@@ -2,7 +2,7 @@
 
 from atta import *
 
-if atta is None or project is None:
+if attai is None or project is None:
   raise SystemError('The program was launched outside the Atta.')
 
 project.defaultTarget = 'test'
@@ -16,9 +16,9 @@ Echo('  name: ' + file.name)
 class test(Target):
   def Run(self):
     Echo('Atta:')
-    Echo('     Version name: ' + atta.versionName)
-    Echo('  Version numeric: ' + str(atta.version))
-    Echo('   Home directory: ' + atta.dirName)
+    Echo('     Version name: ' + attai.versionName)
+    Echo('  Version numeric: ' + str(attai.version))
+    Echo('   Home directory: ' + attai.dirName)
 
     Echo()
     Echo('Project:')

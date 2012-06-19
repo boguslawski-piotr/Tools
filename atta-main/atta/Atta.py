@@ -39,11 +39,11 @@ class Atta():
     self._Dump()
   
   def Run(self):
-    prevAttaAtta = atta.atta
+    prevAttaAtta = atta.attai
     try:
-      atta.atta = self
-      project = Project()
-      project._Run(self.environ, self.args.f[0], self.args.target)
+      atta.attai = self
+      _project = Project()
+      _project._Run(self.environ, self.args.f[0], self.args.target)
       return 0
     
     except Exception, e:
@@ -54,7 +54,7 @@ class Atta():
         return 1
     
     finally:
-      atta.atta = prevAttaAtta
+      atta.attai = prevAttaAtta
   
   ## \privatesection
 
