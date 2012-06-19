@@ -4,9 +4,13 @@ import OS
 
 ## Class that allows the dynamic selection logging implementation.
 class LoggerBridge:
+  ## \privatesection
+  
   _loggerClass = StdLogger.Logger
   _logger = None
   
+  ## \publicsection
+
   @staticmethod
   def SetLoggerClass(loggerClass):
     oldloggerClass = LoggerBridge._loggerClass
@@ -21,10 +25,15 @@ class LoggerBridge:
     return oldloggerClass
   
   @staticmethod
+  def GetLogger():
+    return LoggerBridge._logger
+  
+  @staticmethod
   def Log(msg, **args):
     if LoggerBridge._logger is None:
       LoggerBridge._logger = LoggerBridge._loggerClass()
     LoggerBridge._logger.Log(msg, **args)
+#}
         
 ## Defines the available log levels. 
 class LogLevel:
@@ -41,6 +50,7 @@ class LogLevel:
   @staticmethod
   def LogAllowed(level):
     return level >= LogLevel.actual
+#}
   
 ## Sends message and parameters to the log.
 #  More information about logs can be found 
