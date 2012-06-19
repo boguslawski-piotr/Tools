@@ -22,9 +22,10 @@
 
 import sys
 import os
-from atta.Exec import Exec
-from atta.Log import LogLevel
-from atta.OS import Ext
+
+from Exec import Exec
+from Log import LogLevel
+from OS import Ext
 
 class PyExec(Exec):
   def __init__(self, fileName, params = [], **tparams):  

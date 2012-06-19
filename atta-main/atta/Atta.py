@@ -1,41 +1,40 @@
+import platform
 import sys
 import os
-from datetime import datetime
+
 import atta
-import atta.StdLogger
-from atta.Log import *
-from atta.Project import Project
+import OS
+from Log import LogLevel, Log, LoggerBridge
+from Properties import Properties
+from Project import Project
 
 ## Atta class 
 #  TODO: description
 class Atta():
   def __init__(self, environ, dirName, argv):
-    if LoggerBridge.LoggerClass is None:
-      LoggerBridge.LoggerClass = atta.StdLogger.Logger
-    
     self.name = 'Atta'
     self.description = ''
     
-    #!v:
     self.versionName = '0.2'
-    #!
-    
-    va = self.versionName.split('.')
     self.version = int(self.versionName.replace('.', ''))  
     
     self.environ = environ
     self.dirName = dirName
-    self.argv = argv
     
-    self.args = self._ParseArgv(self.argv)
+    prop = Properties().Open(os.path.join(self.dirName, 'atta.properties'))
+    
+    args = prop.Get('args', None)
+    if args is not None:
+      argv += args.split(' ')
+    print argv
+    self.args = self._ParseArgv(argv)
     
     if self.args.ll:
       LogLevel.actual = self.args.ll[0]
 
     if self.args.lc:
-      script = 'import ' + self.args.lc[0] + \
-               '\nLoggerBridge.LoggerClass = ' + self.args.lc[0] + '.Logger\n'
-      exec(script)
+      __import__(OS.RemoveExt(self.args.lc[0]))
+      LoggerBridge.SetLoggerClass(self.args.lc[0])
     
     self._Dump()
   
@@ -45,8 +44,15 @@ class Atta():
       atta.atta = self
       project = Project()
       project._Run(self.environ, self.args.f[0], self.args.target)
-    except:
-      raise
+      return 0
+    
+    except Exception, e:
+      if self.args.scs or LogLevel.actual <= LogLevel.VERBOSE:
+        raise
+      else:
+        Log(e, level = LogLevel.ERROR)
+        return 1
+    
     finally:
       atta.atta = prevAttaAtta
   
@@ -71,22 +77,32 @@ class Atta():
       help = 'use given buildfile'
     )
     argsParser.add_argument(
-      '-ll', nargs = 1, metavar = 'level', type = int, choices = [0,1,2,3,4], 
-      help = 'log level'
+      '-lc', nargs = 1, metavar = 'class',
+      help = 'use given class as logger (must implements ILogger interface)'
     )
     argsParser.add_argument(
-      '-lc', nargs = 1, metavar = 'module',
-      help = 'use given Logger class from module'
+      '-scs', action = 'store_true',
+      help = 'shows call stack (traceback) on error')
+    argsParser.add_argument(
+      '-ll', nargs = 1, metavar = 'level', type = int, choices = [0,1,2,3,4], 
+      help = 'sets the log level'
     )
     
     args, argv = argsParser.parse_known_args(argv)
     if argv:
-        _msg = _('unrecognized arguments: %s')
-        argsParser.error(_msg % ' '.join(argv))
+      _msg = _('unrecognized arguments: %s')
+      argsParser.error(_msg % ' '.join(argv))
+    
     return args
     
   def _Dump(self):
+    Log('*** Atta', level = LogLevel.DEBUG)
+    Log('Platform.platform = ' + platform.platform(), level = LogLevel.DEBUG)
+    Log('Platform.system = ' + platform.system(), level = LogLevel.DEBUG)
+    Log('Python.versionName = ' + platform.python_version(), level = LogLevel.DEBUG)
     Log('Atta.versionName = ' + self.versionName, level = LogLevel.DEBUG)
     Log('Atta.version = ' + str(self.version), level = LogLevel.DEBUG)
+    Log('Atta.dirName = ' + self.dirName, level = LogLevel.DEBUG)
     Log("Atta.args = {0}".format(self.args), level = LogLevel.DEBUG)
+    Log('***', level = LogLevel.DEBUG)
 

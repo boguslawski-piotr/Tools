@@ -6,18 +6,23 @@ INVALID_FILE_SIZE = -1
 
 ## Returns the file name extension or empty string.
 #  \ingroup Utils 
-def Ext(fileName):
+def Ext(fileName, lowerCase = True):
   if fileName.rfind('.') < 0:
     return ''
   fileNameSplited = fileName.split('.')
-  return fileNameSplited[len(fileNameSplited) - 1].lower()
+  ext = fileNameSplited[len(fileNameSplited) - 1]
+  if lowerCase: ext = ext.lower()
+  return ext
 
 ## Removes the extension from the file name.
 #  \return New file name without extension.
 #  \ingroup Utils 
 def RemoveExt(fileName):
-  i = fileName.rfind('.')
-  return fileName if i <= 0 else fileName[0:i];
+  d = fileName.rfind('.')
+  s = fileName.rfind('/')
+  if s < 0:
+    s = fileName.rfind('\\')
+  return fileName if d <= 0 or d < s else fileName[0:d];
   
 ## Works like os.remove but not throwing an exception if path not exists.
 #  \ingroup Utils 

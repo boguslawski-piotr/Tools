@@ -35,8 +35,9 @@
 
 import os
 import stat
-from atta.BaseClasses import Task
-from atta.Log import LogLevel
+
+from BaseClasses import Task
+from Log import LogLevel
 
 ## Echo task implementation
 class Echo(Task):

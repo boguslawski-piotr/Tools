@@ -1,12 +1,14 @@
 import sys
 import os
-import importlib
 from datetime import datetime
 
-from atta.OS import *
-from atta.Log import *
-from atta.Env import *
+# Python 2.7+
+#import importlib
+
 import atta
+from OS import *
+from Log import *
+from Env import *
 
 ## Project class
 #  TODO: description
@@ -36,51 +38,81 @@ class Project:
         self.name = fileName
     
     prevAttaFile = atta.file
+    prevDir = None
     moduleName = None
-    _file = None
+    module = None
 
-    try:
-      fileName   = RemoveExt(os.path.normpath(os.path.realpath(fileName)))
-      dirName    = os.path.dirname(fileName)
-      moduleName = os.path.basename(fileName)
-      fileName   = fileName + '.py'
+    try: #{
+      orgFileName = fileName
+      fileName    = RemoveExt(os.path.normpath(os.path.realpath(fileName)))
+      dirName     = os.path.dirname(fileName)
+      moduleName  = os.path.basename(fileName)
+      fileName    = fileName + '.py'
       if not os.path.exists(fileName):
         raise IOError(os.errno.ENOENT, 'File: {0} does not exists!'.format(fileName))
       
-      packageFileName = None
+      logLevel = LogLevel.DEBUG
+      Log('\n+++\nProject.Import(' + orgFileName + ')', level = logLevel)
+      Log('  dirName = ' + dirName, level = logLevel)
+      Log('  fileName = ' + dirName, level = logLevel)
       
-      if sys.modules.has_key(moduleName):
-        moduleName = RemoveExt(fileName.replace(self.dirName, '').replace(os.path.sep, '.'))
-        if moduleName[0] == '.': 
-          moduleName = moduleName[1:]
-          
+      fullModuleName = moduleName
+      if fileName[0:len(self.dirName)] == self.dirName:
+        fullModuleName = RemoveExt(fileName.replace(self.dirName, '').replace(os.path.sep, '.'))
+        fullModuleName = fullModuleName[(1 if fullModuleName[0] == '.' else 0):]
+      else:
+        fullModuleName = RemoveExt(orgFileName).replace('\\', '.').replace('/', '.')
+      
+      packageFileName = None
+      if sys.modules.has_key(moduleName): #{
+        lastDOT = fullModuleName.rfind('.')
+        if lastDOT >= 0:
+          lastDOT = fullModuleName.rfind('.', 0, lastDOT - 1)
+          moduleName = fullModuleName[lastDOT + 1:]
         packageFileName = os.path.join(dirName, '__init__.py')
         if not os.path.exists(packageFileName):
-          Remove(packageFileName)
           try: open(packageFileName, 'w').close()
           except: pass
         else:
           packageFileName = None
+      #}
             
-      atta.file = BuildFile(fileName)
       prevDir = self.env.chdir(dirName)
-      try:
+      atta.file = BuildFile(fileName)
+      
+      try: #{
+        Log('  fullModuleName = ' + fullModuleName, level = logLevel)
+        Log('  moduleName = ' + moduleName, level = logLevel)
+        Log('---\n', level = logLevel)
+        
         sys.path.insert(0, dirName)
-        _file = importlib.import_module(moduleName)
+        # Python 2.7+
+        #module = importlib.import_module(moduleName)
+        # Python 2.3+
+        __import__(moduleName)
+        module = sys.modules[moduleName]
+        
+        if fullModuleName != moduleName \
+           and not sys.modules.has_key(fullModuleName):
+          sys.modules[fullModuleName] = module
+        
         if packageFileName is not None:
           Remove(packageFileName)
-          
+          Remove(packageFileName + 'c')
+          Remove(packageFileName + 'o')
+      #}    
       except:
         raise
       finally:
-        self.env.chdir(prevDir)
-      
+        if prevDir is not None:
+          self.env.chdir(prevDir)
+    #}  
     except:
       raise
     finally:
       atta.file = prevAttaFile
     
-    return (moduleName, _file)
+    return (moduleName, module)
 
   def RunTarget(self, targetClass):
     targetClass = self._GetTargetClass(targetClass)
@@ -91,11 +123,11 @@ class Project:
       self.executedTargets[targetClass]._Run()
     return
   
-  def RunProject(self, environ, buildFileName, targets = ''):
+  def RunProject(self, environ, fileName, targets = ''):
     project = Project(self)
     if environ is None:
       environ = self.env.vars
-    project._Run(environ, buildFileName, targets)
+    project._Run(environ, fileName, targets)
   
   ## \privatesection
   
@@ -103,7 +135,7 @@ class Project:
     prevDir = os.getcwd()
     prevAttaProject = atta.project
 
-    try:
+    try: #{
       self.startTime = datetime.now()
       
       atta.project = self
@@ -135,15 +167,14 @@ class Project:
             at = self.startTime)
       
       for targetName in targets:
-        self.executedTargets = {}
+        self.executedTargets = {} # Behavior compatible with Ant.
         self.RunTarget(moduleName + '.' + targetName)
     
       self._End(Project.SUCCESSFUL)
-      
+    #}  
     except Exception, e:
       self._End(Project.FAILED, e)
       raise
-    
     finally:
       atta.project = prevAttaProject
       self.env.chdir(prevDir)
@@ -163,12 +194,13 @@ class Project:
   def _GetTargetClass(self, targetClass):
     if isinstance(targetClass, basestring):
       targetPackage = RemoveExt(targetClass)
-      targetClass = Ext(targetClass)
-      targetClass = sys.modules[targetPackage].__dict__[targetClass]
+      targetClass = sys.modules[targetPackage].__dict__[Ext(targetClass)]
     return targetClass
     
   def _Dump(self):
+    Log('*** Project', level = LogLevel.DEBUG)
     Log('Project.dirName = ' + self.dirName, level = LogLevel.DEBUG)
     Log('Project.fileName = ' + self.fileName, level = LogLevel.DEBUG)
     Log('Project.defaultTarget = ' + self.defaultTarget, level = LogLevel.DEBUG)
+    Log('***', level = LogLevel.DEBUG)
 

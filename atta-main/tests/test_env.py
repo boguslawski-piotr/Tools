@@ -18,6 +18,7 @@ class test(Target):
     Echo('Atta:')
     Echo('     Version name: ' + atta.versionName)
     Echo('  Version numeric: ' + str(atta.version))
+    Echo('   Home directory: ' + atta.dirName)
 
     Echo()
     Echo('Project:')

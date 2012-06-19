@@ -1,7 +1,8 @@
 import os
 import sys
-from atta.OS import *
-from atta.Log import LogLevel, Log, LogNM
+
+from OS import *
+from Log import LogLevel, Log, LogNM
 
 ## Base class for all targets.
 #  TODO: description

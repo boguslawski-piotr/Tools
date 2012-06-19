@@ -1,13 +1,15 @@
 ## \brief Includes 2 test.
 
 import sys
+import os
 from atta import *
 
-Echo('    0 In: ' + file.name)
+Echo('    2 In: ' + file.name)
+Echo('    2 cwd: ' + os.getcwd())
 
 project.Import('../../includes3')
 
-Echo('    1 In: ' + file.name)
+Echo('    2 In: ' + file.name)
 
 class includes2(Target):
   def Run(self):

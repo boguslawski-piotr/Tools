@@ -3,36 +3,28 @@
 ## \brief  atta main
 #  \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
 
-import sysconfig
+import platform
 import sys
 import os
 
 from atta.Atta import Atta
-from atta.Log import LogLevel, Log, LoggerBridge
-import atta
-
-minPythonVersion = '2.7'
 
 def Main():
-  if LoggerBridge.LoggerClass is None:
-    LoggerBridge.LoggerClass = atta.StdLogger.Logger
-
-  try:
-    if int(sysconfig.get_python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
-      raise SystemError('Wrong version of Python. Requires {0} and {1} were detected.'.format(minPythonVersion, sysconfig.get_python_version()))
-     
+  minPythonVersion = '2.7.0'
+  if int(platform.python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
+    # check Python version
+    print('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version()))
+    return 1
+  
+  else:
+    # run Atta
     _atta = Atta(os.environ,
                  os.path.dirname(os.path.realpath(sys.argv[0])), 
                  sys.argv[1:])
-    _atta.Run()
-    return 0
-  
-  except Exception, e:
-    if LogLevel.actual <= LogLevel.VERBOSE:
-      raise
-    else:
-      Log(e, level = LogLevel.ERROR)
-      return 1
+    return _atta.Run()
+    
+##
+#
     
 if __name__ == "__main__":
   sys.exit(Main())

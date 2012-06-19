@@ -1,11 +1,30 @@
+import sys
+import StdLogger
+import OS
 
 ## Class that allows the dynamic selection logging implementation.
 class LoggerBridge:
-  LoggerClass = None
-
+  _loggerClass = StdLogger.Logger
+  _logger = None
+  
+  @staticmethod
+  def SetLoggerClass(loggerClass):
+    oldloggerClass = LoggerBridge._loggerClass
+    if isinstance(loggerClass, basestring):
+      print sys.modules[OS.RemoveExt(loggerClass)].__dict__
+      print OS.RemoveExt(loggerClass)
+      print OS.Ext(loggerClass)
+      LoggerBridge._loggerClass = sys.modules[OS.RemoveExt(loggerClass)].__dict__[OS.Ext(loggerClass, False)]
+    else:
+      LoggerBridge._loggerClass = loggerClass
+    LoggerBridge._logger = None
+    return oldloggerClass
+  
   @staticmethod
   def Log(msg, **args):
-    LoggerBridge.LoggerClass().Log(msg, **args)
+    if LoggerBridge._logger is None:
+      LoggerBridge._logger = LoggerBridge._loggerClass()
+    LoggerBridge._logger.Log(msg, **args)
         
 ## Defines the available log levels. 
 class LogLevel:

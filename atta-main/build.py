@@ -6,9 +6,10 @@ import re
 from atta import *
 from atta.OS import *
 from atta.Properties import Properties
+from atta.Log import Log, LoggerBridge
 
-print atta.versionName
-print atta.version
+if atta is None or project is None:
+  raise SystemError('The program was launched outside the Atta.')
 
 project.defaultTarget = 'help'
 
@@ -32,11 +33,25 @@ class clean(Target):
     for fileName in glob.glob('*.py?'): os.remove(fileName)
     shutil.rmtree('docs', True)
 
+import atta.StdLogger
+
+class TestsLogger(atta.StdLogger.Logger):
+  def __init__(self):
+    open(os.path.join(project.dirName, 'tests.log'), 'wb').close()
+    
+  def _PhysicalLog(self, msg):
+    if msg:
+      print(msg)
+      with open(os.path.join(project.dirName, 'tests.log'), 'a+b') as f:
+        f.write(msg + os.linesep)
+  
 class tests(Target):
   def Run(self):
+    olc = LoggerBridge.SetLoggerClass(TestsLogger)
     for fileName in glob.glob('tests/test*.py'):
+      Log('\nRunning project: ' + fileName)
       project.RunProject(None, fileName, '')
-    
+    LoggerBridge.SetLoggerClass(olc)
 ##
 #
 
@@ -102,9 +117,9 @@ class makedocs_old(Target):
 
           m = re.search('\_((.+)\.html)', line)
           if m != None: 
-#            print '* ' + m.group(0)
-#            print m.group(1)
-#            print m.group(2)
+#            print( '* ' + m.group(0))
+#            print( m.group(1))
+#            print( m.group(2))
             line = str(line).replace(m.group(0), '<a href="' + m.group(1) + '">Details</a>')
 
           m = re.search('\^(([a-zA-z\_\-]+)\.html)', line)

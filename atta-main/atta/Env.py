@@ -1,9 +1,9 @@
 import sys
 import os
 
-from atta.OS import *
-from atta.Log import *
 import atta
+from OS import *
+from Log import *
 
 ## Env class 
 #  TODO: description
@@ -35,5 +35,7 @@ class Env():
     return self.vars.__getitem__(key)
   
   def _Dump(self):
+    Log('*** Env', level = LogLevel.DEBUG)
     for key, value in self.vars.iteritems():
       Log('Env.' + key + ' = ' + value, level = LogLevel.DEBUG)
+    Log('***', level = LogLevel.DEBUG)

@@ -5,7 +5,7 @@
 #
 
 __all__ = [
-           # Globals
+           # Environment
            'atta',
            'project',
            'file',
@@ -22,6 +22,9 @@ __all__ = [
            'PyExec',
           ]
 
+## \defgroup Env Environment
+#
+
 global atta
 atta = None
 
@@ -36,10 +39,14 @@ file = None
 
 from Log import LogLevel
 
-##  \defgroup Targets Targets
+##  \defgroup Base Base classes
 #
 
 from BaseClasses import Target, Task
+
+## \defgroup Targets Targets and target groups
+# All available targets and targets groups.
+#
 
 ## \defgroup Tasks Tasks
 # All available tasks.

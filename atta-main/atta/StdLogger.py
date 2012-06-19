@@ -1,5 +1,5 @@
 import os
-from atta.Interfaces import ILogger
+from Interfaces import ILogger
 
 ## Default logger.
 class Logger(ILogger):
@@ -14,7 +14,7 @@ class Logger(ILogger):
   
   def _PhysicalLog(self, msg):
     if msg:
-      print msg
+      print(msg)
       
   def _HandleBuild(self, msg, **args):
     if 'project' in args:
