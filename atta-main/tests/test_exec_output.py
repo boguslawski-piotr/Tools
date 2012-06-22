@@ -1,4 +1,4 @@
-## \brief PyExec task tests.
+'''Exec and PyExec task big output tests.'''
 
 from atta import *
 

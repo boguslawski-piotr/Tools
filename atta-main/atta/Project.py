@@ -6,13 +6,16 @@ from datetime import datetime
 #import importlib
 
 import atta
-from OS import *
+from tools.OS import *
 from Log import *
 from Env import *
 
-## Project class
-#  TODO: description
 class Project:
+  '''
+  Project class
+    
+  TODO: description
+  '''
   SUCCESSFUL = 0
   FAILED = 1
 
@@ -129,7 +132,7 @@ class Project:
       environ = self.env.vars
     project._Run(environ, fileName, targets)
   
-  ## \privatesection
+  '''private section'''
   
   def _Run(self, environ, buildFileName, targets):
     prevDir = os.getcwd()
@@ -142,11 +145,11 @@ class Project:
       
       self.dirName = os.path.normpath(os.path.realpath(os.path.dirname(buildFileName)))
       self.fileName = os.path.join(self.dirName, RemoveExt(os.path.basename(buildFileName)) + '.py')
-      if not os.path.exists(self.fileName):
-        raise IOError(os.errno.ENOENT, 'Buildfile: {0} does not exists!'.format(self.fileName))
-      
       self.env = Env(environ)
       self.env.chdir(self.dirName)
+
+      if not os.path.exists(self.fileName):
+        raise IOError(os.errno.ENOENT, 'Buildfile: {0} does not exists!'.format(self.fileName))
       
       if self.parent is None:
         Log('Buildfile: ' + self.fileName)

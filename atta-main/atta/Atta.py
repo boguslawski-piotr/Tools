@@ -3,19 +3,25 @@ import sys
 import os
 
 import atta
-import OS
-from Log import LogLevel, Log, LoggerBridge
-from Properties import Properties
-from Project import Project
 
-## Atta class 
-#  TODO: description
+from Log import LogLevel, Log, SetLogger
+from Project import Project
+from version import attaVersionName
+
+from tools.Properties import Properties
+import tools.OS as OS
+
 class Atta():
+  '''
+  .. snippet:: Atta
+    
+    TODO: description
+  '''
   def __init__(self, environ, dirName, argv):
     self.name = 'Atta'
     self.description = ''
     
-    self.versionName = '0.2'
+    self.versionName = attaVersionName
     self.version = int(self.versionName.replace('.', ''))  
     
     self.environ = environ
@@ -26,7 +32,6 @@ class Atta():
     args = prop.Get('args', None)
     if args is not None:
       argv += args.split(' ')
-    print argv
     self.args = self._ParseArgv(argv)
     
     if self.args.ll:
@@ -34,7 +39,7 @@ class Atta():
 
     if self.args.lc:
       __import__(OS.RemoveExt(self.args.lc[0]))
-      LoggerBridge.SetLoggerClass(self.args.lc[0])
+      SetLogger(self.args.lc[0])
     
     self._Dump()
   
@@ -56,8 +61,8 @@ class Atta():
     finally:
       atta.attai = prevAttaAtta
   
-  ## \privatesection
-
+  '''private section'''
+            
   def _ParseArgv(self, argv):
     import argparse
     

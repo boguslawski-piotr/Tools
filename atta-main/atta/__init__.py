@@ -1,6 +1,4 @@
-## \package  atta
-#  \brief    atta implementation
-#
+'''Atta interface for build scripts'''
 
 __all__ = [
            # Environment
@@ -9,19 +7,23 @@ __all__ = [
            'file',
 
            # Enums & Classes
-           'LogLevel',
            'Project',
            'Target',
            'Task',
            
+           # Tools
+           'LogLevel',
+           'Properties',
+           'FileSet',
+           'DirSet',
+
            # Tasks
            'Echo',
            'Exec',
            'PyExec',
           ]
 
-## \defgroup Env Environment
-#
+# Environment
 
 global attai
 attai = None
@@ -32,25 +34,23 @@ project = None
 global file
 file = None
 
-## \defgroup Utils Utils
-#
+# Tools
 
 from Log import LogLevel
+from tools.Sets import FileSet, DirSet
+from tools.Properties import Properties
 
-##  \defgroup Base Base classes
-#
+# Base classes
 
 from BaseClasses import Target, Task
 
-## \defgroup Targets Targets and target groups
+# Targets
 # All available targets and targets groups.
-#
 
-## \defgroup Tasks Tasks
+# Tasks
 # All available tasks.
-#
 
-from Echo import Echo
-from Exec import Exec
-from PyExec import PyExec
+from tasks.Echo import Echo
+from tasks.Exec import Exec
+from tasks.PyExec import PyExec
   

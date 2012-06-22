@@ -1,75 +1,62 @@
-## \package Exec 
-#  \brief   Exec task 
-#  \ingroup Tasks 
-#
-# \task{Exec(executable[, params, **tparams])}
-#
-# \param  executable The command to execute without any command line arguments.
-#                    \type string 
-#
-# \copydoc ExecTaskFamilyParams
-#
-# \copydoc ExecTaskFamilyReturns
-#  
-# \todo 
-# Add reading environment variable set by the executed process \n
-# Parameters: os and osFamily \n
-#
-# \uc test_exec.py
-# \uc test_env2.py
-#
-# \impl{atta.Exec.Exec}
-#
-# \author Piotr Boguslawski (boguslawski.piotr@gmail.com)
-#
-# \example test_exec.py
-# Exec task use cases.
-# \example test_env2.py
-# Exec task and environments variables use cases.
-
-## \defgroup ExecTaskFamilyParams Common parameters: Exec tasks family
-# @{
-# \param  params      Command line arguments.
-#                     \type list of strings
-#                     \def empty
-#
-# \tparam failOnError Stop the buildprocess if the command exits with a return code signaling failure.
-#                     \type boolean
-#                     \def True
-# \tparam logOutput   \trans Przesyla stdout and stderr do logu Atta. 
-#                     \type boolean
-#                     \def True
-# \tparam useSheel    Command will be executed through the shell. 
-#                     More information can be found <a href="http://docs.python.org/library/subprocess.html?highlight=popen#subprocess.Popen">here.</a>
-#                     \type boolean
-#                     \def True
-# \tparam env         Environment variables. Completely replace the variables from the project.
-#                     \type dict
-#                     \def None
-# @}
-
-## \defgroup ExecTaskFamilyReturns Common returns: Exec tasks family
-# @{
-# \return Object with two attributtes:
-#         \rvalN returnCode Exit code returned by executed command.
-#                           \type int
-#         \rvalN output     Captured contents of stdout and stderr.
-#                           \type string
-#
-# @}
-
 import io
 import sys
 import os
 import subprocess
 import threading
 
-import atta
-from BaseClasses import Task
-from Log import LogLevel
+import atta 
+#import project
+from ..BaseClasses import Task
+from ..Log import LogLevel
 
-## Exec task implementation
 class Exec(Task):
+  '''
+  .. snippet:: Exec
+  
+    .. code-block:: python
+
+      Exec(executable[, params, **tparams])}
+
+    Executes a system command. 
+
+  .. snippet:: ExecAdditionalInfo
+  
+    TODO: detailed information
+    
+  .. snippet:: ExecParams
+
+    :param string executable:   The command to execute without any command line arguments.
+    
+  .. snippet:: ExecCommonParams
+
+    :param params:              Command line arguments |None|.
+    :type params:               list of strings
+    :param boolean failOnError: Stop the buildprocess if the command exits with a return code signaling failure |True|.
+    :param boolean logOutput:   TODO: Przesyla stdout and stderr do logu Atta |True|. 
+    :param boolean useSheel:    Command will be executed through the shell |True|. 
+                                More information can be found in `subprocess.Popen <http://docs.python.org/library/subprocess.html>`_ documentation.
+    :param dict env:            Environment variables. Completely replace the variables from the project |None|.
+                        
+  .. snippet:: ExecReturns
+                          
+    :return: Object with two attributtes:
+    
+      - returnCode (int) - Exit code returned by executed command.
+      - output (string)  - Captured contents of stdout and stderr.
+ 
+  .. todo::
+
+    - Add reading environment variables set by the executed process
+    - Parameters: os and osFamily
+
+  .. snippet:: ExecUseCases
+  
+    Use cases:
+    
+    .. literalinclude:: ../../../tests/test_exec.py
+    .. literalinclude:: ../../../tests/test_env2.py
+
+  '''
   def __init__(self, executable, params = [], **tparams):  
     failOnError = tparams.get('failOnError', True)
     self.logOutput = tparams.get('logOutput', True)
@@ -105,7 +92,7 @@ class Exec(Task):
     self.returnCode = _rc
     self.output = _output
 
-  ## \privatesection
+  '''private section'''
   
   def _reader(self, fh, output):
     line = ''

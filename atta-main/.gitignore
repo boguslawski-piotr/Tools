@@ -2,5 +2,11 @@
 *.pyo
 *.pyc
 /third_party
-/docs
 /README_.md
+/.settings
+/docs/.build
+/docs/html
+/build
+/dist
+/docs/modules
+/docs/modules.rst

@@ -1,8 +1,15 @@
 import os
-from Interfaces import ILogger
+from ..Interfaces import ILogger
 
-## Default logger.
 class Logger(ILogger):
+  '''
+  .. snippet:: loggers.StdLogger
+  
+    Default logger.
+     
+    TODO: description
+  '''
+  
   def Log(self, msg, **args):
     _msg = self._HandleBuild(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)
     if _msg is None:
@@ -10,7 +17,7 @@ class Logger(ILogger):
     self._PhysicalLog(_msg)
     return
   
-  ## \privatesection
+  '''private section'''
   
   def _PhysicalLog(self, msg):
     if msg:

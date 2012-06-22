@@ -1,8 +1,13 @@
 import StdLogger
 
-## Compact logger.
-#  This logger omits output of empty target output.
 class Logger(StdLogger.Logger):
+  '''
+  .. snippet:: loggers.CompactLogger
+  
+    Compact logger.
+     
+    This logger omits output of empty target output.
+  '''
   def __init__(self):
     self.targetName = ''
   
@@ -11,7 +16,8 @@ class Logger(StdLogger.Logger):
     
     if _msg is None:
       if 'target' in args: 
-        if 'prepare' in args: self.targetName = self._HandleTarget(msg, **args)
+        if 'prepare' in args: 
+          self.targetName = self._HandleTarget(msg, **args)
       
     if _msg is None:
       _msg = '{0}'.format(msg)

@@ -1,12 +1,12 @@
-## \brief Echo task tests.
+'''Echo task tests.'''
 
 from atta import *
 import os
 import stat
-import atta.OS
 
-Echo('In: ' + file.name)
 project.defaultTarget = 'test'
+
+localData = 'local data...'
 
 class test(Target):
   def Run(self):
@@ -23,7 +23,17 @@ line''')
     Echo('debug, verbose, info, warning', level = LogLevel.WARNING)
     Echo('always', level = LogLevel.ERROR)
     
-    Echo()
+    Echo('''
+Use of variables    
+  var1: ${var1}
+  var2 (not defined): ${var2}
+  var3 (reference to var1): ${var3}
+  project.dirName: ${atta.Project.dirName}
+  localData: ${test_echo.localData}
+  notDefined: ${test_echo.notDefined}
+''',
+    var1 = 'var 1 contents',
+    var3 = '${var1}')
     
     testFileName = 'echo.log'
     

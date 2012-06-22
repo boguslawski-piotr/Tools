@@ -1,4 +1,4 @@
-## \brief Environment properties test.
+'''Environment properties test.'''
 
 from atta import *
 

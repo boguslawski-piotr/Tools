@@ -1,12 +1,18 @@
+'''
+.. snippet:: OS
+
+  TODO: description
+'''
 import os
 import hashlib
 
-global INAVLID_FILE_SIZE
-INVALID_FILE_SIZE = -1
+'''
+Path Tools
+-----------
+'''
 
-## Returns the file name extension or empty string.
-#  \ingroup Utils 
 def Ext(fileName, lowerCase = True):
+  '''Returns the file name extension or empty string.'''
   if fileName.rfind('.') < 0:
     return ''
   fileNameSplited = fileName.split('.')
@@ -14,50 +20,59 @@ def Ext(fileName, lowerCase = True):
   if lowerCase: ext = ext.lower()
   return ext
 
-## Removes the extension from the file name.
-#  \return New file name without extension.
-#  \ingroup Utils 
 def RemoveExt(fileName):
+  '''Returns the file name without extension.'''
   d = fileName.rfind('.')
   s = fileName.rfind('/')
   if s < 0:
     s = fileName.rfind('\\')
   return fileName if d <= 0 or d < s else fileName[0:d];
   
-## Works like os.remove but not throwing an exception if path not exists.
-#  \ingroup Utils 
-def Remove(path):
+def Remove(fileName):
+  '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
   try:
-    os.remove(path)
+    os.remove(fileName)
   except os.error as e:
     if e.errno != os.errno.ENOENT:
       raise
 
-## Works like os.makedirs but not throwing an exception if path exists.
-#  \ingroup Utils 
+'''
+Directories Tools
+'''
+    
 def MakeDirs(path):
+  '''
+  Recursive directory creation function. Works like :py:func:`os.makedirs` 
+  but not throwing an exception if the leaf directory already exists.
+  '''
   try:
     os.makedirs(path)
   except os.error as e:
     if e.errno != os.errno.EEXIST:
       raise
 
-## Gets the file size.
-#  \return the file size or INAVLID_FILE_SIZE on any error.
-#  \ingroup Utils 
+'''
+File tools
+'''
+    
+global INAVLID_FILE_SIZE
+INVALID_FILE_SIZE = -1
+'''Constant meaning incorrect file size (usually this means an error while attempting to read file size).'''
+
 def FileSize(fileName):
+  '''Returns the file size or INAVLID_FILE_SIZE on any error.'''
   try:
     info = os.stat(fileName)
   except:
     return INVALID_FILE_SIZE
   return info.st_size
 
-## Creates a hash of a file using the selected encryption algorithm.
-#  More information about the available algorithms can be found 
-#  <a href="http://docs.python.org/library/hashlib.html">here.</a>
-#  \return File hash as a string (hexdigest) or None on error.
-#  \ingroup Utils 
 def FileHash(fileName, algo = hashlib.md5(), chunkSize = 128 * 64):
+  '''
+  Creates a hash of a file using the selected encryption algorithm.
+  Returns file hash as a string (hexdigest) or None on error.
+  More information about the available algorithms can be found in :py:mod:`hashlib`.
+  '''
   try:
     with open(fileName,'rb') as f: 
       for chunk in iter(lambda: f.read(chunkSize), b''): 
@@ -66,10 +81,11 @@ def FileHash(fileName, algo = hashlib.md5(), chunkSize = 128 * 64):
     return None
   return algo.hexdigest()
 
-## Creates a CRC of a file.
-#  \return CRC as a string or None on error.
-#  \ingroup Utils 
 def FileCRC(fileName, chunkSize = 32768):
+  '''
+  Creates a CRC of a file.
+  Returns CRC as a string or None on error.
+  '''
   import zlib
   prev = 0
   try:

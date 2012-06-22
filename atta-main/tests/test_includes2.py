@@ -1,4 +1,4 @@
-## \brief Includes 2 test.
+'''Includes 2 test.'''
 
 import sys
 import os
@@ -21,14 +21,12 @@ project.RunTarget('inc.inc2.includes2.includes2')
 project.defaultTarget = 'test'
 
 class test(Target):
-  DependsOn = ['inc.inc2.includes2.includes2', 'another_tests.includes2.includes2']
+  DependsOn = ['inc.inc2.includes2.includes2', 'xtests.includes2.includes2']
   def Run(self):
     Echo('includes2 target')
     
-project.Import('../another_tests/includes2')    
+project.Import('../xtests/includes2')    
 
-project.RunTarget('...another_tests.includes2.includes2')
-
-#project.Import('../../Tools/python/AqTools')
+project.RunTarget('...xtests.includes2.includes2')
 
 project.Import('test_includes2')

@@ -1,4 +1,4 @@
-## \brief Includes 2 test.
+'''Includes 2 test.'''
 
 import sys
 import os

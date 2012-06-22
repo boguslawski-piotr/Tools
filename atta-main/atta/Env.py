@@ -2,12 +2,14 @@ import sys
 import os
 
 import atta
-from OS import *
 from Log import *
 
-## Env class 
-#  TODO: description
 class Env():
+  '''
+  Env class 
+     
+  TODO: description
+  '''
   def __init__(self, environ):
     self.vars = environ
 
@@ -26,7 +28,7 @@ class Env():
   def itervalues(self):
     return self.vars.itervalues()
   
-  ## \privatesection
+  '''private section'''
   
   def __setitem__(self, key, item):
     return self.vars.__setitem__(key, item)

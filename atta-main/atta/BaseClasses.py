@@ -1,12 +1,19 @@
+'''
+.. snippet:: BaseClasses
+
+  TODO: description
+'''
 import os
 import sys
 
-from OS import *
 from Log import LogLevel, Log, LogNM
 
-## Base class for all targets.
-#  TODO: description
 class Target:
+  '''
+  Base class for all targets.
+     
+  TODO: description
+  '''
   DependsOn = []
   OsFamily = []
   
@@ -34,9 +41,12 @@ class Target:
         LogNM(target = self.name, end = True)
     self.wasExecuted = True
     
-## Base class for all tasks.
-#  TODO: description
 class Task:
+  '''
+  Base class for all tasks.
+     
+  TODO: description
+  '''
   def Log(self, msg, **args):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)

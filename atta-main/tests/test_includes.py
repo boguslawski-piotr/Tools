@@ -1,7 +1,6 @@
-## \brief Includes test.
+'''Includes test.'''
 
 from atta import *
-from atta.Project import Project
 
 project.defaultTarget = 'test'
 
