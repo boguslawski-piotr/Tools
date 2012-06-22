@@ -19,7 +19,6 @@ targetExt = ''
 if sys.platform == 'win32':
   targetExt = '.exe'
 
-# TODO: read version from atta/Atta.py
 setup(
   name = 'Atta',
   version = attaVersionName,

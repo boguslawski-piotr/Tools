@@ -27,3 +27,29 @@ class FileSetTests(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main
     
+'''
+
+    #rootDir, fileSet = FileSet().MakeSet('.', '*.py?', False)
+    #rootDir, fileSet = FileSet().MakeSet('.', 'tests/**/*.log', False)
+    #rootDir, fileSet = FileSet().MakeSet('..', '**/std/**/*.log', False)
+    #BAD!rootDir, fileSet = FileSet().MakeSet('.', '**/i**/*.py', False)
+    #rootDir, fileSet = FileSet().MakeSet('atta', 'templates/T*.py', False)
+    #rootDir, fileSet = FileSet().MakeSet('atta', '*.py')
+    #rootDir, fileSet = FileSet().MakeSet('atta', '**/*.py', '__*')
+    
+    for name in FileSet(includes = 'build*'):
+      print name 
+#    for name in FileSet('.', '**/**', '.git/'):
+#      print name 
+    x = DirSet('.', '**/*t*', '.git/')
+    print len(x)
+    for name in x:
+      print name 
+    return  
+
+    for name in FileSet(includes = '**/*.py'):
+      print name 
+    return
+  
+'''
+    

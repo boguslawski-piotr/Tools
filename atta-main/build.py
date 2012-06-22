@@ -90,42 +90,15 @@ STARTED at: %s
       append = True
     )
     
-    project.env.chdir('tests/unittest')
-    params = ['unittest', '-v']
-    for name in FileSet(includes = '**/*.py', realPaths = False):
-      params.append(RemoveExt(name.replace(os.path.sep, '.')))
-    
-    print params
-    
-    t = PyExec('-m', params, failOnError = False)
+    t = PyExec('-m', ['unittest', 'discover', '-v', '-p', '*', '-s', 'tests\unittest'], failOnError = False, useShell = False)
+
     Echo(t.output, file = 'unittests.log', append = True)
+    
     if t.returnCode != 0:
       raise Exception('Unit tests are not performed correctly.')
     
     return
   
-    for name in FileSet(includes = '**/*.py'):
-      print name 
-    return
-  
-    #rootDir, fileSet = FileSet().MakeSet('.', '*.py?', False)
-    #rootDir, fileSet = FileSet().MakeSet('.', 'tests/**/*.log', False)
-    #rootDir, fileSet = FileSet().MakeSet('..', '**/std/**/*.log', False)
-    #BAD!rootDir, fileSet = FileSet().MakeSet('.', '**/i**/*.py', False)
-    #rootDir, fileSet = FileSet().MakeSet('atta', 'templates/T*.py', False)
-    #rootDir, fileSet = FileSet().MakeSet('atta', '*.py')
-    #rootDir, fileSet = FileSet().MakeSet('atta', '**/*.py', '__*')
-    
-    for name in FileSet(includes = 'build*'):
-      print name 
-#    for name in FileSet('.', '**/**', '.git/'):
-#      print name 
-    x = DirSet('.', '**/*t*', '.git/')
-    print len(x)
-    for name in x:
-      print name 
-    return  
-
 def MD2DoxygenMD(lineNo, line):
   if lineNo == 1: 
     line = line.replace('\n', '') + ' {#mainpage}\n'
