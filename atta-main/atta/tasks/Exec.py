@@ -5,9 +5,8 @@ import subprocess
 import threading
 
 import atta 
-#import project
-from ..BaseClasses import Task
-from ..Log import LogLevel
+from ..tasks.Base import Task
+from ..tools.Misc import LogLevel
 
 class Exec(Task):
   '''
@@ -31,10 +30,14 @@ class Exec(Task):
 
     :param params:              Command line arguments |None|.
     :type params:               list of strings
+    
     :param boolean failOnError: Stop the buildprocess if the command exits with a return code signaling failure |True|.
+    
     :param boolean logOutput:   TODO: Przesyla stdout and stderr do logu Atta |True|. 
+    
     :param boolean useSheel:    Command will be executed through the shell |True|. 
                                 More information can be found in `subprocess.Popen <http://docs.python.org/library/subprocess.html>`_ documentation.
+    
     :param dict env:            Environment variables. Completely replace the variables from the project |None|.
                         
   .. snippet:: ExecReturns
@@ -70,10 +73,10 @@ class Exec(Task):
     for param in params:
       _params.append(param)
     if env is None:
-      if atta.project is None:
+      if atta.Project is None:
         env = os.environ
       else:
-        env = atta.project.env.vars
+        env = atta.Project.env.vars
     
     process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, 
                                bufsize = 1, env = env, shell = useShell)

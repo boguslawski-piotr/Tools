@@ -11,7 +11,7 @@ class Logger(ILogger):
   '''
   
   def Log(self, msg, **args):
-    _msg = self._HandleBuild(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)
+    _msg = self._HandleProject(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)
     if _msg is None:
       _msg = '{0}'.format(msg)
     self._PhysicalLog(_msg)
@@ -23,7 +23,7 @@ class Logger(ILogger):
     if msg:
       print(msg)
       
-  def _HandleBuild(self, msg, **args):
+  def _HandleProject(self, msg, **args):
     if 'project' in args:
       if 'start' in args:
         pass
@@ -34,12 +34,18 @@ class Logger(ILogger):
         if 'exception' in args:
           _msg = _msg + '\n'
         return _msg
+      if 'log' in args:
+        _msg = '{0}'.format(msg)
+        return _msg
     return None
 
   def _HandleTarget(self, msg, **args):
     if 'target' in args: 
       if 'prepare' in args:
         _msg = os.linesep + args['target'] + ':'
+        return _msg
+      if 'log' in args:
+        _msg = os.linesep + args['target'] + ': {0}'.format(msg)
         return _msg
     return None
 

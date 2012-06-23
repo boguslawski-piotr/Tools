@@ -4,7 +4,7 @@ from atta import *
 import os
 import stat
 
-project.defaultTarget = 'test'
+Project.defaultTarget = 'test'
 
 localData = 'local data...'
 

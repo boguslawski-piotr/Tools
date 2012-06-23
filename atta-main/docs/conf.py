@@ -96,6 +96,7 @@ todo_include_todos = True
 autodoc_member_order = "bysource"
 
 rst_prolog = '''
+.. |private| replace:: (private)
 .. |True| replace:: (default: True)
 .. |False| replace:: (default: False)
 .. |None| replace:: (default: None)

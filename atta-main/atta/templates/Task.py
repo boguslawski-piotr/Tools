@@ -1,33 +1,30 @@
-## \package [task_name] 
-#  \brief   [task_name] task 
-#  \ingroup Tasks 
-#
-# \task{[task_name](...)}
-#
-# \param  ... ...
-#             \type ... 
-#             \def ...
-#
-# \tparam ... ...
-#             \type ... 
-#             \def ...
-#  
-# \uc [task_name].py
-#
-# \impl{atta.[task_name].[task_name]}
-#
-# \todo 
-#
-# \author [author]
-#
-# \example [task_name].py
-# [task_name] task use cases.
+from atta.tasks.Base import Task
+from atta.tools.Misc import LogLevel
 
-from atta.BaseClasses import Task
-from atta.Log import LogLevel
+class _Task_(Task):
+  '''
+  .. snippet:: _Task_
+  
+    .. code-block:: python
+  
+      _Task_([**tparams])
+      
+    TODO: description
+  
+    :param p:    desc
+    :type p:     type
+     
+    .. optional
 
-# [task_name] task implementation
-class [task_name](Task):
-  def __init__(self, msg = '', **args):  
+    :param t p:  desc
+    
+    :return:     desc
+     
+    Use cases:
+  
+    .. literalinclude:: ../../../tests/test_*.py
+  
+  '''
+  def __init__(self, **tparams):  
     pass
   

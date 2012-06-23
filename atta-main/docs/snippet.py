@@ -6,7 +6,7 @@
   Allow define snippets...
 """
 
-from docutils import nodes, statemachine
+from docutils import nodes
 
 from sphinx.util.nodes import set_source_info
 from sphinx.util.compat import Directive

@@ -7,14 +7,16 @@ Files, directories
 FileSet
 ^^^^^^^
 
-.. snippetref:: FileSet
-.. snippetref:: FileSetParams
+.. autoclass:: atta.tools.Sets.FileSet
+    :noindex:
+    :members:
 
 DirSet
 ^^^^^^
 
-.. snippetref:: DirSet
-.. snippetref:: FileSetParams
+.. autoclass:: atta.tools.Sets.DirSet
+    :noindex:
+    :members:
 
 Various other
 ^^^^^^^^^^^^^

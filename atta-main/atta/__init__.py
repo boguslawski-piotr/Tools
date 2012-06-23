@@ -1,13 +1,12 @@
-'''Atta interface for build scripts'''
+# Public interface (exports)
 
 __all__ = [
            # Environment
-           'attai',
-           'project',
-           'file',
+           'Atta',
+           'Project',
+           'File',
 
            # Enums & Classes
-           'Project',
            'Target',
            'Task',
            
@@ -23,26 +22,84 @@ __all__ = [
            'PyExec',
           ]
 
-# Environment
+# Environment & globals
 
-global attai
-attai = None
+from tools.Misc import LogLevel, Logger
+from tools.Misc import VariablesExpander
 
-global project
-project = None
+import loggers.StdLogger
+import tools.VariablesLikeAntExpander
+from version import attaVersionName
+  
+class Atta:
+  '''
+  Provides basic information about Atta. 
+  Also provides a few simple tools.
+  '''
+  name        = 'Atta'
+  description = 'Cool and funny build system in pure Python.'
+  
+  versionName = attaVersionName
+  '''TODO: description'''
+  
+  version = int(attaVersionName.replace('.', ''))  
+  '''TODO: desc...'''
+  
+  dirName = None
+  '''TODO: desc...'''
+  
+  logger = Logger(loggers.StdLogger.Logger)
+  '''TODO: desc...'''
+  
+  variablesExpander = VariablesExpander(tools.VariablesLikeAntExpander.Expander) 
+  '''TODO: desc...'''
+  
+#------------------------------------------------------------------------------ 
 
-global file
-file = None
+Project = None
+'''
+Provides access to data and general tools for the entire project. 
+Property Project is an instance of the class :py:class:`atta.Project`
+'''
+
+#------------------------------------------------------------------------------ 
+
+class File():
+  '''Describes currently interpreted build script.'''
+  
+  name = ''
+  '''
+  Full file name.
+  
+  Property File.name is available only during 
+  the phase of interpreting the build script. 
+  NOT when Atta performing tasks.
+  '''
+  
+  '''private section'''
+  
+  _list = []
+  
+  @staticmethod
+  def _Set(fileName):
+    File._list.append(File.name)
+    File.name = fileName
+ 
+  @staticmethod
+  def _Unset():
+    File.name = File._list.pop()
+    
+#------------------------------------------------------------------------------ 
 
 # Tools
 
-from Log import LogLevel
 from tools.Sets import FileSet, DirSet
 from tools.Properties import Properties
 
 # Base classes
 
-from BaseClasses import Target, Task
+from targets.Base import Target
+from tasks.Base import Task
 
 # Targets
 # All available targets and targets groups.

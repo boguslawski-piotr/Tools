@@ -2,23 +2,23 @@
 
 from atta import *
 
-project.defaultTarget = 'test'
+Project.defaultTarget = 'test'
 
-Echo('In: ' + file.name)
+Echo('In: ' + File.name)
 
-inc1n, inc1 = project.Import('include1')
+inc1n, inc1 = Project.Import('include1')
 
 class test(Target):
   DependsOn = [inc1.test1]
   def Run(self):
-    project.Import('inc/include1')
-    project.RunTarget('inc.include1.test1')
+    Project.Import('inc/include1')
+    Project.RunTarget('inc.include1.test1')
     Echo('test_includes.test target')
-    Echo('project property from_include1 = ' + project.from_include1)
+    Echo('project property from_include1 = ' + Project.from_include1)
     
     Echo('run project "include2" within test_includes.test target')
-    project.RunProject(None, 'include2', ['go2'])
+    Project.RunProject(None, 'include2', ['go2'])
 
 Echo('run project "include2" within test_includes')
-project.RunProject({}, 'include2', ['go2'])
+Project.RunProject({}, 'include2', ['go2'])
 Echo('project "include2" ended')

@@ -1,4 +1,6 @@
 import sys
-print(sys.argv)
+
+print('External:')
+print('  ' + ' '.join(sys.argv))
 for p in sys.argv:
-  print(p)
+  print('  {0}'.format(p))

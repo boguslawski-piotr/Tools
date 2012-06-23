@@ -1,8 +1,7 @@
 '''
-  Atta build module.
-  
-  *TODO*
-  
+Atta build module.
+
+TODO: description
 '''
 import sys
 import os
@@ -10,25 +9,21 @@ import glob
 import shutil
 import re
 
-from atta.tools.OS import *
 from atta.tools.Properties import Properties
-from atta import Log
+from atta.tools.Misc import Logger
+import atta.tools.OS as OS
 from atta import *
 
-if project is not None:
-  project.defaultTarget = 'help'
+if Project is not None:
+  Project.defaultTarget = 'help'
 
-class help2(Target):
-  def Run(self):
-    pass
-  
+#------------------------------------------------------------------------------ 
+
 class help(Target):
   ''' Display help...
   '''
-  DependsOn = [help2]
-  
   def Run(self):
-    Echo(attai.name + ' v' + attai.versionName + \
+    Echo(Atta.name + ' v' + Atta.versionName + \
 '''
 Usage: atta [target]
 
@@ -38,42 +33,52 @@ Available targes:''')
       if m != 'Target' and 'DependsOn' in dir(d):
         Echo('  ' + m)
     
-class clean(Target):
-  ''' Clean...
+#------------------------------------------------------------------------------ 
+
+class cleandirs(Target):
+  ''' Clean docs and dist
   '''
   def Run(self):
     Echo('Removing directories...')
     for dirName in DirSet(includes = ['**/*build', '**/dist', 'docs/html', 'docs/modules']):
       Echo('  %s' % dirName)
       shutil.rmtree(dirName, True)
-
+      
+class clean(Target):
+  ''' Clean...
+  '''
+  DependsOn = [cleandirs]
+  def Run(self):
     Echo('\nRemoving *.py? and *.log files...')
     for fileName in FileSet(includes = ['**/*.py?', '**/*.log']):
       Echo('  %s' % fileName)
       os.remove(fileName)
-    return
+
+#------------------------------------------------------------------------------ 
 
 import atta.loggers.StdLogger as StdLogger
 
 class TestsLogger(StdLogger.Logger):
   def __init__(self):
-    open(os.path.join(project.dirName, 'tests.log'), 'wb').close()
+    open(os.path.join(Project.dirName, 'tests.log'), 'wb').close()
     
   def _PhysicalLog(self, msg):
     if msg:
       print(msg)
-      with open(os.path.join(project.dirName, 'tests.log'), 'a+b') as f:
+      with open(os.path.join(Project.dirName, 'tests.log'), 'a+b') as f:
         f.write(msg + os.linesep)
   
 class tests(Target):
   ''' Run Atta tasks and targets tests.
   '''
   def Run(self):
-    olc = Log.SetLogger(TestsLogger)
-    for fileName in FileSet(includes = 'tests/test_*.py'):
-      Log.Log('\nRunning project: ' + fileName)
-      project.RunProject(None, fileName, '')
-    Log.SetLogger(olc)
+    ol = Atta.logger.SetClass(TestsLogger)
+    for fileName in FileSet(includes = 'tests/test_*.py', excludes="**/test_exec_output.py"):
+      self.Log('\nRunning project: ' + fileName)
+      Project.RunProject(None, fileName, '')
+    Atta.logger.SetClass(ol)
+
+#------------------------------------------------------------------------------ 
 
 class unittests(Target):
   ''' Run Atta unit tests.
@@ -123,6 +128,7 @@ def LineFilter(inFile, filterFunc, outFile = None):
 class makedocs(Target):
   ''' Make Atta documentation.
   '''
+  DependsOn = [cleandirs]
   def Run(self):
     # doxygen
     #LineFilter('README.md', MD2DoxygenMD, 'README_.md')    
@@ -132,48 +138,35 @@ class makedocs(Target):
     #os.remove('README_.md')
     
     # automodules
-    MakeDirs('docs/modules')
-    Echo('''Atta modules
-============
-''',
-      file = os.path.join('docs', 'modules.rst'),
-    )
-    for fileName in FileSet('atta', includes = '**/*.py', excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
+    OS.MakeDirs('docs/modules')
+    Echo('Generating automodules...')
+    m = FileSet('atta', includes = ['**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False)
+    for fileName in m:
       #print os.path.splitext(fileName)
-      fileName = RemoveExt(fileName)
+      fileName = OS.Path.RemoveExt(fileName)
+      Echo('  ' + fileName)
       moduleName = fileName.replace(os.path.sep, '.')
       dirName, _ = os.path.split(fileName)
       if dirName:
-        MakeDirs(os.path.join('docs/modules', dirName))
+        OS.MakeDirs(os.path.join('docs/modules', dirName))
       Echo(''':mod:`${name}` Module
 -------------------------------------------------------------------------------
 
-.. automodule:: atta.${name}
+.. automodule:: ${fullName}
     :members:
     :undoc-members:
+    :private-members:
+    :inherited-members:
     :show-inheritance:
+    :member-order: bysource
 ''',
       name = moduleName,
+      fullName = 'atta.' + moduleName,
       file = os.path.join('docs/modules', fileName) + '.rst',
       )
       
-      Echo('''
-${mname} module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. snippetref:: ${mname}
-
-Details: :doc:`modules/${fname}`
-''',
-      mname = moduleName,
-      fname = fileName.replace(os.path.sep, '/'),
-      file = os.path.join('docs', 'modules.rst'),
-      append = True
-      )
-    #return
-  
     # Sphinx
-    project.env.chdir('docs')
+    Project.env.chdir('docs')
     Exec('make', ['clean'], logOutput = False)
     Exec('make', ['html'])
     
@@ -195,7 +188,7 @@ class makedocs_old(Target):
     # TODO: zestaw taskow do tego rodzaju operacji...
     try: shutil.rmtree('docs')
     except: pass
-    MakeDirs('docs')
+    OS.MakeDirs('docs')
     for fileName in os.listdir('.'):
       if re.search('.*.html', fileName) != None:
         shutil.move(fileName, 'docs')

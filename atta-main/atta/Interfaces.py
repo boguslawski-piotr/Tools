@@ -2,7 +2,7 @@
 Various interfaces.
 '''
 
-class ILogger():
+class ILogger:
   '''
   Logger interface  
   
@@ -11,15 +11,19 @@ class ILogger():
   project
     start
     end
+    msg
+    
     status
     at
     time
+    exception
     
   target
     prepare
     start
     end
     finalize
+    msg
     
   task
   ''' 

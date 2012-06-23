@@ -1,20 +1,19 @@
 import os
 import re
 
-from ..BaseClasses import Task
-from ..Log import Log, LogLevel
+from Misc import Logger, LogLevel
 
-class FileSet(Task, list):
+class FileSet(list):
   '''       
   .. snippet:: FileSet
     
     .. code-block:: python
     
-      FileSet(rootDir, include[, excludes, \*\*tparams])
+      FileSet([rootDir, includes, excludes, **tparams])
     
     Creates a set of files...
     
-    TODO:
+    TODO: description
     
   .. snippet:: FileSetParams
   
@@ -94,8 +93,8 @@ class FileSet(Task, list):
       pattern = pattern + '**'
     
     name = name.replace('\\', '/')
-    Log('+++\nFileSet:Match:name: {0}'.format(name), level = LogLevel.DEBUG)
-    Log('FileSet:Match:pattern: {0}'.format(pattern), level = LogLevel.DEBUG)
+    #Logger.Log('+++\nFileSet:Match:name: {0}'.format(name), level = LogLevel.DEBUG)
+    #Logger.Log('FileSet:Match:pattern: {0}'.format(pattern), level = LogLevel.DEBUG)
     
     if useRegExp:
       return re.match(pattern, name) is not None
@@ -123,27 +122,27 @@ class FileSet(Task, list):
     pattern = pattern.replace(ANY_DIR_TMP, ANY_DIR)
     pattern = '^' + pattern + '$'
     
-    Log('FileSet:Match:regexp: {0}'.format(pattern), level = LogLevel.DEBUG)
+    #Logger.Log('FileSet:Match:regexp: {0}'.format(pattern), level = LogLevel.DEBUG)
 
     rc = re.match(pattern, name) is not None
     
-    Log('FileSet:Match: {0}\n+++'.format(rc), level = LogLevel.DEBUG)
+    #Logger.Log('FileSet:Match: {0}\n+++'.format(rc), level = LogLevel.DEBUG)
     
     return rc
 
 class DirSet(FileSet):
   ''' 
-    .. snippet:: DirSet
-      
-      .. code-block:: python
-      
-        DirSet(rootDir, include[, excludes, \*\*tparams])
-      
-      Creates a set of directories...
-      
-      TODO:
-      
-    .. snippetref:: FileSetParams
+  .. snippet:: DirSet
+    
+    .. code-block:: python
+    
+      DirSet([rootDir, includes, excludes, **tparams])
+    
+    Creates a set of directories...
+    
+    TODO: description
+    
+  .. snippetref:: FileSetParams
     
   '''
   def __init__(self, rootDir = '.', includes = '**/**', excludes = [], **tparams):

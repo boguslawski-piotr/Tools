@@ -12,7 +12,7 @@ class Logger(StdLogger.Logger):
     self.targetName = ''
   
   def Log(self, msg, **args):
-    _msg = self._HandleBuild(msg, **args) or self._HandleTask(msg, **args)
+    _msg = self._HandleProject(msg, **args) or self._HandleTask(msg, **args)
     
     if _msg is None:
       if 'target' in args: 

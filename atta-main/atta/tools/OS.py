@@ -3,6 +3,7 @@
 
   TODO: description
 '''
+import sys
 import os
 import hashlib
 
@@ -11,31 +12,27 @@ Path Tools
 -----------
 '''
 
-def Ext(fileName, lowerCase = True):
-  '''Returns the file name extension or empty string.'''
-  if fileName.rfind('.') < 0:
-    return ''
-  fileNameSplited = fileName.split('.')
-  ext = fileNameSplited[len(fileNameSplited) - 1]
-  if lowerCase: ext = ext.lower()
-  return ext
-
-def RemoveExt(fileName):
-  '''Returns the file name without extension.'''
-  d = fileName.rfind('.')
-  s = fileName.rfind('/')
-  if s < 0:
-    s = fileName.rfind('\\')
-  return fileName if d <= 0 or d < s else fileName[0:d];
+class Path:
+  '''TODO: description'''
+  @staticmethod
+  def Ext(fileName, lowerCase = True):
+    '''Returns the file name extension without . (dot) or empty string.'''
+    if fileName.rfind('.') < 0:
+      return ''
+    fileNameSplited = fileName.split('.')
+    ext = fileNameSplited[len(fileNameSplited) - 1]
+    if lowerCase: ext = ext.lower()
+    return ext
   
-def Remove(fileName):
-  '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
-  try:
-    os.remove(fileName)
-  except os.error as e:
-    if e.errno != os.errno.ENOENT:
-      raise
-
+  @staticmethod
+  def RemoveExt(fileName):
+    '''Returns the file name without extension.'''
+    d = fileName.rfind('.')
+    s = fileName.rfind('/')
+    if s < 0:
+      s = fileName.rfind('\\')
+    return fileName if d <= 0 or d < s else fileName[0:d];
+  
 '''
 Directories Tools
 '''
@@ -55,6 +52,14 @@ def MakeDirs(path):
 File tools
 '''
     
+def Remove(fileName):
+  '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
+  try:
+    os.remove(fileName)
+  except os.error as e:
+    if e.errno != os.errno.ENOENT:
+      raise
+
 global INAVLID_FILE_SIZE
 INVALID_FILE_SIZE = -1
 '''Constant meaning incorrect file size (usually this means an error while attempting to read file size).'''

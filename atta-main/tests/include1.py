@@ -2,7 +2,7 @@
 
 from atta import *
 
-Echo('In: ' + file.name)
+Echo('In: ' + File.name)
 
 class init1(Target):
   def Run(self):
@@ -12,4 +12,4 @@ class test1(Target):
   DependsOn = [init1]
   def Run(self):
     Echo('include1.test1 target')
-    project.from_include1 = 'i1'
+    Project.from_include1 = 'i1'

@@ -2,7 +2,7 @@
 
 from atta import *
 
-Echo('In: ' + file.name)
+Echo('In: ' + File.name)
 
 class init2(Target):
   def Run(self):

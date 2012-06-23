@@ -3,10 +3,9 @@ import os
 import stat
 import re
 
+from ..tasks.Base import Task
+from ..tools.Misc import LogLevel
 import atta
-from ..BaseClasses import Task
-from ..Log import LogLevel
-from ..tools.Misc import ExpandVariables
 
 class Echo(Task):
   '''
@@ -24,14 +23,14 @@ class Echo(Task):
   
     :param  msg:           The message to echo (default: blank line).
     :type msg:             any object that can be converted to string
-     
+
     :param LogLevel level: Control the log level at which this message is reported (default: INFO).
-             
+
     :param file:           The file name or a file-like object to write the message to |None|.
     :type file:            string or file-like class 
-    
+
     :param boolean append: Append to an existing file |False|.
-    
+
     :param boolean force:  Overwrite read-only file |False|.
   
     Use cases:
@@ -42,7 +41,7 @@ class Echo(Task):
   def __init__(self, msg = '', **tparams):  
     level = tparams.get('level', LogLevel.INFO)
     _file = tparams.get('file', None)
-    msg = ExpandVariables(msg, **tparams)
+    msg = self.ExpandVariables(msg, **tparams)
     
     if _file is None:
       self.Log(msg, level = level)

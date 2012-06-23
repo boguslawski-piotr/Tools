@@ -1,4 +1,12 @@
-'''
+import sys
+import os
+
+from Exec import Exec
+from ..tools.Misc import LogLevel
+import atta.tools.OS as OS
+
+class PyExec(Exec):
+  '''
   .. snippet:: PyExec
   
     .. code-block:: python
@@ -24,24 +32,18 @@
 
   .. codeauthor:: Piotr Boguslawski <boguslawski.piotr@gmail.com>
   '''
-import sys
-import os
-
-from Exec import Exec
-from ..Log import LogLevel
-from ..tools.OS import Ext
-
-class PyExec(Exec):
   def __init__(self, fileName, params = [], **tparams):  
     if len(fileName) > 0 and not fileName.startswith('-'):
-      if Ext(fileName) == '':
+      if OS.Path.Ext(fileName) == '':
         fileName = fileName + '.py' 
       
       if fileName.find(os.path.sep) == -1:
         for path in sys.path:
           _fileName = os.path.join(path, fileName)
           if os.path.exists(_fileName):
+            self.Log('Found {0} in {1}'.format(fileName, path), level = LogLevel.DEBUG)
             fileName = _fileName
+            break
     
     params.insert(0, fileName)
     Exec.__init__(self, 'python', params, **tparams)

@@ -2,7 +2,7 @@
 
 from atta import *
 
-project.defaultTarget = 'test'
+Project.defaultTarget = 'test'
 
 class test(Target):
   def Run(self):
