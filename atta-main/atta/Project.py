@@ -21,6 +21,12 @@ class Project:
   FAILED = 1
 
   def __init__(self, parent = None):
+    self.name = ''
+    '''TODO: description'''
+
+    self.versionName = ''
+    '''TODO: description'''
+
     self.dirName = ''
     '''TODO: description'''
     
@@ -33,6 +39,9 @@ class Project:
     self.defaultTarget = ''
     '''TODO: description'''
 
+    self.targetsMap = {}
+    '''TODO: description'''
+    
     self._executedTargets = collections.OrderedDict()
     self._targetsLevel = 0
     self._parent = parent
@@ -111,6 +120,12 @@ class Project:
     
     return (moduleName, module)
 
+  def GetTarget(self, targetClass):
+    '''TODO: description'''
+    targetClass = self._GetTargetClass(targetClass)
+    target = targetClass()
+    return target
+  
   def RunTarget(self, targetClass):
     '''TODO: description'''
     targetClass = self._GetTargetClass(targetClass)
@@ -122,14 +137,16 @@ class Project:
         self.RunTarget(dependClass)
       target._Run()
       self._targetsLevel -= 1
-    return
+      return target
+    return None
   
   def RunProject(self, environ, fileName, targets = []):
     '''TODO: description'''
     project = Project(self)
     if environ is None:
-      environ = self.env.vars
+      environ = self.env
     project._Run(environ, fileName, targets)
+    return project
   
   '''private section'''
   
@@ -201,9 +218,26 @@ class Project:
     return
   
   def _GetTargetClass(self, targetClass):
+    def _SplitClass(name):
+      return (OS.Path.RemoveExt(targetClass), OS.Path.Ext(targetClass, False))
+    
     if isinstance(targetClass, basestring):
-      targetPackage = OS.Path.RemoveExt(targetClass)
-      targetClass = sys.modules[targetPackage].__dict__[OS.Path.Ext(targetClass)]
+      targetPackage,  targetClassName = _SplitClass(targetClass)
+      while True:
+        try:
+          targetClass = sys.modules[targetPackage].__dict__[targetClassName]
+        except Exception, e:
+          firstDot = targetPackage.find('.')
+          if firstDot >= 0:
+            targetPackage = targetPackage[firstDot + 1:]
+          else:
+            if self.targetsMap.has_key(targetClassName):
+              targetClass = self.targetsMap[targetClassName]
+              targetPackage,  targetClassName = _SplitClass(targetClass)
+            else:
+              raise SystemError('Can not find the %s.%s target.' % (targetPackage, targetClassName))
+        else:
+          break
     return targetClass
     
   def _Dump(self):

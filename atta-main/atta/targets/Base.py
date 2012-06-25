@@ -2,11 +2,12 @@ import os
 import sys
 
 from ..tools.Misc import LogLevel
+from ..Interfaces import Activity
 from atta import Atta
 
 #------------------------------------------------------------------------------ 
 
-class Target:
+class Target(Activity):
   '''
   Base class for all targets.
      
@@ -25,17 +26,17 @@ class Target:
   def Finalize(self):
     return True
   
-  def Log(self, msg = '', **args):
-    self._Log(msg, log = True, **args)
-  
   '''private section'''
       
-  def _Log(self, msg = '', **args):
+  def _Type(self):
+    return 'target'
+  
+  def _Name(self):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
-      #self.name = self.name[self.name.rfind('.') + 1:len(self.name)]
-    Atta.logger.Log(msg, target = self.name, **args)
-
+      #self.name = '.'.join(self.name.split('.')[-2:])
+    return self.name
+  
   def _Run(self):
     if not hasattr(self, 'wasExecuted') or not self.wasExecuted:
       self._Log(prepare = True)

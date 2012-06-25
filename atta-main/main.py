@@ -7,9 +7,6 @@ import platform
 import sys
 import os
 
-from atta.tools.Properties import Properties
-from atta.tools.Misc import LogLevel
-import atta.tools.OS as OS
 from atta import *
 from atta.Project import Project
 
@@ -72,6 +69,9 @@ def Main():
 
   Atta.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
   argv = sys.argv[1:]
+  environ = os.environ
+  
+  #TODO: options -DX=y -> environ[X]=y
   
   try:
     prop = Properties().Open(os.path.join(Atta.dirName, 'Atta.properties'))
@@ -96,7 +96,7 @@ def Main():
   Atta.logger.Log("args = {0}".format(args), level = LogLevel.DEBUG)
   
   try:
-    Project()._Run(os.environ, args.f[0], args.target)
+    Project()._Run(environ, args.f[0], args.target)
     return 0
   
   except Exception, e:

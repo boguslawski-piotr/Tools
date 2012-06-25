@@ -7,16 +7,14 @@ Files, directories
 FileSet
 ^^^^^^^
 
-.. autoclass:: atta.tools.Sets.FileSet
-    :noindex:
-    :members:
+.. snippetRef:: FileSet
+.. snippetRef:: FileSetParams
 
 DirSet
 ^^^^^^
 
-.. autoclass:: atta.tools.Sets.DirSet
-    :noindex:
-    :members:
+.. snippetRef:: DirSet
+.. snippetRef:: FileSetParams
 
 Various other
 ^^^^^^^^^^^^^
@@ -31,3 +29,4 @@ Miscellaneous
 .. automodule:: atta.tools.Misc
     :noindex:
     :members:
+    :undoc-members:

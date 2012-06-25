@@ -17,6 +17,10 @@ class Expander:
       >>> txt = ExpandVariables(txt, what = 'cool')
       >>> print(txt)
       The Atta is cool and funny.
+      
+    .. todo::
+    
+      - add posibility to expand environment variables (przekazac env do tej funkcji)
     '''
     vpattern = self.VariablePattern()
     while True:

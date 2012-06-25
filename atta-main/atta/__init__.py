@@ -15,14 +15,18 @@ __all__ = [
            'Properties',
            'FileSet',
            'DirSet',
+           'OS',
 
            # Tasks
            'Echo',
            'Exec',
            'PyExec',
+           
+           'Javac',
+           'Jar',
           ]
 
-# Environment & globals
+# Atta
 
 from tools.Misc import LogLevel, Logger
 from tools.Misc import VariablesExpander
@@ -54,17 +58,17 @@ class Atta:
   variablesExpander = VariablesExpander(tools.VariablesLikeAntExpander.Expander) 
   '''TODO: desc...'''
   
-#------------------------------------------------------------------------------ 
+# Project property 
 
 Project = None
 '''
 Provides access to data and general tools for the entire project. 
-Property Project is an instance of the class :py:class:`atta.Project`
+Property Project is an instance of the class :py:class:`atta.Project`.
 '''
 
-#------------------------------------------------------------------------------ 
+# File property 
 
-class File():
+class File:
   '''Describes currently interpreted build script.'''
   
   name = ''
@@ -89,20 +93,16 @@ class File():
   def _Unset():
     File.name = File._list.pop()
     
-#------------------------------------------------------------------------------ 
-
 # Tools
 
 from tools.Sets import FileSet, DirSet
 from tools.Properties import Properties
+from tools import OS as OS
 
 # Base classes
 
 from targets.Base import Target
 from tasks.Base import Task
-
-# Targets
-# All available targets and targets groups.
 
 # Tasks
 # All available tasks.
@@ -110,4 +110,8 @@ from tasks.Base import Task
 from tasks.Echo import Echo
 from tasks.Exec import Exec
 from tasks.PyExec import PyExec
+
+from tasks.Javac import Javac
+from tasks.Jar import Jar
+
   

@@ -22,6 +22,7 @@ class PyExec(Exec):
     :param string fileName: The file name of the program in Python.
 
   .. snippetref:: ExecCommonParams
+  .. snippetref:: ExecCommonParams2
   .. snippetref:: ExecReturns
 
   .. snippet:: PyExecUseCases

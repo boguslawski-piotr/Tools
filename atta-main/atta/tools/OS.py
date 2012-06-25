@@ -6,10 +6,10 @@
 import sys
 import os
 import hashlib
+import re
 
 '''
 Path Tools
------------
 '''
 
 class Path:
@@ -33,20 +33,41 @@ class Path:
       s = fileName.rfind('\\')
     return fileName if d <= 0 or d < s else fileName[0:d];
   
+  @staticmethod
+  def HasWildcards(fileName):
+    '''TODO: description'''
+    return re.search('(\?|\*)+', fileName) != None
+  
+  @staticmethod
+  def Split(path):
+    '''TODO: description'''
+    l, r = os.path.split(path)
+    if l.endswith('**'):
+      l = l[:-2]
+      r = '**/' + r
+    return l, r
+
 '''
 Directories Tools
 '''
     
 def MakeDirs(path):
   '''
-  Recursive directory creation function. Works like :py:func:`os.makedirs` 
-  but not throwing an exception if the leaf directory already exists.
+  Recursive directory creation function. The parameter `path` can be a string 
+  or a list (or any iterable object type) whose individual elements are strings.
+  For each item works like :py:func:`os.makedirs` but not throwing an exception 
+  if the leaf directory already exists.
   '''
-  try:
-    os.makedirs(path)
-  except os.error as e:
-    if e.errno != os.errno.EEXIST:
-      raise
+  if isinstance(path, basestring):
+    paths = [path]
+  else:
+    paths = path
+  for path in paths:  
+    try:
+      os.makedirs(path)
+    except os.error as e:
+      if e.errno != os.errno.EEXIST:
+        raise
 
 '''
 File tools

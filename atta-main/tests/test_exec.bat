@@ -2,5 +2,5 @@
 @echo %2
 @echo %3
 @set ATTA_TEST=1
-@set
+@echo %ATTA_TEST%
 @exit /B 0

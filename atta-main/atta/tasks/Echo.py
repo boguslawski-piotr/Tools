@@ -22,7 +22,7 @@ class Echo(Task):
     and the level option is ignored. |Ant|
   
     :param  msg:           The message to echo (default: blank line).
-    :type msg:             any object that can be converted to string
+    :type msg:             any object that can be converted to string or iterable
 
     :param LogLevel level: Control the log level at which this message is reported (default: INFO).
 
@@ -39,12 +39,19 @@ class Echo(Task):
   
   '''
   def __init__(self, msg = '', **tparams):  
+    isiterable = lambda msg: \
+                  not isinstance(msg, basestring) or getattr(msg, '__iter__', False)
+
     level = tparams.get('level', LogLevel.INFO)
     _file = tparams.get('file', None)
-    msg = self.ExpandVariables(msg, **tparams)
+    if isinstance(msg, basestring):
+      msg = self.ExpandVariables(msg, **tparams)
     
     if _file is None:
-      self.Log(msg, level = level)
+      if isiterable(msg):
+        self.LogIterable(None, msg, level = level)
+      else:
+        self.Log(msg, level = level)
     else:
       append = tparams.get('append', False)
       force = tparams.get('force', False)
@@ -61,7 +68,11 @@ class Echo(Task):
         if append:
           _f.seek(0, os.SEEK_END)
       
-      _f.write(msg)
+      if isiterable(msg):
+        # TODO: how should it work!?
+        _f.write(msg)
+      else:
+        _f.write(msg)
       
       if isinstance(_file, basestring):
         _f.close()

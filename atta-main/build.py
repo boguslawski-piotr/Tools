@@ -144,7 +144,7 @@ class makedocs(Target):
     for fileName in m:
       #print os.path.splitext(fileName)
       fileName = OS.Path.RemoveExt(fileName)
-      Echo('  ' + fileName)
+      Echo(fileName)
       moduleName = fileName.replace(os.path.sep, '.')
       dirName, _ = os.path.split(fileName)
       if dirName:

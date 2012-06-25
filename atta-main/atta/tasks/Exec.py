@@ -31,6 +31,8 @@ class Exec(Task):
     :param params:              Command line arguments |None|.
     :type params:               list of strings
     
+  .. snippet:: ExecCommonParams2
+  
     :param boolean failOnError: Stop the buildprocess if the command exits with a return code signaling failure |True|.
     
     :param boolean logOutput:   TODO: Przesyla stdout and stderr do logu Atta |True|. 
@@ -76,7 +78,7 @@ class Exec(Task):
       if atta.Project is None:
         env = os.environ
       else:
-        env = atta.Project.env.vars
+        env = atta.Project.env
     
     process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, 
                                bufsize = 1, env = env, shell = useShell)

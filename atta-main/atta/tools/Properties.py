@@ -1,6 +1,6 @@
 import os, cStringIO, ConfigParser
+import sys
 
-#  \ingroup Utils 
 class Properties:
   '''
   Supports the Java properties files.
@@ -27,3 +27,16 @@ class Properties:
     except:
       return default
     
+def mgetattr(moduleName, attrName, default):
+  '''TODO: description'''
+  module = sys.modules[moduleName]
+  if hasattr(module, attrName):
+    return getattr(module, attrName, default)
+  return default
+    
+def msetattr(moduleName, attrName, value):
+  '''TODO: description'''
+  module = sys.modules[moduleName]
+  setattr(module, attrName, value)
+
+       

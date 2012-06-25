@@ -2,30 +2,31 @@ import os
 import sys
 
 from ..tools.Misc import LogLevel
+from ..Interfaces import Activity
 from atta import Atta
 
 #------------------------------------------------------------------------------ 
 
-class Task:
+class Task(Activity):
   '''
   Base class for all tasks.
      
   TODO: description
   '''
-  def Log(self, msg = '', **args):
-    self._Log(msg, **args)
-  
   def ExpandVariables(self, txt, **tparams):
     return Atta.variablesExpander.Expand(txt, **tparams)
     
   '''private section'''
     
-  def _Log(self, msg = '', **args):
+  def _Type(self):
+    return 'task'
+  
+  def _Name(self):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
       self.name = self.name[self.name.rfind('.') + 1:len(self.name)]
-    Atta.logger.Log(msg, task = self.name, **args)
-
+    return self.name
+  
   def __enter__(self):
     return self
   

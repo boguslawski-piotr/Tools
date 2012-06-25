@@ -9,7 +9,7 @@ class FileSet(list):
     
     .. code-block:: python
     
-      FileSet([rootDir, includes, excludes, **tparams])
+      FileSet(rootDir = '.', includes, excludes, **tparams])
     
     Creates a set of files...
     
@@ -24,16 +24,22 @@ class FileSet(list):
     :type excludes:            string or list of strings
     :param boolean useRegExp:  TODO
     :param boolean realPaths:  TODO
+    :param boolean createEmpty: TODO
     
     :return: iterable TODO
     
   '''
   def __init__(self, rootDir = '.', includes = '*', excludes = [], **tparams):
-    self.AddFiles(rootDir, includes, excludes, **tparams)
+    if not tparams.get('createEmpty', False):
+      self.AddFiles(rootDir, includes, excludes, **tparams)
 
   def AddFiles(self, rootDir, includes = '*', excludes = [], **tparams):
     files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
+    # TODO: co zrobic jezeli zbior bedzie zawieral pliki z roznych root?
+    if tparams.get('realPaths', True):
+      rootDir = os.path.realpath(rootDir)
+    self.rootDir = os.path.normpath(rootDir)
     
   def MakeSet(self, rootDir, includes, excludes = [], **tparams):
     '''Creates a set of files.
