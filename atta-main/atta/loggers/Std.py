@@ -3,7 +3,7 @@ from ..Interfaces import ILogger
 
 class Logger(ILogger):
   '''
-  .. snippet:: loggers.StdLogger
+  .. snippet:: loggers.Std
   
     Default logger.
      

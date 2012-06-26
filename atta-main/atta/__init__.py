@@ -3,7 +3,9 @@
 __all__ = [
            # Environment
            'Atta',
+           'AttaError',
            'Project',
+           'GetProject',
            'File',
 
            # Enums & Classes
@@ -31,10 +33,19 @@ __all__ = [
 from tools.Misc import LogLevel, Logger
 from tools.Misc import VariablesExpander
 
-import loggers.StdLogger
+import loggers.Std
 import tools.VariablesLikeAntExpander
 from version import attaVersionName
   
+class AttaError(RuntimeError): 
+  '''Base class for all exceptions thrown by Atta.'''
+  def __init__(self, caller, msg):
+    self.caller = caller
+    self.msg = msg
+    
+  def __str__(self):
+    return '{0}:\n{1}'.format(self.caller.__class__, self.msg)
+
 class Atta:
   '''
   Provides basic information about Atta. 
@@ -52,7 +63,7 @@ class Atta:
   dirName = None
   '''TODO: desc...'''
   
-  logger = Logger(loggers.StdLogger.Logger)
+  logger = Logger(loggers.Std.Logger)
   '''TODO: desc...'''
   
   variablesExpander = VariablesExpander(tools.VariablesLikeAntExpander.Expander) 
@@ -61,6 +72,10 @@ class Atta:
 # Project property 
 
 Project = None
+
+def GetProject():
+  return Project
+
 '''
 Provides access to data and general tools for the entire project. 
 Property Project is an instance of the class :py:class:`atta.Project`.

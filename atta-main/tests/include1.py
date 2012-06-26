@@ -9,7 +9,7 @@ class init1(Target):
     Echo('include1.init1 target')
     
 class test1(Target):
-  DependsOn = [init1]
+  dependsOn = [init1]
   def Run(self):
     Echo('include1.test1 target')
     Project.from_include1 = 'i1'

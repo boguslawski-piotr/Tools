@@ -14,3 +14,5 @@ bin
 /docs/modules
 /docs/modules.rst
 /tests/test_Java
+/tests/JavaMedium/libs
+/tests/JavaMedium/.repository

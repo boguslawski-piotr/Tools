@@ -2,8 +2,9 @@ import os
 import sys
 
 from ..tools.Misc import LogLevel
+from ..tools.OS import Path
 from ..Interfaces import Activity
-from atta import Atta
+from atta import Atta, GetProject
 
 #------------------------------------------------------------------------------ 
 
@@ -14,7 +15,7 @@ class Target(Activity):
   TODO: description
   '''
 
-  DependsOn = []
+  dependsOn = []
   OsFamily = []
   
   def Prepare(self):
@@ -34,7 +35,10 @@ class Target(Activity):
   def _Name(self):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
-      #self.name = '.'.join(self.name.split('.')[-2:])
+      self.name = self.name.replace('atta.targets.', '')
+      project = GetProject()
+      if project._parent is None:
+        self.name = self.name.replace(Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
     return self.name
   
   def _Run(self):

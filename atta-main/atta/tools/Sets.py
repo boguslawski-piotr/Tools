@@ -23,7 +23,9 @@ class FileSet(list):
     :param excludes:           TODO
     :type excludes:            string or list of strings
     :param boolean useRegExp:  TODO
+    :param callable filter:    TODO
     :param boolean realPaths:  TODO
+    :param boolean withRootDir: TODO
     :param boolean createEmpty: TODO
     
     :return: iterable TODO
@@ -34,19 +36,12 @@ class FileSet(list):
       self.AddFiles(rootDir, includes, excludes, **tparams)
 
   def AddFiles(self, rootDir, includes = '*', excludes = [], **tparams):
-    files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
+    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
-    # TODO: co zrobic jezeli zbior bedzie zawieral pliki z roznych root?
-    if tparams.get('realPaths', True):
-      rootDir = os.path.realpath(rootDir)
-    self.rootDir = os.path.normpath(rootDir)
+    # TODO: how to handle rootDir if FileSet includes files from different roots?
     
   def MakeSet(self, rootDir, includes, excludes = [], **tparams):
     '''Creates a set of files.
-      
-      .. todo::
-        
-        - optimize simple calls like MakeSet(includes = \*.log) for one directory
     '''
     if isinstance(includes, basestring):
       includes = [includes]
@@ -54,7 +49,9 @@ class FileSet(list):
       excludes = [excludes]
     useRegExp = tparams.get('useRegExp', False)
     realPaths = tparams.get('realPaths', True)
+    withRootDir = tparams.get('withRootDir', False)
     onlyDirs = tparams.get('onlyDirs', False)
+    _filter = tparams.get('filter', None)
           
     rootDir = os.path.normpath(rootDir)
     rootDir += os.path.sep
@@ -81,15 +78,21 @@ class FileSet(list):
             nameToAdd = None
             break
         if nameToAdd is not None:
+          if _filter is not None:
+            if not _filter(rootDir, nameToAdd):
+              nameToAdd = None
+        if nameToAdd is not None:
           if realPaths:
             cwd = os.getcwd()
-            try: os.chdir(rootDir)
-            except: pass
+            os.chdir(rootDir)
             nameToAdd = os.path.realpath(nameToAdd)
             os.chdir(cwd)
+          else:
+            if withRootDir:
+              nameToAdd = os.path.join(rootDir, nameToAdd)
           filesSet.append(nameToAdd)
           
-    return filesSet
+    return (rootDir, filesSet)
 
   @staticmethod
   def Match(pattern, name, useRegExp = False):
@@ -155,6 +158,6 @@ class DirSet(FileSet):
     self.AddDirs(rootDir, includes, excludes, **tparams)
 
   def AddDirs(self, rootDir, includes = '*', excludes = [], **tparams):
-    files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
+    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
   

@@ -3,125 +3,188 @@ Java Target
 
 TODO: description
 '''
-from atta import *
-
 import shutil
 import os
 
-if Project is not None:
-  if hasattr(Project, 'targetsMap'):
-    Project.targetsMap['help']    = 'atta.targets.Java.help'
-    Project.targetsMap['clean']   = 'atta.targets.Java.clean'
-    Project.targetsMap['compile'] = 'atta.targets.Java.compile'
-    Project.targetsMap['package'] = 'atta.targets.Java.package'
-    Project.targetsMap['install'] = 'atta.targets.Java.install'
-    
-    Project.defaultTarget = 'help'
+from atta import *
 
 # Settings
 
-srcBaseDir = 'src'
+def Setup(srcBaseDir = 'src', buildBaseDir = 'build', installBaseDir = 'bin', deployBaseDir = 'archive', mainClass = 'main'):
+  project = GetProject()
+  #print 'in Java.setup'
+  #print project
+  
+  project.srcBaseDir = srcBaseDir
+  '''TODO: description'''
+  
+  project.buildBaseDir = buildBaseDir
+  '''TODO: description'''
+  
+  project.installBaseDir = installBaseDir
+  '''TODO: description'''
+  
+  project.deployBaseDir = deployBaseDir
+  '''TODO: description'''
+  
+  
+  project.javaDirs = [project.srcBaseDir + '/main/java']
+  '''TODO: description'''
+  
+  project.javaTestDirs = [project.srcBaseDir + '/test/java']
+  '''TODO: description'''
+  
+  project.classDirs = [project.buildBaseDir + '/classes/main']
+  '''TODO: description'''
+  
+  project.classTestDirs = [project.buildBaseDir + '/classes/test']
+  '''TODO: description'''
+  
+  
+  project.javacClassPath = []
+  '''TODO: description'''
+  
+  project.javacSourcePath = []
+  '''TODO: description'''
+  
+  project.debug = False
+  '''TODO: description'''
+  
+  project.debugLevel = None
+  '''TODO: description'''
+  
+  
+  project.packageNameFormat = '{0}-{1}'
+  '''TODO: description
+  {0} - project name
+  {1} - project version name
+  '''
+  
+  project.packageName = []
+  '''result package file name set in package target TODO: description'''
+  
+  project.packageAdditionalFiles = []
+  '''TODO: description'''
+  
+  project.javaMainClass = mainClass
+  '''TODO: description'''
 
-buildBaseDir = 'build'
+  project.defaultTarget = 'help'
 
-classBaseDir = buildBaseDir + '/classes'
-
-installBaseDir = 'bin'
-
-externalLibsBaseDir = 'libs'
-
-
-srcDirs = [srcBaseDir + '/main/java']
-'''TODO: description'''
-
-srcTestDirs = [srcBaseDir + '/test/java']
-'''TODO: description'''
-
-classDirs = [classBaseDir + '/main']
-'''TODO: description'''
-
-classTestDirs = [classBaseDir + '/test']
-'''TODO: description'''
-
-
-classPath = []
-'''TODO: description'''
-
-sourcePath = []
-'''TODO: description'''
-
-packageNameFormat = '{0}-{1}'
-'''TODO: description'''
-
-debug = False
-'''TODO: description'''
-
-debugLevel = ''
-'''TODO: description'''
-
-mainClassName = ''
-'''TODO: description'''
-
+  project.targetsMap['help']    = 'atta.targets.Java.help'
+  project.targetsMap['clean']   = 'atta.targets.Java.clean'
+  project.targetsMap['prepare'] = 'atta.targets.Java.prepare'
+  project.targetsMap['compile'] = 'atta.targets.Java.compile'
+  project.targetsMap['package'] = 'atta.targets.Java.package'
+  project.targetsMap['install'] = 'atta.targets.Java.install'
+  project.targetsMap['deploy']  = 'atta.targets.Java.deploy'
+  
 # Tools
 
 # Targets
 
-class prepare(Target):
+class prepareEnvironment(Target):
   def Run(self):
-    Echo('Creating directories:')
-    for classDir in classDirs:
-      Echo(os.path.realpath(classDir))
-    OS.MakeDirs(classDirs)
+    # Create the necessary directories.
+    project = GetProject()
+    create = False
+    for classDir in project.classDirs:
+      if not os.path.exists(classDir):
+        create = True
+        break
+    if create:
+      Echo('Creating directories:')
+      for classDir in project.classDirs:
+        Echo(os.path.normpath(classDir))
+      OS.MakeDirs(project.classDirs)
 
+class prepare(Target):
+  dependsOn = [prepareEnvironment]
+  def Run(self):
+    project = GetProject()
+    packages = project.ResolveDependencies()
+    if packages is not None:
+      project.javacClassPath.extend(packages)
+  
 class clean(Target):
   def Run(self):
-    Echo('Deleting directory: ' + os.path.realpath(buildBaseDir))
-    shutil.rmtree(buildBaseDir, True)
-    Echo('Deleting directory: ' + os.path.realpath(installBaseDir))
-    shutil.rmtree(installBaseDir, True)
+    project = GetProject()
+    Echo('Deleting directory: ' + os.path.normpath(project.buildBaseDir))
+    shutil.rmtree(project.buildBaseDir, True)
+    Echo('Deleting directory: ' + os.path.normpath(project.installBaseDir))
+    shutil.rmtree(project.installBaseDir, True)
 
 class compile(Target):
-  DependsOn = [prepare]
+  dependsOn = [prepare]
   def Run(self):
+    project = GetProject()
     i = 0
-    for srcDir in srcDirs:
-      if not classDirs[i] in classPath:
-        classPath.append(classDirs[i])
+    for srcDir in project.javaDirs:
+      if not project.classDirs[i] in project.javacClassPath:
+        project.javacClassPath.append(project.classDirs[i])
+      
       Javac([srcDir], 
-            classDirs[i], 
-            classPath = classPath,
-            sourcePath = sourcePath, 
-            debug = debug, 
-            debugLevel = debugLevel)
-      if i < len(classDirs) - 1:
+            project.classDirs[i], 
+            classPath = project.javacClassPath,
+            sourcePath = project.javacSourcePath, 
+            debug = project.debug, 
+            debugLevel = project.debugLevel)
+      
+      if not OS.Path.HasWildcards(srcDir):
+        if not srcDir in project.javacSourcePath:
+          project.javacSourcePath.append(srcDir)
+      
+      if i < len(project.classDirs) - 1:
         i += 1
     
 class package(Target):
-  DependsOn = [compile]
+  dependsOn = [compile]
   def Run(self):
-    # Create package name.
-    packageName = Project.name
-    if len(packageName) <= 0:
-      raise SystemError('Project.name is not set.')
-    if len(Project.versionName) > 0:
-      packageName = packageNameFormat.format(packageName, Project.versionName) 
-    
-    # Create basic manifest.
-    manifest = {
-                'Implementation-Title'  : Project.name,
-                'Implementation-Version': Project.versionName,
-                'Main-Class'            : mainClassName,
-               }
-    
     # Create jar file.
-    Jar(os.path.join(buildBaseDir, packageName) + '.jar', 
+    project = GetProject()
+    classDirs = project.classDirs[:]
+    classDirs.extend(project.packageAdditionalFiles)
+    packageName = os.path.join(project.buildBaseDir, self.PackageName()) + '.jar'
+    Jar(packageName, 
         classDirs, 
-        manifest)
-
+        self.Manifest(),
+        update = False)
+    project.packageName = packageName
+  
+  def Manifest(self):
+    # Create basic manifest.
+    project = GetProject()
+    manifest = {
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.versionName,
+                'Main-Class'            : project.javaMainClass,
+               }
+    return manifest
+  
+  def PackageName(self):
+    # Create package name.
+    project = GetProject()
+    packageName = project.name
+    if len(packageName) <= 0:
+      raise AttaError(self, 'Project.name is not set.')
+    if len(project.versionName) > 0:
+      packageName = project.packageNameFormat.format(packageName, project.versionName)
+    return packageName
+   
 class install(Target):
-  DependsOn = [package]
+  '''TODO: Buduje caly projekt i umieszcza wszystko co potrzebne do jego uruchomienia w bin (default)'''
+  dependsOn = [package]
   def Run(self):
-    Echo('Installing into: ' + os.path.realpath(installBaseDir))
+    Echo('Installing into: ' + os.path.normpath(GetProject().installBaseDir))
+    print GetProject().javacClassPath
+
+class deploy(Target):
+  '''TODO: Wysyla do roznych (konfiguracja) repozytoriow.
+  Zwieksza numer builda.
+  '''
+  dependsOn = [install]
+  def Run(self):
+    Echo('Deplyoing into: ')
     
 #------------------------------------------------------------------------------ 
 

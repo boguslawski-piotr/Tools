@@ -9,7 +9,7 @@ Echo('In: ' + File.name)
 inc1n, inc1 = Project.Import('include1')
 
 class test(Target):
-  DependsOn = [inc1.test1]
+  dependsOn = [inc1.test1]
   def Run(self):
     Project.Import('inc/include1')
     Project.RunTarget('inc.include1.test1')

@@ -24,7 +24,7 @@ class Echo(Task):
     :param  msg:           The message to echo (default: blank line).
     :type msg:             any object that can be converted to string or iterable
 
-    :param LogLevel level: Control the log level at which this message is reported (default: INFO).
+    :param LogLevel level: Control the log level at which this message is reported (default: WARNING).
 
     :param file:           The file name or a file-like object to write the message to |None|.
     :type file:            string or file-like class 
@@ -42,7 +42,7 @@ class Echo(Task):
     isiterable = lambda msg: \
                   not isinstance(msg, basestring) or getattr(msg, '__iter__', False)
 
-    level = tparams.get('level', LogLevel.INFO)
+    level = tparams.get('level', LogLevel.WARNING)
     _file = tparams.get('file', None)
     if isinstance(msg, basestring):
       msg = self.ExpandVariables(msg, **tparams)

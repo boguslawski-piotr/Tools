@@ -29,7 +29,7 @@ class Exec(Task):
   .. snippet:: ExecCommonParams
 
     :param params:              Command line arguments |None|.
-    :type params:               list of strings
+    :type params:               string or list of strings
     
   .. snippet:: ExecCommonParams2
   
@@ -63,6 +63,8 @@ class Exec(Task):
 
   '''
   def __init__(self, executable, params = [], **tparams):  
+    if isinstance(params, basestring):
+      params = params.split(' ')
     failOnError = tparams.get('failOnError', True)
     self.logOutput = tparams.get('logOutput', True)
     useShell = tparams.get('useShell', True)
@@ -72,13 +74,12 @@ class Exec(Task):
     _rc = 0
 
     _params = [executable]
-    for param in params:
-      _params.append(param)
+    _params.extend(params)
     if env is None:
       if atta.Project is None:
         env = os.environ
       else:
-        env = atta.Project.env
+        env = atta.GetProject().env
     
     process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, 
                                bufsize = 1, env = env, shell = useShell)

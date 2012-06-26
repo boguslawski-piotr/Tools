@@ -7,6 +7,7 @@ import sys
 import os
 import hashlib
 import re
+from datetime import datetime
 
 '''
 Path Tools
@@ -47,6 +48,19 @@ class Path:
       r = '**/' + r
     return l, r
 
+  @staticmethod
+  def TempName(path, ext):
+    '''TODO: description
+    '''
+    if len(ext) > 0 and not ext.startswith('.'):
+      ext = '.' + ext
+    while True:
+      dt = datetime.now()
+      name = dt.strftime('%Y%m%d%H%S%f') + ext
+      if not os.path.exists(os.path.join(path, name)):
+        return name
+    return ''
+  
 '''
 Directories Tools
 '''
@@ -107,10 +121,10 @@ def FileHash(fileName, algo = hashlib.md5(), chunkSize = 128 * 64):
     return None
   return algo.hexdigest()
 
-def FileCRC(fileName, chunkSize = 32768):
+def FileCRCn(fileName, chunkSize = 32768):
   '''
   Creates a CRC of a file.
-  Returns CRC as a string or None on error.
+  Returns CRC as a int (32bits) or None on error.
   '''
   import zlib
   prev = 0
@@ -120,4 +134,11 @@ def FileCRC(fileName, chunkSize = 32768):
         prev = zlib.crc32(chunk, prev)
   except:
     return None
-  return "{:08x}".format(prev & 0xFFFFFFFF)
+  return prev & 0xFFFFFFFF
+
+def FileCRC(fileName, chunkSize = 32768):
+  '''
+  Creates a CRC of a file.
+  Returns CRC as a string or None on error.
+  '''
+  return "{:08x}".format(FileCRCn(fileName, chunkSize))

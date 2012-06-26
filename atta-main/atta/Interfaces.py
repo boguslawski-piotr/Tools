@@ -1,6 +1,7 @@
 '''
 Various interfaces and base classes.
 '''
+import tools.OS as OS
 
 class ILogger:
   '''
@@ -30,6 +31,8 @@ class ILogger:
   def Log(self, msg, **args):
     pass
   
+#------------------------------------------------------------------------------ 
+
 class IVariablesExpander:
   '''
   IVariablesExpander interface
@@ -38,6 +41,56 @@ class IVariablesExpander:
   '''
   def Expand(self, txt, **tparams): 
     pass  
+  
+#------------------------------------------------------------------------------ 
+
+class IRepository:
+  '''TODO: description'''
+  def Get(self, groupId, artifactId, version, type, store = None, **tparams):
+    pass
+  
+  def Check(self, groupId, artifactId, version, type, timestamp, **tparams):
+    pass
+  
+  def Put(self, f, timestamp, groupId, artifactId, version, type, **tparams):
+    pass
+  
+  def Clean(self, groupId, artifactId, version, type): 
+    pass
+    
+  def _Name(self):
+    pass
+  
+  ''' 
+  A few useful tools.
+  IMO does not make sense to create a separate class, 
+  because these methods are static and do not 
+  interfere with the concept of the interface.
+  '''
+  
+  @staticmethod
+  def DisplayName(groupId, artifactId, version, type):
+    return '%s:%s.%s:%s' % (groupId, artifactId, type, version)
+
+  @staticmethod
+  def ResolveDisplayName(package):
+    groupId = ''
+    artifactId = ''
+    type = ''
+    version = ''
+    try:
+      items = package.split(':')
+      if len(items) == 3:
+        groupId = items[0]
+        del items[0]
+      type= OS.Path.Ext(items[0])
+      artifactId = OS.Path.RemoveExt(items[0])
+      if groupId == '':
+        groupId = artifactId
+      version = items[1]
+    except:
+      pass
+    return (groupId, artifactId, type, version)
   
 #------------------------------------------------------------------------------ 
 

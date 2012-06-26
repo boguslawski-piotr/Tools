@@ -61,7 +61,8 @@ class Logger:
     '''TODO: description'''
     level = args.get('level', LogLevel.Default())
     if self.LogAllowed(level):
-      if msg is not None: self.Log(msg, **args)
+      if msg is not None: 
+        self.Log(msg, **args)
       for v in iterable:
         self.Log('{0}'.format(v), **args)
 

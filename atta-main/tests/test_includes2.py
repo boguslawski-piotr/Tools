@@ -21,7 +21,7 @@ Project.RunTarget('inc.inc2.includes2.includes2')
 Project.defaultTarget = 'test'
 
 class test(Target):
-  DependsOn = ['inc.inc2.includes2.includes2', 'xtests.includes2.includes2']
+  dependsOn = ['inc.inc2.includes2.includes2', 'xtests.includes2.includes2']
   def Run(self):
     Echo('includes2 target')
     

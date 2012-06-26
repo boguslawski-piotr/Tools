@@ -1,8 +1,8 @@
-import StdLogger
+import Std
 
-class Logger(StdLogger.Logger):
+class Logger(Std.Logger):
   '''
-  .. snippet:: loggers.CompactLogger
+  .. snippet:: loggers.Compact
   
     Compact logger.
      
@@ -18,7 +18,9 @@ class Logger(StdLogger.Logger):
       if 'target' in args: 
         if 'prepare' in args: 
           self.targetName = self._HandleTarget(msg, **args)
-      
+        if 'end' in args: 
+          self.targetName = ''
+          
     if _msg is None:
       _msg = '{0}'.format(msg)
       

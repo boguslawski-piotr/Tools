@@ -30,7 +30,7 @@ Usage: atta [target]
 Available targes:''')
     for m in dir(sys.modules['build']):
       d = sys.modules['build'].__dict__[m]
-      if m != 'Target' and 'DependsOn' in dir(d):
+      if m != 'Target' and 'dependsOn' in dir(d):
         Echo('  ' + m)
     
 #------------------------------------------------------------------------------ 
@@ -40,25 +40,25 @@ class cleandirs(Target):
   '''
   def Run(self):
     Echo('Removing directories...')
-    for dirName in DirSet(includes = ['**/*build', '**/dist', 'docs/html', 'docs/modules']):
+    for dirName in DirSet(includes = ['**/*build', '**/dist', '**/bin', 'docs/html', 'docs/modules']):
       Echo('  %s' % dirName)
       shutil.rmtree(dirName, True)
       
 class clean(Target):
   ''' Clean...
   '''
-  DependsOn = [cleandirs]
+  dependsOn = [cleandirs]
   def Run(self):
-    Echo('\nRemoving *.py? and *.log files...')
-    for fileName in FileSet(includes = ['**/*.py?', '**/*.log']):
-      Echo('  %s' % fileName)
+    Echo('\nRemoving files:')
+    for fileName in FileSet(includes = ['**/*.py?', '**/*.log', '**/*.class', '**/*.jar', 'tests/test_Java']):
+      Echo('%s' % fileName)
       os.remove(fileName)
 
 #------------------------------------------------------------------------------ 
 
-import atta.loggers.StdLogger as StdLogger
+import atta.loggers.Std as Std
 
-class TestsLogger(StdLogger.Logger):
+class TestsLogger(Std.Logger):
   def __init__(self):
     open(os.path.join(Project.dirName, 'tests.log'), 'wb').close()
     
@@ -100,7 +100,7 @@ STARTED at: %s
     Echo(t.output, file = 'unittests.log', append = True)
     
     if t.returnCode != 0:
-      raise Exception('Unit tests are not performed correctly.')
+      raise AttaError(self, 'Unit tests are not performed correctly.')
     
     return
   
@@ -128,7 +128,7 @@ def LineFilter(inFile, filterFunc, outFile = None):
 class makedocs(Target):
   ''' Make Atta documentation.
   '''
-  DependsOn = [cleandirs]
+  dependsOn = [cleandirs]
   def Run(self):
     # doxygen
     #LineFilter('README.md', MD2DoxygenMD, 'README_.md')    

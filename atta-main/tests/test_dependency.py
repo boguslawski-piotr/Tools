@@ -15,16 +15,16 @@ class prepare(Target):
     pass
   
 class precompile(Target):
-  DependsOn = [init, prepare]
+  dependsOn = [init, prepare]
   def Run(self):
     Echo('precompile (should be third)')
 
 class compile(Target):
-  DependsOn = [prepare, precompile]
+  dependsOn = [prepare, precompile]
   def Run(self):
     Echo('compile (should be fourth)')
     
 class install(Target):
-  DependsOn = [prepare, compile, precompile]
+  dependsOn = [prepare, compile, precompile]
   def Run(self):
     Echo('install (should be last)')

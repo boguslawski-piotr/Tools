@@ -66,6 +66,7 @@ Core
   modules/*
   modules/targets/*
   modules/tasks/*
+  modules/repositories/*
   modules/tools/*
 
 Internal

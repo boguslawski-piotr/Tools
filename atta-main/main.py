@@ -27,13 +27,15 @@ def _ParseArgv(argv):
     'target', nargs = '*', default = '',
     help = ''
   )
+  
   argsParser.add_argument(
     '-f', nargs = 1, default = ['build.py'], metavar = 'file',
     help = 'use given buildfile'
   )
+  
   argsParser.add_argument(
-    '-lc', nargs = 1, metavar = 'class',
-    help = 'use given class as logger (must implements ILogger interface)'
+    '-lm', nargs = 1, metavar = 'module',
+    help = 'use given module with Logger class as logger (Logger must implements ILogger interface)'
   )
   argsParser.add_argument(
     '-scs', action = 'store_true',
@@ -88,9 +90,9 @@ def Main():
   if args.ll:
     Atta.logger.SetLevel(args.ll[0])
 
-  if args.lc:
-    __import__(OS.Path.RemoveExt(args.lc[0]))
-    Atta.logger.SetClass(args.lc[0])
+  if args.lm:
+    __import__(args.lm[0])
+    Atta.logger.SetClass(args.lm[0] + '.Logger')
   
   _Dump()
   Atta.logger.Log("args = {0}".format(args), level = LogLevel.DEBUG)
@@ -100,7 +102,7 @@ def Main():
     return 0
   
   except Exception, e:
-    if args.scs or LogLevel.Get() <= LogLevel.VERBOSE:
+    if args.scs or Atta.logger.GetLevel() <= LogLevel.VERBOSE:
       raise
     else:
       Atta.logger.Log(e, level = LogLevel.ERROR)

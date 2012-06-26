@@ -42,7 +42,7 @@ class PyExec(Exec):
         for path in sys.path:
           _fileName = os.path.join(path, fileName)
           if os.path.exists(_fileName):
-            self.Log('Found {0} in {1}'.format(fileName, path), level = LogLevel.DEBUG)
+            self.Log('Found {0} in: {1}'.format(fileName, path), level = LogLevel.VERBOSE)
             fileName = _fileName
             break
     

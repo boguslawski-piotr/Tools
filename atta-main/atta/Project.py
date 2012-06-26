@@ -1,7 +1,7 @@
 import sys
 import os
 import collections
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Python 2.7+
 #import importlib
@@ -9,6 +9,7 @@ from datetime import datetime
 from tools.Misc import LogLevel
 import tools.OS as OS
 from Env import *
+import Dependencies
 import atta
 
 class Project:
@@ -35,7 +36,10 @@ class Project:
 
     self.env = None
     '''TODO: description'''
-
+    
+    self.dependsOn = []
+    '''TODO: description'''
+    
     self.defaultTarget = ''
     '''TODO: description'''
 
@@ -62,7 +66,7 @@ class Project:
       logLevel = LogLevel.DEBUG
       Atta.logger.Log('\n+++\nProject.Import(' + orgFileName + ')', level = logLevel)
       Atta.logger.Log('  dirName = ' + dirName, level = logLevel)
-      Atta.logger.Log('  fileName = ' + dirName, level = logLevel)
+      Atta.logger.Log('  fileName = ' + fileName, level = logLevel)
       
       fullModuleName = moduleName
       if fileName[0:len(self.dirName)] == self.dirName:
@@ -72,7 +76,7 @@ class Project:
         fullModuleName = OS.Path.RemoveExt(orgFileName).replace('\\', '.').replace('/', '.')
       
       packageFileName = None
-      if sys.modules.has_key(moduleName): #{
+      if sys.modules.has_key(moduleName):
         lastDOT = fullModuleName.rfind('.')
         if lastDOT >= 0:
           lastDOT = fullModuleName.rfind('.', 0, lastDOT - 1)
@@ -83,8 +87,7 @@ class Project:
           except: pass
         else:
           packageFileName = None
-      #}
-            
+              
       prevDir = self.env.chdir(dirName)
       atta.File._Set(fileName)
       try: #{
@@ -120,6 +123,14 @@ class Project:
     
     return (moduleName, module)
 
+  def ResolveDependencies(self, data = None):
+    '''TODO: description'''
+    resolver = Dependencies.Resolver()
+    if resolver.Resolve(self.dependsOn if data is None else data):
+      # TODO: remove duplicates
+      return resolver.Result()
+    return None
+  
   def GetTarget(self, targetClass):
     '''TODO: description'''
     targetClass = self._GetTargetClass(targetClass)
@@ -133,7 +144,7 @@ class Project:
       target = targetClass()
       self._targetsLevel += 1
       self._executedTargets[targetClass] = [target, self._targetsLevel]
-      for dependClass in target.DependsOn:
+      for dependClass in target.dependsOn:
         self.RunTarget(dependClass)
       target._Run()
       self._targetsLevel -= 1
@@ -164,7 +175,7 @@ class Project:
       self.env.chdir(self.dirName)
 
       if not os.path.exists(self.fileName):
-        raise IOError(os.errno.ENOENT, 'Buildfile: {0} does not exists!'.format(self.fileName))
+        raise IOError(os.errno.ENOENT, 'File: {0} does not exists!'.format(self.fileName))
       
       if self._parent is None:
         Atta.logger.Log('Buildfile: ' + self.fileName)
@@ -235,7 +246,7 @@ class Project:
               targetClass = self.targetsMap[targetClassName]
               targetPackage,  targetClassName = _SplitClass(targetClass)
             else:
-              raise SystemError('Can not find the %s.%s target.' % (targetPackage, targetClassName))
+              raise AttaError(self, 'Can not find the %s.%s target.' % (targetPackage, targetClassName))
         else:
           break
     return targetClass
@@ -253,4 +264,3 @@ class Project:
     for i in self._executedTargets.values():
       Atta.logger.Log(('{0:>%d}{1}' % (i[1]*2)).format(' ', i[0].__class__), level = LogLevel.DEBUG)
     Atta.logger.Log('***', level = LogLevel.DEBUG)
-
