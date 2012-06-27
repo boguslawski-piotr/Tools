@@ -76,7 +76,7 @@ def Main():
   #TODO: options -DX=y -> environ[X]=y
   
   try:
-    prop = Properties().Open(os.path.join(Atta.dirName, 'Atta.properties'))
+    prop = Properties.Open(os.path.join(Atta.dirName, 'Atta.properties'))
     args = prop.Get('args', None)
     if args is not None:
       argv += args.split(' ')

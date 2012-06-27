@@ -132,8 +132,7 @@ class makedocs(Target):
   def Run(self):
     # doxygen
     #LineFilter('README.md', MD2DoxygenMD, 'README_.md')    
-    #prop = Properties()
-    #prop.Open('build.properties')
+    #prop = Properties.Open('build.properties')
     #Exec(prop.Get('doxygen.exe', 'doxygen'))
     #os.remove('README_.md')
     
@@ -156,7 +155,6 @@ class makedocs(Target):
     :members:
     :undoc-members:
     :private-members:
-    :inherited-members:
     :show-inheritance:
     :member-order: bysource
 ''',

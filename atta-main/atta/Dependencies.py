@@ -1,17 +1,6 @@
 import sys
-from Interfaces import IRepository
+from Interfaces import PackageId, IRepository
 
-class XXX:
-  '''TODO: description'''
-  dependsOn  = 'dependsOn'
-  repository = 'repository'
-  package    = 'package'
-  groupId    = 'groupId'
-  artifactId = 'artifactId'
-  version    = 'version'
-  type       = 'type'
-  putIn      = 'putIn'
-  
 class Resolver:
   '''TODO: description'''
   def __init__(self):
@@ -20,33 +9,30 @@ class Resolver:
   def Resolve(self, data):
     rc = False
     for e in data:
-      if e.has_key(XXX.dependsOn):
+      if e.has_key(IRepository.Dictionary.dependsOn):
         # recursively resolve the dependencies
-        self.Resolve(e[XXX.dependsOn])
+        self.Resolve(e[IRepository.Dictionary.dependsOn])
       
-      repositoryName = e.get(XXX.repository)
+      repositoryName = e.get(IRepository.Dictionary.repository)
       if repositoryName is None:
         continue
       
       __import__(repositoryName)
       repository = sys.modules[repositoryName].Repository()
       
-      package = e.get(XXX.package)
-      if package is not None:
-        groupId, artifactId, type, version = IRepository.ResolveDisplayName(package)
+      packageStrId = e.get(IRepository.Dictionary.package)
+      if packageStrId is not None:
+        packageId = PackageId.FromStr(packageStrId)
       else:
-        groupId = e.get(XXX.groupId)
-        artifactId = e.get(XXX.artifactId)
-        version = e.get(XXX.version)
-        type = e.get(XXX.type)
+        packageId = PackageId(e.get(IRepository.Dictionary.groupId), e.get(IRepository.Dictionary.artifactId), e.get(IRepository.Dictionary.version), e.get(IRepository.Dictionary.type))
       
       store = None
-      storeName = e.get(XXX.putIn)
+      storeName = e.get(IRepository.Dictionary.putIn)
       if storeName is not None:
         __import__(storeName)
         store = sys.modules[storeName].Repository()
       
-      result = repository.Get(groupId, artifactId, version, type, store, data = e)
+      result = repository.Get(packageId, store, data = e)
       if result is not None and len(result) > 0:
         self.result += result
         rc = True
@@ -57,6 +43,7 @@ class Resolver:
     return rc
     
   def Result(self):
+    self.result = list(set(self.result))  # remove duplicates
     return self.result
   
   def Clear(self):

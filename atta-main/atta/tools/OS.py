@@ -7,7 +7,8 @@ import sys
 import os
 import hashlib
 import re
-from datetime import datetime
+import shutil
+from datetime import datetime, timedelta
 
 '''
 Path Tools
@@ -87,7 +88,7 @@ def MakeDirs(path):
 File tools
 '''
     
-def Remove(fileName):
+def RemoveFile(fileName):
   '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
   try:
     os.remove(fileName)
@@ -107,7 +108,33 @@ def FileSize(fileName):
     return INVALID_FILE_SIZE
   return info.st_size
 
-def FileHash(fileName, algo = hashlib.md5(), chunkSize = 128 * 64):
+def CopyFileIfDiffrent(fileName, destName, useHash = False):
+  '''
+  Copies the file `fileName` to the file or directory `destName`
+  only if modification times or sha1 hashs are different or `destName` not exists. 
+  If `destName` is a directory, a file with the same basename as 
+  `fileName` is created (or overwritten) in the directory specified.
+  Uses :py:func:`shutil.copy2`.
+  Returns True if file was copied.
+  '''
+  shouldCopy = True
+  if os.path.exists(fileName):
+    if os.path.isdir(destName):
+      destName = os.path.join(destName, os.path.basename(fileName))
+    if os.path.exists(destName):
+      if useHash:
+        srcHash = FileHash(fileName, hashlib.sha1())
+        destHash = FileHash(destName, hashlib.sha1())
+        shouldCopy = srcHash != destHash
+      else:
+        srcTime = datetime.fromtimestamp(os.path.getmtime(fileName))
+        destTime = datetime.fromtimestamp(os.path.getmtime(destName))
+        shouldCopy = abs((srcTime - destTime)) > timedelta(seconds = 1)
+  if shouldCopy:
+    shutil.copy2(fileName, destName)
+  return shouldCopy
+
+def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
   '''
   Creates a hash of a file using the selected encryption algorithm.
   Returns file hash as a string (hexdigest) or None on error.

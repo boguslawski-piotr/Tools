@@ -107,9 +107,9 @@ class Project:
           sys.modules[fullModuleName] = module
         
         if packageFileName is not None:
-          OS.Remove(packageFileName)
-          OS.Remove(packageFileName + 'c')
-          OS.Remove(packageFileName + 'o')
+          OS.RemoveFile(packageFileName)
+          OS.RemoveFile(packageFileName + 'c')
+          OS.RemoveFile(packageFileName + 'o')
       #}    
       except:
         raise
@@ -127,7 +127,6 @@ class Project:
     '''TODO: description'''
     resolver = Dependencies.Resolver()
     if resolver.Resolve(self.dependsOn if data is None else data):
-      # TODO: remove duplicates
       return resolver.Result()
     return None
   
@@ -233,20 +232,34 @@ class Project:
       return (OS.Path.RemoveExt(targetClass), OS.Path.Ext(targetClass, False))
     
     if isinstance(targetClass, basestring):
-      targetPackage,  targetClassName = _SplitClass(targetClass)
+      tryTargetInProject = True
       while True:
         try:
+          targetPackage, targetClassName = _SplitClass(targetClass)
           targetClass = sys.modules[targetPackage].__dict__[targetClassName]
         except Exception, e:
           firstDot = targetPackage.find('.')
           if firstDot >= 0:
             targetPackage = targetPackage[firstDot + 1:]
           else:
-            if self.targetsMap.has_key(targetClassName):
-              targetClass = self.targetsMap[targetClassName]
-              targetPackage,  targetClassName = _SplitClass(targetClass)
+            key = None
+            if len(targetClassName) > 0:
+              key = targetClassName  
             else:
-              raise AttaError(self, 'Can not find the %s.%s target.' % (targetPackage, targetClassName))
+              # Coming here we have only one component of the target, without the module name.
+              if tryTargetInProject:
+                # Only once we check whether the target is in the main project file.
+                # This allows to change the default behavior of targets collections 
+                # that come with of Atta (such as Java or Android).
+                targetClass = OS.Path.RemoveExt(os.path.basename(self.fileName)) + '.' + targetPackage
+                tryTargetInProject = False
+              else:
+                key = targetPackage  
+            if key is not None:
+              if self.targetsMap.has_key(key):
+                targetClass = self.targetsMap[key]
+              else:
+                raise AttaError(self, 'Can not find the %s.%s target.' % (targetPackage, targetClassName))
         else:
           break
     return targetClass

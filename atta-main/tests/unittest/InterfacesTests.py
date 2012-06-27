@@ -1,23 +1,20 @@
 import unittest
 import sys
 import os
-from atta.Interfaces import IRepository
 
 sys.path.insert(0, '../..')
-import atta.Interfaces
+from atta.Interfaces import PackageId
 
 class InterfacesTests(unittest.TestCase):
   def setUp(self):
     pass
 
-  def test_IRepository(self):
-    self.assertEqual(IRepository.ResolveDisplayName('groupId:artifactId.type:ver'), ('groupId', 'artifactId', 'type', 'ver'))
-    self.assertEqual(IRepository.ResolveDisplayName('artifactId.type:ver'), ('artifactId', 'artifactId', 'type', 'ver'))
-    self.assertEqual(IRepository.ResolveDisplayName('artifactId.type'), ('artifactId', 'artifactId', 'type', ''))
-    self.assertEqual(IRepository.ResolveDisplayName('artifactId'), ('artifactId', 'artifactId', '', ''))
-    self.assertEqual(IRepository.ResolveDisplayName(''), ('', '', '', ''))
-    self.assertEqual(IRepository.ResolveDisplayName(dict()), ('', '', '', ''))
-
+  def test_PackageId(self):
+    p1 = PackageId('groupId', 'artifactId', 'ver', 'type')
+    self.assertEqual(str(p1), 'groupId:artifactId.type:ver')
+    p2 = PackageId.FromStr('groupId:artifactId.type:ver')
+    self.assertEqual(p1, p2)
+    
 if __name__ == '__main__':
   unittest.main
     

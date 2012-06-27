@@ -14,15 +14,15 @@ class Repository(Local.Repository):
   def PrepareRealFileName(self, fileName):
     return os.path.normpath(os.path.join(GetProject().dirName, fileName))
 
-  def Get(self, groupId, artifactId, version, type, store = None, **tparams):
-    if groupId is None:
+  def Get(self, packageId, store = None, **tparams):
+    if packageId.groupId is None:
       raise AttaError(self, 'Not given name / directory of the project (grupId entry).')
     
-    if os.path.isdir(groupId):
-      projectName = groupId + '/build.py'
-      dirName = groupId
+    if os.path.isdir(packageId.groupId):
+      projectName = packageId.groupId + '/build.py'
+      dirName = packageId.groupId
     else:
-      projectName = groupId
+      projectName = packageId.groupId
       dirName = os.path.dirname(projectName)
     if not os.path.exists(projectName):
       raise AttaError(self, 'File: %s does not exists!' % projectName)
@@ -69,9 +69,9 @@ class Repository(Local.Repository):
         raise
       finally:
         Atta.logger.SetClass(prevLoggerClass)
-        OS.Remove(projectTmpName)
-        OS.Remove(projectTmpName + 'c')
-        OS.Remove(projectTmpName + 'o')
+        OS.RemoveFile(projectTmpName)
+        OS.RemoveFile(projectTmpName + 'c')
+        OS.RemoveFile(projectTmpName + 'o')
     
     if result is None:
       raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultPropertyName))

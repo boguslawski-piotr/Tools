@@ -4,6 +4,7 @@
 *.class
 
 .settings
+.atta
 
 .build
 build

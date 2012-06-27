@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
+from ..tools.Properties import Properties
 from ..loggers import Compact
 from ..Interfaces import IRepository
 from atta import AttaError
@@ -17,54 +18,53 @@ class Repository(IRepository, Task):
     '''TODO: description'''
     return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
   
-  def PrepareFileName(self, groupId, artifactId, version, type): 
+  def PrepareFileName(self, packageId): 
     '''TODO: description'''
-    if groupId is None:
-      groupId = artifactId
-    dirName = '.repository/%s/%s/%s' % (groupId.replace('.', '/'), artifactId, str(version))
-    fileName = os.path.join(dirName, '%s-%s.%s' % (artifactId, str(version), str(type)))
+    fileName = os.path.join('.repository', packageId.FileName())
     return self.PrepareRealFileName(fileName) 
   
   def GetFileMarker(self, fileName):
-    timestamp = None
-    sha1 = None
+    '''TODO: description'''
     try:
-      with open(fileName + self._AttaDataExt(), 'r') as lf:
-        lines = lf.readlines()
-        if len(lines) > 0:
-          timestamp = lines[0].strip()
-        if len(lines) > 1:
-          sha1 = lines[1].strip()
-        lf.close()
+      with Properties.Open(fileName + self._AttaDataExt()) as p:
+        timestamp = p.Get('timestamp', None)
+        sha1 = p.Get('sha1', None)
     except:
-      return None
+      return (None, None)
     else:
       return (timestamp, sha1)
     
-  def Get(self, groupId, artifactId, version, type, store = None, **tparams):
+  def PutFileMarker(self, fileName, packageId):
     '''TODO: description'''
-    fileName = self.PrepareFileName(groupId, artifactId, version, type)
+    with Properties.Create(fileName + self._AttaDataExt()) as p:
+      p.Set('timestamp', packageId.timestamp)
+      p.Set('sha1', OS.FileHash(fileName, hashlib.sha1()))
+      p.Save()
+      
+  def Get(self, packageId, store = None, **tparams):
+    '''TODO: description'''
+    fileName = self.PrepareFileName(packageId)
     if not os.path.exists(fileName):
-      raise AttaError(self, "Can't find: " + IRepository.DisplayName(groupId, artifactId, version, type))
+      raise AttaError(self, "Can't find: " + str(packageId))
     
     if store is not None:
-      self.Log('Checking: %s in: %s' % (IRepository.DisplayName(groupId, artifactId, version, type), store._Name()), level = LogLevel.VERBOSE)
-      timestamp, sha1 = self.GetFileMarker(fileName)
-      fileInStore = store.Check(groupId, artifactId, version, type, timestamp, **tparams)
+      packageId.timestamp, packageId.sha1 = self.GetFileMarker(fileName)
+      fileInStore = store.Check(packageId, **tparams)
       if fileInStore is None:
-        self.Log('Uploading to: ' + store._Name(), level = LogLevel.INFO)
+        self.Log('Uploading: %s to: %s' %(str(packageId), store._Name()), level = LogLevel.INFO)
         with open(fileName, 'rb') as f:
-          store.Put(f, timestamp, groupId, artifactId, version, type, **tparams)
+          store.Put(f, packageId, **tparams)
       else:
         if fileName == fileInStore[0]:
-          self.Log("Unable to store: %s in the same repository, from which it is pulled." % IRepository.DisplayName(groupId, artifactId, version, type), level = LogLevel.WARNING)
+          self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(packageId), level = LogLevel.WARNING)
 
     return [fileName]
   
   # TODO: uzyc wzorca Strategy do implementacji Check
-  def Check(self, groupId, artifactId, version, type, timestamp, **tparams):
+  def Check(self, packageId, **tparams):
     '''returns: None or [fileName, fileSize, storedTimestamp]'''
-    fileName = self.PrepareFileName(groupId, artifactId, version, type)
+    fileName = self.PrepareFileName(packageId)
+    self.Log('Checking: %s' % str(packageId), level = LogLevel.VERBOSE)
     
     if not os.path.exists(fileName):
       return None
@@ -74,8 +74,8 @@ class Repository(IRepository, Task):
       return None
     
     # if the given timestamp isn't equal to the local file timestamp (stored with the file: see Put method) then return None 
-    if timestamp is not None:
-      if long(timestamp) != long(storedTimestamp):
+    if packageId.timestamp is not None:
+      if long(packageId.timestamp) != long(storedTimestamp):
         return None
       else:
         os.utime(fileName, None) # equivalent: touch
@@ -87,10 +87,10 @@ class Repository(IRepository, Task):
      
     return [fileName, OS.FileSize(fileName), storedTimestamp]
   
-  def Put(self, f, timestamp, groupId, artifactId, version, type, **tparams):
+  def Put(self, f, packageId, **tparams):
     '''returns: None or [fileName, fileSize]'''
-    fileName = self.PrepareFileName(groupId, artifactId, version, type)
-    self.Log('Takes: %s' % IRepository.DisplayName(groupId, artifactId, version, type), level = LogLevel.INFO)
+    fileName = self.PrepareFileName(packageId)
+    self.Log('Takes: %s' % str(packageId), level = LogLevel.INFO)
     
     OS.MakeDirs(os.path.dirname(fileName))
     
@@ -100,11 +100,7 @@ class Repository(IRepository, Task):
       lf.write(f.read())
       lf.close()
     
-    with open(fileName + self._AttaDataExt(), 'wb') as lf:
-      lf.write(str(timestamp))
-      lf.write('\n')
-      lf.write(OS.FileHash(fileName, hashlib.sha1()))
-      lf.close()
+    self.PutFileMarker(fileName, packageId)
         
     return [fileName, OS.FileSize(fileName)]
   

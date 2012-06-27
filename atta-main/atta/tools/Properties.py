@@ -5,17 +5,28 @@ class Properties:
   '''
   Supports the Java properties files.
   '''
+  @staticmethod
+  def Create(fileName):
+    '''Creates empty Properties object. TODO: ''' 
+    p = Properties()
+    p.c = ConfigParser.RawConfigParser()
+    p.c.add_section('p')
+    p.fileName = fileName
+    return p
   
-  def Open(self, fileName):
-    '''Reads a property list (key and element pairs) from the file.'''
+  @staticmethod
+  def Open(fileName):
+    '''Creates Properties object and reads a property list (key and element pairs) from the file.'''
     f = cStringIO.StringIO()
     f.write('[p]\n')
     f.write(open(fileName, 'r').read())
     f.seek(0, os.SEEK_SET)
-    self.c = ConfigParser.RawConfigParser()
-    self.c.readfp(f)
+    p = Properties()
+    p.c = ConfigParser.RawConfigParser()
+    p.c.readfp(f)
     f.close()
-    return self
+    p.fileName = fileName
+    return p
 
   def Get(self, name, default = None):
     '''
@@ -26,7 +37,29 @@ class Properties:
       return self.c.get('p', name)
     except:
       return default
+
+  def Set(self, name, value):
+    '''TODO: description'''
+    self.c.set('p', name, value)
+  
+  def Save(self):
+    '''TODO: description'''
+    with open(self.fileName, 'wb') as f:
+      for (key, value) in self.c.items('p'):
+        if key == "__name__":
+          continue
+        key = " = ".join((key, str(value).replace('\n', '\n\t')))
+        f.write("%s\n" % (key))
+      f.write("\n")
     
+  def __enter__(self):
+    return self
+  
+  def __exit__(self, exc_type, exc_value, traceback):
+    return self
+    
+#------------------------------------------------------------------------------ 
+
 def mgetattr(moduleName, attrName, default):
   '''TODO: description'''
   module = sys.modules[moduleName]

@@ -25,7 +25,6 @@ class Jar(Task):
                             if list: each item may be: file/dir/wildcard name or FileSet
     :param manifest:        TODO
     :type manifest:         dict or string (fileName) or file-like object
-    :param boolean update:  TODO
     :param boolean checkCRC: TODO
     
   .. snippetref:: JavacUseCases
@@ -35,28 +34,37 @@ class Jar(Task):
     # get parameters
     if isinstance(srcs, basestring):
       srcs = srcs.split(':')
-    update = tparams.get('update', False)
     checkCRC = tparams.get('checkCRC', True)
 
     if Atta.logger.GetLevel() == LogLevel.DEBUG:
       self.Log('\n*** Parameters:')
       self.LogIterable('srcs:', srcs)
-      self.Log('update: {0}'.format(update))
       self.Log('checkCRC: {0}'.format(checkCRC))
       self.Log('')
     
     manifestFileName = 'META-INF/MANIFEST.MF' 
+    manifestStr = self.ManifestAsStr(manifest, **tparams)
     jarFileName = os.path.normpath(jarFileName)
     changedFiles = []
     allFiles = []
     
-    # collecting files to add/update
+    # collecting files to add
     self.Log('Checking: ' + jarFileName, level = LogLevel.VERBOSE)
     jar = None
     try:
       jar = zipfile.ZipFile(jarFileName, 'r')
     except:
       pass
+    
+    manifestChanged = False
+    if jar != None:
+      try:
+        storedManifestStr = jar.read(manifestFileName)
+        if manifestStr != storedManifestStr:
+          manifestChanged = True
+      except:
+        manifestChanged = True
+      
     for src in srcs:
       if len(src) <= 0:
         continue
@@ -98,36 +106,24 @@ class Jar(Task):
     if jar is not None:
       jar.close()
               
-    # create/update jar file
-    if len(changedFiles) <= 0 or update:
-      update = True
-      mode = 'a'
-      files = changedFiles
-      logMsg = 'Updating: '
-    else:
-      mode = 'w'
-      files = allFiles
-      logMsg = 'Creating: '
-    
-    self.Log(logMsg + jarFileName, level = LogLevel.VERBOSE if len(files) <= 0 else LogLevel.INFO)
-    
+    # create jar file (if nedded)
     sometingWasWritten = False  
-    with zipfile.ZipFile(jarFileName, mode) as jar:
-      if len(files) > 0:
-        # add/update files
+    if len(changedFiles) > 0 or manifestChanged:
+      self.Log('Creating: ' + jarFileName, level = LogLevel.INFO)
+      with zipfile.ZipFile(jarFileName, 'w', zipfile.ZIP_DEFLATED) as jar:
+        # add files
         self.Log('with files:', level = LogLevel.VERBOSE)
-        for fullName, name in files:
+        for fullName, name in allFiles:
           jar.write(fullName, name)
           sometingWasWritten = True
           self.Log('%s from: %s' % (name, fullName), level = LogLevel.VERBOSE)
+        
+        # add manifest
+        self.Log('with manifest:\n%s' % manifestStr.rstrip(), level = LogLevel.VERBOSE)
+        jar.writestr(manifestFileName, manifestStr)
       
-      # create and add/update manifest
-      manifestStr = self.ManifestAsStr(manifest, **tparams)
-      jar.writestr(manifestFileName, manifestStr)
-      self.Log('with manifest:\n%s' % manifestStr.rstrip(), level = LogLevel.VERBOSE)
-      
-    if not sometingWasWritten and not update:
-      self.Log('To: %s none have been added except the manifest file.' % jarFileName, level = LogLevel.WARNING)
+    if not sometingWasWritten and (len(changedFiles) > 0 or manifestChanged):
+      self.Log('To: %s none have been added.' % jarFileName, level = LogLevel.WARNING)
          
   def ManifestAsStr(self, manifest = {}, **tparams):
     '''TODO: description'''

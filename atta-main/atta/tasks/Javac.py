@@ -7,6 +7,7 @@ from ..tasks.Base import Task
 from ..tasks.Exec import Exec
 from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
+from ..Strategies import SrcNewerStrategy
 import atta.tools.OS as OS
 
 class Javac(Task):
@@ -68,14 +69,12 @@ class Javac(Task):
     sourcePathStr = ''
     for path in sourcePath:
       if len(path) > 0:
-        #sourcePathStr = sourcePathStr + os.path.realpath(path) + os.pathsep
         sourcePathStr = AddToPath(sourcePathStr, path)
     
     # prepare user classpath
     classPathStr = ''
     for path in classPath:
       if len(path) > 0:
-        #classPathStr = classPathStr + os.path.realpath(path) + os.pathsep
         classPathStr = AddToPath(classPathStr, path)
 
     RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
@@ -93,21 +92,17 @@ class Javac(Task):
       else:
         if OS.Path.HasWildcards(src):
           rootDir, includes = OS.Path.Split(src)
-          #sourcePathStr = sourcePathStr + os.path.realpath(rootDir) + os.pathsep
           sourcePathStr = AddToPath(sourcePathStr, rootDir) 
           srcsSet.AddFiles(rootDir, includes = includes, 
                            filter = RequiresCompile, realPaths = False, withRootDir = True)
         else:
           if os.path.isdir(src):
-            #sourcePathStr = sourcePathStr + os.path.realpath(src) + os.pathsep
             sourcePathStr = AddToPath(sourcePathStr, src)
             srcsSet.AddFiles(src, includes = '**/*' + Javac.SourceExt(**tparams), 
                              filter = RequiresCompile, realPaths = False, withRootDir = True)
           else:
-            #src = os.path.realpath(src)
             src = os.path.normpath(src)
             if os.path.exists(src):
-              #sourcePathStr = sourcePathStr + os.path.split(src)[0] + os.pathsep
               rootDir = os.path.split(src)[0]
               sourcePathStr = AddToPath(sourcePathStr, rootDir)
               if RequiresCompile(rootDir, src):
@@ -121,6 +116,8 @@ class Javac(Task):
     self.Log('Compiling %d source file(s) to: %s' % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
     
+    # TODO: wydzielic do funkcji lub strategii
+    # TODO: robic plik i przekazywac plik do javac (bo na linie komend to moze byc za duzo)
     # prepare command line for java compiler
     params = tparams.get('javacParams', [])
     params.extend(['-d', destDir])
@@ -146,17 +143,15 @@ class Javac(Task):
     # compile
     self.InvokeJavac(params, **tparams)
 
+  RequiresCompileImpl = SrcNewerStrategy()
+  '''Physical implementation of :py:meth:`RequiresCompile` method. 
+     It may be any object which implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded`'''
+   
   def RequiresCompile(self, destDir, srcDir, fileName, **tparams): 
     '''TODO: description'''
     dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + Javac.OutputExt(**tparams)) 
     src = os.path.join(srcDir, fileName)
-    if not os.path.exists(dest):
-      return True
-    destTime = os.path.getmtime(dest)
-    srcTime = os.path.getmtime(src)
-    if srcTime > destTime:
-      return True
-    return False
+    return Javac.RequiresCompileImpl.ActionNeeded(src, dest)
 
   def InvokeJavac(self, params, **tparams):
     '''TODO: description'''
