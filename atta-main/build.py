@@ -64,7 +64,6 @@ class TestsLogger(Std.Logger):
     
   def _PhysicalLog(self, msg):
     if msg:
-      print(msg)
       with open(os.path.join(Project.dirName, 'tests.log'), 'a+b') as f:
         f.write(msg + os.linesep)
   
@@ -72,11 +71,11 @@ class tests(Target):
   ''' Run Atta tasks and targets tests.
   '''
   def Run(self):
-    ol = Atta.logger.SetClass(TestsLogger)
+    listener = Atta.logger.RegisterListener(TestsLogger)
     for fileName in FileSet(includes = 'tests/test_*.py', excludes="**/test_exec_output.py"):
       self.Log('\nRunning project: ' + fileName)
       Project.RunProject(None, fileName, '')
-    Atta.logger.SetClass(ol)
+    Atta.logger.UnRegisterListener(listener)
 
 #------------------------------------------------------------------------------ 
 

@@ -33,7 +33,7 @@ Use of Ant style variables
     var1 = 'var 1 contents',
     var3 = '${var1}')
 
-    pc = Atta.variablesExpander.SetClass(VariablesLikeDOSExpander)
+    pc = Atta.variablesExpander.SetImpl(VariablesLikeDOSExpander)
 
     v1s  = 'test'
     v1t =  Atta.variablesExpander.Expand('%test_ref%', test_ref = v1s)
@@ -51,5 +51,5 @@ And now DOS, Windows style variables
     var1 = 'var 1 contents',
     var3 = '%var1%')
 
-    Atta.variablesExpander.SetClass(pc)
+    Atta.variablesExpander.SetImpl(pc)
     

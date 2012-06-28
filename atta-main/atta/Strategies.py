@@ -24,7 +24,6 @@ class SrcHashStrategy(ICompareStrategy):
     '''Returns True if SHA1-hash of `srcFileName` is not equal to the last saved.'''
     if not os.path.exists(srcFileName):  
       return False
-    
     srcHashFileName = os.path.join('.atta/markers', os.path.dirname(srcFileName))
     if not os.path.exists(srcHashFileName):
       OS.MakeDirs(srcHashFileName)

@@ -29,4 +29,3 @@ Miscellaneous
 .. automodule:: atta.tools.Misc
     :noindex:
     :members:
-    :undoc-members:

@@ -31,16 +31,21 @@ class Logger:
     self._logger = ObjectFromClass(_class)
     self._listeners = []
       
-  def SetClass(self, _class):
+  def SetImpl(self, _class):
     '''Sets physical logger class and returns previous class.'''
     return self._logger.SetClass(_class)
 
-  def RegisterListenerClass(self, _class):
+  def RegisterListener(self, _class):
     '''TODO: description'''
     listener = ObjectFromClass(_class)
     self._listeners.append(listener)
     return listener
   
+  def UnRegisterListener(self, listener):
+    '''TODO: description'''
+    i = self._listeners.index(listener)
+    del self._listeners[i]
+    
   def Log(self, msg = '', **args):
     '''
     Sends message and parameters to the log.
@@ -91,7 +96,7 @@ class VariablesExpander:
   def __init__(self, _class):
     self._expander = ObjectFromClass(_class)  
     
-  def SetClass(self, _class):
+  def SetImpl(self, _class):
     '''Sets variables expander class and returns previous class.'''
     return self._expander.SetClass(_class)
       

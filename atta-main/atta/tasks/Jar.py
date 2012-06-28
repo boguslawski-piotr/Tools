@@ -80,7 +80,7 @@ class Jar(Task):
         else:
           if os.path.isdir(src):
             rootDir = src
-            srcsSet.AddFiles(src, includes = '**/*' + Javac.OutputExt(**tparams), realPaths = False)
+            srcsSet.AddFiles(rootDir, includes = '**/*', realPaths = False)
           else:
             rootDir, src = os.path.split(src)
             srcsSet = [src]

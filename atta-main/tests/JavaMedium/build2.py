@@ -6,7 +6,7 @@ from atta.Strategies import SrcHashStrategy
 
 Project.Import('build')
 
-Javac.RequiresCompileImpl = SrcHashStrategy()
+Javac.SetDefaultRequiresCompileImpl(SrcHashStrategy)
 
 class clean(Java.clean):
   def Run(self):
@@ -14,4 +14,3 @@ class clean(Java.clean):
     dirName = '.atta/markers'
     Echo('Deleting directory: ' + dirName)
     shutil.rmtree(dirName, True)
-    

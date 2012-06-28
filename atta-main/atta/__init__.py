@@ -52,34 +52,36 @@ class Atta:
   Also provides a few simple tools.
   '''
   name        = 'Atta'
-  description = 'Cool and funny build system in pure Python.'
+  description = 'Build tool in pure Python.'
   
   versionName = attaVersionName
   '''TODO: description'''
   
   version = int(attaVersionName.replace('.', ''))  
-  '''TODO: desc...'''
+  '''TODO: description'''
   
   dirName = None
-  '''TODO: desc...'''
+  '''TODO: description'''
   
   logger = Logger(loggers.Std.Logger)
-  '''TODO: desc...'''
+  '''TODO: description'''
   
   variablesExpander = VariablesExpander(tools.VariablesLikeAntExpander.Expander) 
-  '''TODO: desc...'''
+  '''TODO: description'''
   
+  props = None
+  '''TODO: description'''
+
 # Project property 
 
 Project = None
+'''Provides access to data and general tools for the entire project.
+   Use it ONLY during the phase of interpreting the main build script.  
+   Property Project is an instance of the class :py:class:`atta.Project`.'''
 
 def GetProject():
+  '''Provides access to data and general tools for the entire project.'''
   return Project
-
-'''
-Provides access to data and general tools for the entire project. 
-Property Project is an instance of the class :py:class:`atta.Project`.
-'''
 
 # File property 
 

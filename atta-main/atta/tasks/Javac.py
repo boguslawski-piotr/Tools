@@ -3,35 +3,45 @@ import stat
 import os
 
 from atta import Atta
+from ..tools.internal.Misc import ObjectFromClass
+from ..Strategies import SrcNewerStrategy
+from ..compilers.JavaStd import JavaStdCompiler
 from ..tasks.Base import Task
-from ..tasks.Exec import Exec
 from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
-from ..Strategies import SrcNewerStrategy
 import atta.tools.OS as OS
-
+  
 class Javac(Task):
   '''
-  .. snippet:: Javac
-  
-    .. code-block:: python
+  .. code-block:: python
 
-      Javac(srcs, destDir[, **tparams])}
+    Javac(srcs, destDir[, **tparams])}
 
-    TODO: description
+  TODO: description
 
-    :param srcs:             TODO
-    :type srcs:              if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-                             if list: each item may be: file/dir/wildcard name or FileSet
-    :param string destDir:   TODO
-    :param classPath:
-    :param sourcePath:
-    :param boolean debug:
-    :param string debugLevel:
-    :param javacParams:      TODO
-    
-  .. snippetref:: ExecCommonParams2
   .. snippetref:: ExecReturns
+
+  :param srcs:             TODO
+  :type srcs:              if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
+                           if list: each item may be: file/dir/wildcard name or FileSet
+  :param string destDir:   TODO
+  :param classPath:
+  :param sourcePath:
+  :param javacParams:      The parameters passed directly to the compiler.
+  :type javacParams:       list of strings
+    
+  Standard java compiler:
+  
+  .. snippetref:: JavaStdCompilerParams
+
+  A deeper look:
+  
+  :param requiresCompileImpl: Physical implementation of :py:meth:`RequiresCompile` method. 
+  :type requiresCompileImpl:  class that implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded` 
+                              passed through an instance of :py:class:`atta.tools.internal.Misc.ObjectFromClass`
+  :param compilerImpl:        Java compiler. 
+  :type compilerImpl:         class that implements :py:class:`atta.compilers.Interfaces.IJavaCompiler`
+                              passed through an instance of :py:class:`atta.tools.internal.Misc.ObjectFromClass`
 
   .. snippet:: JavacUseCases
   
@@ -42,6 +52,9 @@ class Javac(Task):
   ''' 
   def __init__(self, srcs, destDir = '.', **tparams):
     # get parameters
+    self._requiresCompileImpl = tparams.get('requiresCompileImpl', Javac._defaultRequiresCompileImpl)
+    self._compilerImpl = tparams.get('compilerImpl', Javac._defaultCompilerImpl)
+    
     if isinstance(srcs, basestring):
       srcs = srcs.split(':')
     classPath = tparams.get('classPath', [])
@@ -50,20 +63,9 @@ class Javac(Task):
     sourcePath = tparams.get('sourcePath', [])
     if isinstance(sourcePath, basestring):
       sourcePath = sourcePath.split(':')
-    debug = tparams.get('debug', False)
-    debugLevel = tparams.get('debugLevel', None)
     
-    if Atta.logger.GetLevel() == LogLevel.DEBUG:
-      self.Log('\n*** Parameters:')
-      self.LogIterable('srcs:', srcs)
-      self.LogIterable('destDir:', [destDir])
-      self.LogIterable('classPath:', classPath)
-      self.LogIterable('sourcePath:', sourcePath)
-      self.Log('debug: {0}'.format(debug))
-      self.Log('debugLevel: {0}'.format(debugLevel))
-      self.Log('')
-      
     AddToPath = lambda path, name: path + os.path.normpath(name) + os.pathsep
+    RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
     
     # prepare sourcepath
     sourcePathStr = ''
@@ -77,8 +79,6 @@ class Javac(Task):
       if len(path) > 0:
         classPathStr = AddToPath(classPathStr, path)
 
-    RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
-            
     # collect source files
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
@@ -98,7 +98,13 @@ class Javac(Task):
         else:
           if os.path.isdir(src):
             sourcePathStr = AddToPath(sourcePathStr, src)
-            srcsSet.AddFiles(src, includes = '**/*' + Javac.SourceExt(**tparams), 
+            srcExts = self._compilerImpl.GetObject().SourceExts(**tparams)
+            if isinstance(srcExts, basestring):
+              srcExts = [srcExts]
+            includes = []
+            for srcExt in srcExts:
+              includes.append('**/*' + srcExt)
+            srcsSet.AddFiles(src, includes, 
                              filter = RequiresCompile, realPaths = False, withRootDir = True)
           else:
             src = os.path.normpath(src)
@@ -116,62 +122,29 @@ class Javac(Task):
     self.Log('Compiling %d source file(s) to: %s' % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
     
-    # TODO: wydzielic do funkcji lub strategii
-    # TODO: robic plik i przekazywac plik do javac (bo na linie komend to moze byc za duzo)
-    # prepare command line for java compiler
-    params = tparams.get('javacParams', [])
-    params.extend(['-d', destDir])
-    if not debug: 
-      params.append('-g:none')
-    else:
-      if debugLevel is None:
-        params.append('-g')
-      else:
-        params.append('-g:' + debugLevel)
-    if len(classPathStr) > 0:  
-      params.extend(['-classpath', classPathStr])
-    if len(sourcePathStr) > 0: 
-      params.extend(['-sourcepath', sourcePathStr])
-    params.extend(srcsSet)
-    #'-verbose'
+    tparams['sourcePath'] = sourcePathStr
+    tparams['classPath'] = classPathStr
+    self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
+    self.output = self._compilerImpl.GetObject().GetOutput()
 
-    if Atta.logger.GetLevel() == LogLevel.DEBUG:
-      self.Log('')
-      self.LogIterable('Parameters for java compiler:', params)
-      self.Log('')
+  @staticmethod
+  def SetDefaultRequiresCompileImpl(_class):
+    '''Sets default implementation of :py:meth:`RequiresCompile` method. 
+       It may be any class that implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded`'''
+    Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
+  
+  _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
     
-    # compile
-    self.InvokeJavac(params, **tparams)
-
-  RequiresCompileImpl = SrcNewerStrategy()
-  '''Physical implementation of :py:meth:`RequiresCompile` method. 
-     It may be any object which implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded`'''
-   
   def RequiresCompile(self, destDir, srcDir, fileName, **tparams): 
     '''TODO: description'''
-    dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + Javac.OutputExt(**tparams)) 
+    dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams)) 
     src = os.path.join(srcDir, fileName)
-    return Javac.RequiresCompileImpl.ActionNeeded(src, dest)
-
-  def InvokeJavac(self, params, **tparams):
-    '''TODO: description'''
-    e = Exec(Javac.Executable(**tparams), params, **tparams)
-    self.returnCode = e.returnCode
-    self.output = e.output
-    
-  @staticmethod
-  def Executable(**tparams):
-    '''TODO: description'''
-    return 'javac'
+    return self._requiresCompileImpl.GetObject().ActionNeeded(src, dest)
 
   @staticmethod
-  def SourceExt(**tparams):
-    '''TODO: description'''
-    return '.java'
+  def SetDefaultCompilerImpl(_class):
+    '''Sets default Java compiler. 
+       It may be any class that implements :py:class:`atta.compilers.Interfaces.IJavaCompiler`'''
+    Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
 
-  @staticmethod
-  def OutputExt(**tparams):
-    '''TODO: description'''
-    return '.class'
-
-    
+  _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler) 

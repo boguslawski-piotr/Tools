@@ -7,10 +7,13 @@ Java related
 Javac
 ^^^^^
 
-.. snippetref:: Javac
-.. snippetref:: ExecCommonParams2
-.. snippetref:: ExecReturns
-.. snippetref:: JavacUseCases
+.. automodule:: atta.tasks.Javac
+    :noindex:
+    :members:
+
+**Javac use cases:**
+    
+.. literalinclude:: ../tests/test_Java.py
 
 Jar
 ^^^^^

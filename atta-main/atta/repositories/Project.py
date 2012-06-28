@@ -42,7 +42,7 @@ class Repository(Local.Repository):
     except:
       pass
     else:
-      prevLoggerClass = Atta.logger.SetClass(Compact.Logger)
+      prevLoggerClass = Atta.logger.SetImpl(Compact.Logger)
       try:
         Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
@@ -68,7 +68,7 @@ class Repository(Local.Repository):
       except:
         raise
       finally:
-        Atta.logger.SetClass(prevLoggerClass)
+        Atta.logger.SetImpl(prevLoggerClass)
         OS.RemoveFile(projectTmpName)
         OS.RemoveFile(projectTmpName + 'c')
         OS.RemoveFile(projectTmpName + 'o')
