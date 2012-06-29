@@ -8,7 +8,7 @@ from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 from ..tools.Properties import Properties
 from ..loggers import Compact
-from ..Interfaces import IRepository
+from Interfaces import IRepository
 from atta import AttaError
 
 class Repository(IRepository, Task):

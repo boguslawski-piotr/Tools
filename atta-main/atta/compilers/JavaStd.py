@@ -1,8 +1,10 @@
-from atta import Atta
+import os
+from atta import Atta, GetProject
 from Interfaces import IJavaCompiler
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
-from ..tools.Misc import LogLevel
+from ..tools.Misc import LogLevel, isiterable
+import atta.tools.OS as OS
 
 class JavaStdCompiler(IJavaCompiler, Task):
   '''TODO: description'''
@@ -20,13 +22,17 @@ class JavaStdCompiler(IJavaCompiler, Task):
     
       :param boolean debug:
       :param string debugLevel:
+      :param cParams:        The parameters passed directly to the compiler |None|.
+      :type cParams:         string or list of strings
       
     .. snippetref:: ExecCommonParams2
      
     '''
     # prepare command line for java compiler
-    params = tparams.get('javacParams', [])
-    params.extend(['-d', destDir])
+    params = tparams.get('cParams', [])
+    if isinstance(params, basestring):
+      params = params.split(' ')
+      
     debug = tparams.get('debug', False)
     debugLevel = tparams.get('debugLevel', None)
     if not debug: 
@@ -36,14 +42,17 @@ class JavaStdCompiler(IJavaCompiler, Task):
         params.append('-g')
       else:
         params.append('-g:' + debugLevel)
-    classPath = tparams.get('classPath', '')
+        
+    classPath = OS.Path.FromList(tparams.get('classPath', ''))
     if len(classPath) > 0:  
       params.extend(['-classpath', classPath])
-    sourcePath = tparams.get('sourcePath', '')
+
+    sourcePath = OS.Path.FromList(tparams.get('sourcePath', ''))
     if len(sourcePath) > 0: 
       params.extend(['-sourcepath', sourcePath])
+    
+    params.extend(['-d', destDir])
     params.extend(srcFiles)
-    #'-verbose'
 
     if Atta.logger.GetLevel() == LogLevel.DEBUG:
       self.LogIterable('\n*** Parameters:', params)
@@ -62,6 +71,8 @@ class JavaStdCompiler(IJavaCompiler, Task):
 
   def GetExecutable(self, **tparams):
     '''TODO: description'''
-    #print os.environ['JAVA_HOME']
+    javaHome = GetProject().env.get('JAVA_HOME')
+    if javaHome is not None:
+      return os.path.normpath(os.path.join(javaHome, 'bin/javac'))
     return 'javac'
   

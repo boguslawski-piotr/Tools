@@ -8,8 +8,19 @@ import os
 import hashlib
 import re
 import shutil
-from datetime import datetime, timedelta
+import platform
 
+from datetime import datetime, timedelta
+from time import sleep
+import Misc
+
+'''
+Common Tools
+'''
+
+def IsWindows():
+  return platform.system() == 'Windows'
+  
 '''
 Path Tools
 '''
@@ -48,38 +59,53 @@ class Path:
       l = l[:-2]
       r = '**/' + r
     return l, r
+  
+  @staticmethod
+  def AsList(paths, sep = ':'):
+    '''TODO: description'''
+    if isinstance(paths, basestring):
+      paths = paths.split(sep)
+    return list(paths) # return copy
+  
+  @staticmethod
+  def FromList(paths):
+    '''TODO: description'''
+    if not Misc.isiterable(paths):
+      return paths
+    return os.pathsep.join(paths)
+#    path = ''
+#    for item in paths:
+#      if len(item) > 0:
+#        path = path + os.path.normpath(item) + os.pathsep
+#    return path
 
   @staticmethod
-  def TempName(path, ext):
-    '''TODO: description
-    '''
+  def TempName(dir_, ext):
+    '''TODO: description'''
     if len(ext) > 0 and not ext.startswith('.'):
       ext = '.' + ext
-    while True:
+    for i in xrange(0, 100):
       dt = datetime.now()
       name = dt.strftime('%Y%m%d%H%S%f') + ext
-      if not os.path.exists(os.path.join(path, name)):
+      if not os.path.exists(os.path.join(dir_, name)):
         return name
+      sleep(0.05)
     return ''
   
 '''
 Directories Tools
 '''
     
-def MakeDirs(path):
+def MakeDirs(paths):
   '''
-  Recursive directory creation function. The parameter `path` can be a string 
+  Recursive directory creation function. The parameter `paths` can be a string 
   or a list (or any iterable object type) whose individual elements are strings.
   For each item works like :py:func:`os.makedirs` but not throwing an exception 
   if the leaf directory already exists.
   '''
-  if isinstance(path, basestring):
-    paths = [path]
-  else:
-    paths = path
-  for path in paths:  
+  for dir_ in Path.AsList(paths):  
     try:
-      os.makedirs(path)
+      os.makedirs(dir_)
     except os.error as e:
       if e.errno != os.errno.EEXIST:
         raise
@@ -111,7 +137,7 @@ def FileSize(fileName):
 def CopyFileIfDiffrent(fileName, destName, useHash = False):
   '''
   Copies the file `fileName` to the file or directory `destName`
-  only if modification times or sha1 hashs are different or `destName` not exists. 
+  only if modification times or SHA1-hashs are different or `destName` not exists. 
   If `destName` is a directory, a file with the same basename as 
   `fileName` is created (or overwritten) in the directory specified.
   Uses :py:func:`shutil.copy2`.

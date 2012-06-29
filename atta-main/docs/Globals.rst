@@ -19,7 +19,7 @@ Project
 -------
 
 .. automodule:: atta
-  :members: Project
+  :members: Project, GetProject
   
 +--+----------------------------------+
 |  | .. include:: Globals.Project.rst |

@@ -21,8 +21,12 @@ __all__ = [
 
            # Tasks
            'Echo',
+           
            'Exec',
            'PyExec',
+           
+           'Archive',
+           'Zip',
            
            'Javac',
            'Jar',
@@ -30,9 +34,7 @@ __all__ = [
 
 # Atta
 
-from tools.Misc import LogLevel, Logger
-from tools.Misc import VariablesExpander
-
+from tools.Misc import LogLevel, Logger, VariablesExpander
 import loggers.Std
 import tools.VariablesLikeAntExpander
 from version import attaVersionName
@@ -80,7 +82,8 @@ Project = None
    Property Project is an instance of the class :py:class:`atta.Project`.'''
 
 def GetProject():
-  '''Provides access to data and general tools for the entire project.'''
+  '''Provides access to data and general tools for the entire project. 
+     Returns an instance of the class :py:class:`atta.Project`.'''
   return Project
 
 # File property 
@@ -125,8 +128,12 @@ from tasks.Base import Task
 # All available tasks.
 
 from tasks.Echo import Echo
+
 from tasks.Exec import Exec
 from tasks.PyExec import PyExec
+
+from tasks.Archive import Archive
+from tasks.Zip import Zip
 
 from tasks.Javac import Javac
 from tasks.Jar import Jar

@@ -24,6 +24,9 @@ class ObjectFromClass:
     self._object = None
     return oldClass
   
+  def GetClass(self):
+    return self._class
+  
   def GetObject(self):
     '''TODO:description'''
     if self._object is None:

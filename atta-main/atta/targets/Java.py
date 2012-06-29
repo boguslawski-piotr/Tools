@@ -7,6 +7,7 @@ import shutil
 import os
 import stat
 
+import atta.tools.VariablesLikeAntExpander
 from atta import *
 
 class ProjectType:
@@ -119,7 +120,7 @@ class prepare(Target):
     if create:
       Echo('Creating directories:')
       for classDir in project.classDirs:
-        Echo(os.path.normpath(classDir))
+        Echo('  ' + os.path.normpath(classDir))
       OS.MakeDirs(project.classDirs)
   
   def ResolveDependencies(self):
@@ -244,6 +245,8 @@ class install(Target):
     javaClassPathStr = os.path.normpath(javaClassPathStr)
     projectNameInScript = project.name.upper().replace(' ', '_')
     
+    ove = Atta.variablesExpander.SetImpl(atta.tools.VariablesLikeAntExpander.Expander)
+    
     # windows
     with open(self.GetWinStartupScriptTmplFileName(), 'rb') as f:
       scriptName = os.path.join(project.installBaseDir, project.name + '.bat')
@@ -260,7 +263,10 @@ class install(Target):
            projectHome = '$' + projectNameInScript + '_HOME',
            mainClass   = project.javaMainClass,
            classPath   = javaClassPathStr.replace('\\', '/').replace(';', ':')) 
-      os.chmod(scriptName, stat.S_IEXEC)
+      if not OS.IsWindows():
+        os.chmod(scriptName, stat.S_IEXEC)
+    
+    Atta.variablesExpander.SetImpl(ove)
     
   def GetWinStartupScriptTmplFileName(self):
     '''TODO: description'''

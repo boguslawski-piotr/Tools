@@ -7,6 +7,11 @@ from internal.Misc import ObjectFromClass
 
 #------------------------------------------------------------------------------ 
 
+isiterable = lambda obj: \
+              not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
+
+#------------------------------------------------------------------------------ 
+
 class LogLevel:
   '''Defines the available log levels.'''
   DEBUG = 0
@@ -50,7 +55,7 @@ class Logger:
     '''
     Sends message and parameters to the log.
     More information can be found in 
-    :py:class:`atta.Interfaces.ILogger`.
+    :py:class:`atta.tools.Interfaces.ILogger`.
     ''' 
     level = args.get('level', LogLevel.Default())
     if self.LogAllowed(level):
@@ -68,8 +73,18 @@ class Logger:
     if self.LogAllowed(level):
       if msg is not None: 
         self.Log(msg, **args)
-      for v in iterable:
-        self.Log('{0}'.format(v), **args)
+      if isinstance(iterable, dict):
+        for n, v in iterable.items():
+          if isiterable(v):
+            self.LogIterable(n + ':', v, **args)
+          else:
+            self.Log('  {0}: {1}'.format(n, v), **args)
+      else:
+        for v in iterable:
+          if isiterable(v):
+            self.LogIterable(None, v, **args)
+          else:
+            self.Log('  {0}'.format(v), **args)
 
   def LI(self, msg = '', iterable = [], **args):
     '''Shortcut for LogIterable'''

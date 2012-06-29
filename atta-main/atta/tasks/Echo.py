@@ -4,7 +4,7 @@ import stat
 import re
 
 from ..tasks.Base import Task
-from ..tools.Misc import LogLevel
+from ..tools.Misc import LogLevel, isiterable
 import atta
 
 class Echo(Task):
@@ -38,10 +38,7 @@ class Echo(Task):
     .. literalinclude:: ../../../tests/test_echo.py
   
   '''
-  def __init__(self, msg = '', **tparams):  
-    isiterable = lambda msg: \
-                  not isinstance(msg, basestring) or getattr(msg, '__iter__', False)
-
+  def __init__(self, msg = '', **tparams):
     level = tparams.get('level', LogLevel.WARNING)
     _file = tparams.get('file', None)
     if isinstance(msg, basestring):

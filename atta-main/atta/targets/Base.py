@@ -1,9 +1,8 @@
 import os
-import sys
+import platform
 
-from ..tools.Misc import LogLevel
 from ..tools.OS import Path
-from ..Interfaces import Activity
+from ..Activity import Activity
 from atta import Atta, GetProject
 
 #------------------------------------------------------------------------------ 
@@ -16,7 +15,21 @@ class Target(Activity):
   '''
 
   dependsOn = []
-  OsFamily = []
+  '''TODO: description'''
+  system = []
+  '''TODO: description'''
+  
+  def CanRun(self):
+    canRun = True
+    if len(self.system) > 0:
+      canRun = False
+      system = platform.system().lower()
+      tsystem = Path.AsList(self.system, ',')
+      for s in tsystem:
+        if s.lower() in system:
+          canRun = True
+          break
+    return canRun
   
   def Prepare(self):
     return True

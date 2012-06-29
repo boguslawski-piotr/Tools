@@ -1,5 +1,5 @@
 import sys
-from Interfaces import PackageId, IRepository
+from repositories.Interfaces import PackageId, IRepository
 
 class Resolver:
   '''TODO: description'''

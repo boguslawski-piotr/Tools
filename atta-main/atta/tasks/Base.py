@@ -2,7 +2,7 @@ import os
 import sys
 
 from ..tools.Misc import LogLevel
-from ..Interfaces import Activity
+from ..Activity import Activity
 from atta import Atta
 
 #------------------------------------------------------------------------------ 

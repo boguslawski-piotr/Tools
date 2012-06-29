@@ -140,6 +140,7 @@ def Main():
       
   _Dump()
   Atta.logger.Log("args = {0}".format(args), level = LogLevel.DEBUG)
+  Atta.logger.Log('***', level = LogLevel.DEBUG)
   
   # Run project
   try:
@@ -148,10 +149,19 @@ def Main():
   
   except Exception, e:
     if args.scs or Atta.logger.GetLevel() <= LogLevel.VERBOSE:
-      raise
+      import traceback
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      lines = traceback.extract_tb(exc_traceback)
+      lines = lines[-5:] # only last five
+      for line in lines:
+        print('%s: %d' % (line[0], line[1]))
+        print('  %s' % line[3])
+      print('')
+      for line in traceback.format_exception_only(exc_type, exc_value):
+        print(line)
     else:
       Atta.logger.Log(e, level = LogLevel.ERROR)
-      return 1
+    return 1
   
   finally:
     pass

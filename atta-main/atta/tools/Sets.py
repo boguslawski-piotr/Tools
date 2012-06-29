@@ -2,6 +2,7 @@ import os
 import re
 
 from Misc import Logger, LogLevel
+import OS
 
 class FileSet(list):
   '''       
@@ -19,9 +20,9 @@ class FileSet(list):
   
     :param string rootDir:     TODO
     :param includes:           TODO
-    :type includes:            string or list of strings
+    :type includes:            string or path (separator :) or list of strings
     :param excludes:           TODO
-    :type excludes:            string or list of strings
+    :type excludes:            string or path (separator :) or list of strings
     :param boolean useRegExp:  TODO
     :param callable filter:    TODO
     :param boolean realPaths:  TODO
@@ -43,10 +44,8 @@ class FileSet(list):
   def MakeSet(self, rootDir, includes, excludes = [], **tparams):
     '''Creates a set of files.
     '''
-    if isinstance(includes, basestring):
-      includes = [includes]
-    if isinstance(excludes, basestring):
-      excludes = [excludes]
+    includes = OS.Path.AsList(includes)
+    excludes = OS.Path.AsList(excludes)
     useRegExp = tparams.get('useRegExp', False)
     realPaths = tparams.get('realPaths', True)
     withRootDir = tparams.get('withRootDir', False)

@@ -14,3 +14,4 @@ class clean(Java.clean):
     dirName = '.atta/markers'
     Echo('Deleting directory: ' + dirName)
     shutil.rmtree(dirName, True)
+

@@ -2,7 +2,7 @@ import urllib2
 import json
 
 from atta import Atta, AttaError, LogLevel, Task
-from ..Interfaces import IRepository
+from Interfaces import IRepository
   
 class Repository(IRepository, Task):
   '''TODO: description

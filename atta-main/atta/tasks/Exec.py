@@ -5,6 +5,8 @@ import subprocess
 import threading
 
 import atta 
+import atta.tools.VariablesLikeAntExpander
+import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 
@@ -24,7 +26,9 @@ class Exec(Task):
     
   .. snippet:: ExecParams
 
-    :param string executable:   The command to execute without any command line arguments.
+    :param string executable:   The command to execute without any command line arguments. You can use special macros:
+                                ${bat}, ${cmd} or ${exe} on Windows will add .bat/.cmd/.exe to the `executable`, on others system will not add anything,
+                                ${sh} on non Windows systems will add .sh, on Windows will add .bat.
     
   .. snippet:: ExecCommonParams
 
@@ -72,7 +76,13 @@ class Exec(Task):
     
     _output = ''
     _rc = 0
-
+    
+    shExt  = '.sh'  if not OS.IsWindows() else '.bat'
+    batExt = '.bat' if OS.IsWindows() else ''
+    cmdExt = '.cmd' if OS.IsWindows() else ''
+    exeExt = '.exe' if OS.IsWindows() else ''
+    executable = atta.tools.VariablesLikeAntExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
+    
     _params = [executable]
     _params.extend(params)
     if env is None:

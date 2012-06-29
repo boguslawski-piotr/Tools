@@ -1,5 +1,5 @@
 import os
-from ..Interfaces import ILogger
+from Interfaces import ILogger
 
 class Logger(ILogger):
   '''

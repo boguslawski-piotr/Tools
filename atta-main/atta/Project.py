@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 import collections
 from datetime import datetime, timedelta
 
@@ -141,12 +142,13 @@ class Project:
     targetClass = self._GetTargetClass(targetClass)
     if not self._executedTargets.has_key(targetClass):
       target = targetClass()
-      self._targetsLevel += 1
-      self._executedTargets[targetClass] = [target, self._targetsLevel]
-      for dependClass in target.dependsOn:
-        self.RunTarget(dependClass)
-      target._Run()
-      self._targetsLevel -= 1
+      if target.CanRun():
+        self._targetsLevel += 1
+        self._executedTargets[targetClass] = [target, self._targetsLevel]
+        for dependClass in target.dependsOn:
+          self.RunTarget(dependClass)
+        target._Run()
+        self._targetsLevel -= 1
       return target
     return None
   

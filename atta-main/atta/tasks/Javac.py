@@ -27,9 +27,7 @@ class Javac(Task):
   :param string destDir:   TODO
   :param classPath:
   :param sourcePath:
-  :param javacParams:      The parameters passed directly to the compiler.
-  :type javacParams:       list of strings
-    
+
   Standard java compiler:
   
   .. snippetref:: JavaStdCompilerParams
@@ -51,53 +49,37 @@ class Javac(Task):
   
   ''' 
   def __init__(self, srcs, destDir = '.', **tparams):
-    # get parameters
+    self._DumpParams(locals())
+
     self._requiresCompileImpl = tparams.get('requiresCompileImpl', Javac._defaultRequiresCompileImpl)
     self._compilerImpl = tparams.get('compilerImpl', Javac._defaultCompilerImpl)
     
-    if isinstance(srcs, basestring):
-      srcs = srcs.split(':')
-    classPath = tparams.get('classPath', [])
-    if isinstance(classPath, basestring):
-      classPath = classPath.split(':')
-    sourcePath = tparams.get('sourcePath', [])
-    if isinstance(sourcePath, basestring):
-      sourcePath = sourcePath.split(':')
+    srcs = OS.Path.AsList(srcs)
+    classPath = OS.Path.AsList(tparams.get('classPath', []))
+    sourcePath = OS.Path.AsList(tparams.get('sourcePath', []))
     
-    AddToPath = lambda path, name: path + os.path.normpath(name) + os.pathsep
     RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
     
-    # prepare sourcepath
-    sourcePathStr = ''
-    for path in sourcePath:
-      if len(path) > 0:
-        sourcePathStr = AddToPath(sourcePathStr, path)
-    
-    # prepare user classpath
-    classPathStr = ''
-    for path in classPath:
-      if len(path) > 0:
-        classPathStr = AddToPath(classPathStr, path)
-
     # collect source files
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
       if len(src) <= 0:
         continue
-      
       if isinstance(src, FileSet):
         rootDir = src.rootDir
-        sourcePathStr = AddToPath(sourcePathStr, rootDir)
+        sourcePath.append(rootDir)
         srcsSet.extend(src)
       else:
         if OS.Path.HasWildcards(src):
           rootDir, includes = OS.Path.Split(src)
-          sourcePathStr = AddToPath(sourcePathStr, rootDir) 
+          if len(rootDir) <= 0:
+            rootDir = '.'
+          sourcePath.append(rootDir) 
           srcsSet.AddFiles(rootDir, includes = includes, 
                            filter = RequiresCompile, realPaths = False, withRootDir = True)
         else:
           if os.path.isdir(src):
-            sourcePathStr = AddToPath(sourcePathStr, src)
+            sourcePath.append(src)
             srcExts = self._compilerImpl.GetObject().SourceExts(**tparams)
             if isinstance(srcExts, basestring):
               srcExts = [srcExts]
@@ -110,8 +92,8 @@ class Javac(Task):
             src = os.path.normpath(src)
             if os.path.exists(src):
               rootDir = os.path.split(src)[0]
-              sourcePathStr = AddToPath(sourcePathStr, rootDir)
               if RequiresCompile(rootDir, src):
+                sourcePath.append(rootDir)
                 srcsSet += [src]
     
     if len(srcsSet) <= 0:
@@ -122,8 +104,8 @@ class Javac(Task):
     self.Log('Compiling %d source file(s) to: %s' % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
     
-    tparams['sourcePath'] = sourcePathStr
-    tparams['classPath'] = classPathStr
+    tparams['sourcePath'] = list(set(sourcePath))
+    tparams['classPath'] = list(set(classPath))
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
     self.output = self._compilerImpl.GetObject().GetOutput()
 

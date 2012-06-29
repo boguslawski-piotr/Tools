@@ -1,7 +1,7 @@
 import os
 import hashlib
 
-from Interfaces import ICompareStrategy
+from tools.Interfaces import ICompareStrategy
 import tools.OS as OS
 
 class SrcNewerStrategy(ICompareStrategy):

@@ -36,7 +36,6 @@ class Repository(Local.Repository):
     resultPropertyName = data.get('resultIn', 'packageName')
     
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
-    
     try:
       shutil.copy2(projectName, projectTmpName)
     except:
@@ -55,8 +54,7 @@ class Repository(Local.Repository):
         if hasattr(project, resultPropertyName):
           result = getattr(project, resultPropertyName)
           if result is not None:
-            if isinstance(result, basestring):
-              result = result.split(':')
+            result = OS.Path.AsList(result)
             for i in range(0, len(result)):
               if not os.path.exists(result[i]):
                 result[i] = os.path.join(dirName, result[i])
