@@ -137,16 +137,16 @@ class makedocs(Target):
     
     # automodules
     OS.MakeDirs('docs/modules')
-    Echo('Generating automodules...')
+    Echo('Generating developer automodules...')
     m = FileSet('atta', includes = ['**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False)
     for fileName in m:
-      #print os.path.splitext(fileName)
       fileName = OS.Path.RemoveExt(fileName)
-      Echo(fileName)
+      Echo('  ' + fileName)
       moduleName = fileName.replace(os.path.sep, '.')
       dirName, _ = os.path.split(fileName)
       if dirName:
         OS.MakeDirs(os.path.join('docs/modules', dirName))
+      
       Echo(''':mod:`${name}` Module
 -------------------------------------------------------------------------------
 
@@ -162,6 +162,96 @@ class makedocs(Target):
       file = os.path.join('docs/modules', fileName) + '.rst',
       )
       
+
+    Echo()
+    Echo('Generating user automodules...')
+    m = {}
+    for fileName in FileSet('atta', includes = ['targets/**/*.py', 'tasks/**/*.py', 'tools/**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
+      group = fileName.split(os.path.sep)[0]
+      subgroup = 'TODO'
+      desc = ''
+      with open(os.path.join('atta', fileName), 'r') as f:
+        line = f.readline()
+        line = line.replace("'''", "").strip()
+        if line == '.. :no-user-reference:':
+          continue
+        line = line.replace(".. ", "").strip()
+        w = line.split(':')
+        if len(w) > 1:
+          subgroup = w[0]
+          del w[0]
+        desc = w[0]
+      
+      if group in m:
+        if subgroup in m[group]:
+          m[group][subgroup].append([desc, fileName])
+        else:
+          m[group][subgroup] = [[desc, fileName]]
+      else:
+        m[group] = { subgroup : [[desc, fileName]] }
+    
+    prevGroup = nextGroup = ''
+    for i, group in enumerate(sorted(m.keys())):
+      groupFileName = os.path.join('docs', group + '.rst')
+      groupData = '''Atta ${groupName}
+===============================================================================
+
+'''
+      Echo(groupFileName)
+      for subgroup in m[group]:
+        outputFile = os.path.join('docs/modules_user/', group, subgroup)
+        OS.MakeDirs(outputFile)
+        groupData = groupData + subgroup + '''
+-------------------------------------------------------------------------------        
+
+.. toctree::
+  :glob:
+
+  modules_user/${group}/''' + subgroup + '/*\n\n'
+        for doc in m[group][subgroup]:
+          #print doc
+          fileName = OS.Path.RemoveExt(doc[1])
+          desc = doc[0]
+          moduleName = OS.Path.Ext(fileName.replace(os.path.sep, '.'), False)
+          Echo('  ' + fileName + ' -> ' + moduleName)
+          Echo('''${moduleName} - ${desc}
+-------------------------------------------------------------------------------
+
+.. automodule:: ${fullName}
+    :members:
+    :undoc-members:
+    :member-order: bysource
+    :noindex:
+    ''',
+          moduleName = moduleName,
+          desc = desc,
+          fullName = 'atta.' + fileName.replace(os.path.sep, '.'),
+          file = os.path.join(outputFile, moduleName) + '.rst',
+          )
+          
+      nextGroup = sorted(m.keys())[i + 1] if i < len(sorted(m.keys())) - 1 else ''
+      
+#      if len(prevGroup) > 0 or len(nextGroup) > 0:
+      groupData = groupData + '''
+      
+-------------------------------------------------------------------------------
+
+
+'''        
+      groupData = groupData + '* '
+      if len(prevGroup) > 0:
+        groupData = groupData + '| :doc:`' + prevGroup + '` '
+      if len(nextGroup) > 0:
+        groupData = groupData + '| :doc:`' + nextGroup + '` '
+      groupData = groupData + '''| :ref:`genindex` | :ref:`search`'''
+      groupName = group[0].upper() + group[1:]
+      Echo(groupData, 
+            group = group, 
+            groupName = groupName, 
+            file = groupFileName)
+      prevGroup = group
+    #return 
+    
     # Sphinx
     Project.env.chdir('docs')
     Exec('make', ['clean'], logOutput = False)

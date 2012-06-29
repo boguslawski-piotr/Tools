@@ -1,11 +1,5 @@
-import os
-import sys
-
-from ..tools.Misc import LogLevel
 from ..Activity import Activity
 from atta import Atta
-
-#------------------------------------------------------------------------------ 
 
 class Task(Activity):
   '''

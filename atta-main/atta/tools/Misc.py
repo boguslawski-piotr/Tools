@@ -1,8 +1,4 @@
-'''
-  .. snippet:: Misc
-  
-    TODO: description
-'''
+'''.. Miscellaneous: Various functions and classes'''
 from internal.Misc import ObjectFromClass
 
 #------------------------------------------------------------------------------ 
@@ -24,8 +20,6 @@ class LogLevel:
   def Default():
     '''Returns default Atta log level.'''
     return LogLevel.INFO
-
-#------------------------------------------------------------------------------ 
 
 class Logger:
   '''

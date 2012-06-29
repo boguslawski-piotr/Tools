@@ -1,8 +1,4 @@
-'''
-.. snippet:: OS
-
-  TODO: description
-'''
+'''Files, directories: Various other TODO'''
 import sys
 import os
 import hashlib

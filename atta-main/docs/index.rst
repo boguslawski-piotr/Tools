@@ -16,45 +16,22 @@ TODO:
 User's Reference
 ****************
 
-Global objects
---------------
+- :doc:`Globals </Globals>`
+- :doc:`Targets <targets>`
+- :doc:`Tasks <tasks>`
+- :doc:`Tools <tools>`
 
 .. toctree::
   :maxdepth: 4
-    
+  :hidden:
+  
   Globals
+  targets
+  tasks
+  tools
   
-Targets
--------
-
-.. toctree::
-  :maxdepth: 4
-
-  Targets
-
-Tasks
------
-
-.. toctree::
-  :maxdepth: 4
-  
-  Tasks
-
-Tools
------
-
-.. toctree::
-  :maxdepth: 4
-
-  Tools
-
 Developer's API Reference
 **************************
-
-Todo list
---------------------------
-
-.. todolist::
 
 Core
 ----

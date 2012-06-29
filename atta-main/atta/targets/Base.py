@@ -5,8 +5,6 @@ from ..tools.OS import Path
 from ..Activity import Activity
 from atta import Atta, GetProject
 
-#------------------------------------------------------------------------------ 
-
 class Target(Activity):
   '''
   Base class for all targets.

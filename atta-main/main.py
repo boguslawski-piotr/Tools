@@ -86,17 +86,19 @@ def _Dump():
   Atta.logger.Log('***', level = LogLevel.DEBUG)
 
 def Main():
+  # Setup environment
+  
   minPythonVersion = '2.7.0'
   if int(platform.python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
     print('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version()))
     return 1
 
-  # Setup environment
   Atta.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
   argv = sys.argv[1:]
   environ = os.environ
   
   # Load settings
+  
   try:
     Atta.props = Properties.Open(os.path.join(Atta.dirName, 'atta.properties'))
     
@@ -108,6 +110,7 @@ def Main():
     pass
   
   # Parse arguments
+  
   args = _ParseArgv(argv)
   if args is None:
     return 1
@@ -143,6 +146,7 @@ def Main():
   Atta.logger.Log('***', level = LogLevel.DEBUG)
   
   # Run project
+  
   try:
     atta.Project.Project()._Run(environ, args.f[0], args.target)
     return 0
