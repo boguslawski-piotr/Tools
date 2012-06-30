@@ -9,6 +9,8 @@ Similar in philosophy to the Ant, NAnt, etc. but without the use of XML syntax n
 
 TODO: give a cool and sensible extended description 
 
+http://boguslawski-piotr.github.com/atta/
+
 ## Philosophy example
 
 build.py script:
