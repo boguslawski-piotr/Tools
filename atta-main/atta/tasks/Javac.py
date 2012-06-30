@@ -14,10 +14,6 @@ import atta.tools.OS as OS
   
 class Javac(Task):
   '''
-    .. code-block:: python
-  
-      Javac(srcs, destDir[, **tparams])}
-  
     TODO: description
     
     Parameters:

@@ -237,10 +237,10 @@ class makedocs(Target):
       else:
         m[group] = { subgroup : [[desc, fileName, usecase]] }
     
-    prevGroup = nextGroup = ''
+#    prevGroup = nextGroup = ''
     for i, group in enumerate(sorted(m.keys())):
       groupFileName = os.path.join('docs', group + '_user.rst')
-      groupData = '''Atta ${groupName}
+      groupData = '''${groupName}
 ===============================================================================
 
 '''
@@ -283,38 +283,40 @@ class makedocs(Target):
           file = os.path.join(outputFile, moduleName) + '.rst',
           )
           
-      nextGroup = sorted(m.keys())[i + 1] if i < len(sorted(m.keys())) - 1 else ''
+#      nextGroup = sorted(m.keys())[i + 1] if i < len(sorted(m.keys())) - 1 else ''
       
-      groupData = groupData + '''
-      
--------------------------------------------------------------------------------
-
-
-'''        
-      groupData = groupData + '.. container:: navi_user\n\n  :doc:`index` | :doc:`Globals` '
-      if len(prevGroup) > 0:
-        groupData = groupData + '  | :doc:`' + prevGroup + '_user` '
-      if len(nextGroup) > 0:
-        groupData = groupData + '  | :doc:`' + nextGroup + '_user` '
-      groupData = groupData + '  | :ref:`genindex` | :ref:`search`'
       groupName = group[0].upper() + group[1:]
+#      if len(prevGroup) > 0:
+#        prevGroupName = prevGroup[0].upper() + prevGroup[1:]
+#        groupData = groupData + ':doc:`' + prevGroupName + ' <' + prevGroup + '_user>`'
+#      else:        
+#        groupData = groupData   + ':doc:`Environment <Environment>`'
+#      groupData = groupData + '''
+#===============================================================================
+#
+#'''
+#      if len(nextGroup) > 0:
+#        nextGroupName = nextGroup[0].upper() + nextGroup[1:]
+#        groupData = groupData + ':doc:`' + nextGroupName + ' <' + nextGroup + '_user>`'
+#        groupData = groupData + '''
+#===============================================================================
+#
+#'''
       Echo(groupData, 
             group = group, 
             groupName = groupName, 
             file = groupFileName)
       prevGroup = group
 
-    #userRefData1 = '- :doc:`Globals </Globals>`\n'
     userRefData1 = ''
     userRefData2 = '''
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
   
-  Globals
+  Environment
 '''  
     for i, group in enumerate(sorted(m.keys())):
       groupName = group[0].upper() + group[1:]
-      #userRefData1 = userRefData1 + '- :doc:`' + groupName + ' <' + group + '_user>`\n'
       userRefData2 = userRefData2 + '  ' + group + '_user\n'
     Echo(userRefData1 + userRefData2, file = 'docs/index_user.rst')
     

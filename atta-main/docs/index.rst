@@ -18,8 +18,8 @@ User's Reference
 
 .. include:: index_user.rst
   
-Developer's Reference
-*********************
+Module Listing
+**************
 
 .. include:: index_dev.rst
 
@@ -28,9 +28,3 @@ Developer's Reference
   build
   main
   
---------------------------
-
-.. container:: search
-
-  :ref:`genindex` | :ref:`search`
-

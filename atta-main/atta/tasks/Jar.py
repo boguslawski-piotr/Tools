@@ -8,10 +8,6 @@ from atta import Atta
 
 class Jar(Zip):
   '''
-    .. code-block:: python
-
-      Jar(fileName, srcs[, manifest, **tparams])}
-
     TODO: description
 
     Parameters:

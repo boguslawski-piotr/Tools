@@ -8,10 +8,6 @@ import atta.tools.OS as OS
 
 class PyExec(Exec):
   '''
-  .. code-block:: python
-
-    PyExec(fileName[, params, **tparams])}
-
   Executes Python program. 
 
   TODO: detailed information

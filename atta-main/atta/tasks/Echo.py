@@ -10,10 +10,6 @@ import atta
 
 class Echo(Task):
   '''
-  .. code-block:: python
-
-    Echo([msg, **tparams])
-    
   Echoes a message to the current logger. A level can be specified, 
   which controls at what logging level the message is filtered at.
   The task can also echo to a file, in which case the option to 

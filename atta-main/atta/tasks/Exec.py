@@ -13,35 +13,31 @@ from ..tools.Misc import LogLevel
 
 class Exec(Task):
   '''
-  .. code-block:: python
-
-    Exec(executable[, params, **tparams])}
-
   Executes a system command. 
 
   TODO: detailed information
     
   Parameters:
   
-  * **executable** The command to execute without any command line arguments. 
+  * **executable** - The command to execute without any command line arguments. 
     You can use special macros: ``${bat}, ${cmd} or ${exe}`` on Windows will 
     add ``.bat/.cmd/.exe`` to the `executable`, on other systems will not add anything; 
-    ``${sh}`` on non Windows systems will add ``.sh``, on Windows will add ``.bat``.
+    ``${sh}`` on non Windows systems will add ``.sh``, on Windows will add ``.bat``. |str|
     
-  * **params** Command line arguments. (string or list of strings) |None| 
+  * **params** - Command line arguments. (string or list of strings) |None| 
     
   General parameters available in many tasks that use internally ``Exec`` task:
   
-  * **failOnError**  Stop the buildprocess if the command exits with a return code signaling failure. |True|
-  * **logOutput**    TODO: Przesyla stdout and stderr do logu Atta. |True| 
-  * **useSheel**     Command will be executed through the shell. 
+  * **failOnError** - Stop the buildprocess if the command exits with a return code signaling failure. |bool| |True|
+  * **logOutput** -   TODO: Przesyla stdout and stderr do logu Atta. |True| 
+  * **useSheel** -    Command will be executed through the shell. 
     More information can be found in :py:class:`subprocess.Popen` documentation. |True|
-  * **env**          Environment variables. Completely replace the variables from the project |None|.
+  * **env** -         Environment variables. Completely replace the variables from the project |None|.
                         
   Exec returns object with two attributtes:
   
-  * **returnCode** Exit code returned by executed command.
-  * **output**     Captured contents of stdout and stderr.
+  * **returnCode** - Exit code returned by executed command.
+  * **output** -     Captured contents of stdout and stderr.
  
   .. todo::
 
