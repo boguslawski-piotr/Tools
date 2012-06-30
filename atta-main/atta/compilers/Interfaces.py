@@ -1,3 +1,4 @@
+'''.. no-user-reference:'''
 
 class ICompiler:
   '''TODO: description'''

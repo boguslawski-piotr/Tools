@@ -1,3 +1,4 @@
+'''.. no-user-reference:'''
 from ..Activity import Activity
 from atta import Atta
 

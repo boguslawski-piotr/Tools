@@ -1,5 +1,4 @@
-'''
-Java Target
+'''.. Software projects: Builds Java projects
 
 TODO: description
 '''

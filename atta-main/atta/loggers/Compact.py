@@ -2,8 +2,6 @@ import Std
 
 class Logger(Std.Logger):
   '''
-  .. snippet:: loggers.Compact
-  
     Compact logger.
      
     This logger omits output of empty target output.

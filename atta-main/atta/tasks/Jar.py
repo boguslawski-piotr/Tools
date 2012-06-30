@@ -1,30 +1,34 @@
+'''.. Java related: TODO: java'''
 import os
 
-from ..tools.Archivers import ZipFile
+from ..tools.ZipFile import ZipFile
 from ..tasks.Zip import Zip
 from ..tools.Misc import LogLevel
 from atta import Atta
 
 class Jar(Zip):
   '''
-  .. snippet:: Jar
-  
     .. code-block:: python
 
       Jar(fileName, srcs[, manifest, **tparams])}
 
     TODO: description
 
-    :param string fileName: TODO
-    :param srcs:            TODO
-    :type srcs:             if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-                            if list: each item may be: file/dir/wildcard name or FileSet
-    :param manifest:        TODO
-    :type manifest:         dict or string (fileName) or file-like object
-    :param boolean checkCRC: TODO
+    Parameters:
     
-  .. snippetref:: JavacUseCases
-  
+    * **fileName** (string) TODO
+    
+    * **srcs**              TODO 
+      if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
+      if list: each item may be: file/dir/wildcard name or FileSet
+    
+    * **manifest**          TODO (dict or string (fileName) or file-like object)
+
+    * **checkCRC**          TODO
+    
+    Returns: TODO
+    
+    **Methods:**
   ''' 
   def __init__(self, fileName, srcs, manifest = {}, **tparams):
     self._DumpParams(locals())

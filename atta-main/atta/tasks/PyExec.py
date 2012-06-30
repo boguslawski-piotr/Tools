@@ -1,3 +1,4 @@
+'''.. Execution: Executes Python program: pyexec'''
 import sys
 import os
 
@@ -7,31 +8,21 @@ import atta.tools.OS as OS
 
 class PyExec(Exec):
   '''
-  .. snippet:: PyExec
+  .. code-block:: python
+
+    PyExec(fileName[, params, **tparams])}
+
+  Executes Python program. 
+
+  TODO: detailed information
+
+  Parameter:
   
-    .. code-block:: python
-
-      PyExec(fileName[, params, **tparams])}
-
-    Executes Python program. 
-
-  .. snippetref:: ExecAdditionalInfo
+  * **fileName** The file name of the program in Python.
   
-  .. snippet:: PyExecParams
+  Other parameters and ... TODO are exactly the same 
+  as in :py:class:`.Exec`.
 
-    :param string fileName: The file name of the program in Python.
-
-  .. snippetref:: ExecCommonParams
-  .. snippetref:: ExecCommonParams2
-  .. snippetref:: ExecReturns
-
-  .. snippet:: PyExecUseCases
-  
-    Use cases:
-    
-    .. literalinclude:: ../../../tests/test_pyexec.py
-
-  .. codeauthor:: Piotr Boguslawski <boguslawski.piotr@gmail.com>
   '''
   def __init__(self, fileName, params = [], **tparams):  
     if len(fileName) > 0 and not fileName.startswith('-'):

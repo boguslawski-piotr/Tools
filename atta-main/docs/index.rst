@@ -16,59 +16,21 @@ TODO:
 User's Reference
 ****************
 
-- :doc:`Globals </Globals>`
-- :doc:`Targets <targets>`
-- :doc:`Tasks <tasks>`
-- :doc:`Tools <tools>`
-
-.. toctree::
-  :maxdepth: 4
-  :hidden:
+.. include:: index_user.rst
   
-  Globals
-  targets
-  tasks
-  tools
+Developer's Reference
+*********************
+
+.. include:: index_dev.rst
+
+.. toctree::
   
-Developer's API Reference
-**************************
-
-Core
-----
-
-.. toctree::
-  :maxdepth: 4
-  :glob:
-
-  modules/*
-  modules/targets/*
-  modules/tasks/*
-  modules/compilers/*
-  modules/repositories/*
-  modules/tools/*
-
-Internal
---------
-
-.. toctree::
-  :maxdepth: 4
-  :glob:
-
-  modules/loggers/*
-  modules/tools/internal/*
-
-Build tools
------------
-
-.. toctree::
-  :maxdepth: 4
-  :glob:
+  build
+  main
   
-  build*
+--------------------------
 
-Indices and tables
-******************
+.. container:: search
 
-* :ref:`genindex`
-* :ref:`search`
+  :ref:`genindex` | :ref:`search`
 

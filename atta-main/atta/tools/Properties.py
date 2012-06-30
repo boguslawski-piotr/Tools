@@ -1,3 +1,4 @@
+'''.. Miscellaneous: Supports the Java properties files'''
 import os, cStringIO, ConfigParser
 import sys
 

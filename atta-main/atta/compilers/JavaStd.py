@@ -1,3 +1,4 @@
+'''.. Java related: TODO'''
 import os
 from atta import Atta, GetProject
 from Interfaces import IJavaCompiler
@@ -18,20 +19,22 @@ class JavaStdCompiler(IJavaCompiler, Task):
     '''
     TODO: description
     
-    .. snippet:: JavaStdCompilerParams
+    Parameters:
     
-      :param boolean debug:
-      :param string debugLevel:
-      :param cParams:        The parameters passed directly to the compiler |None|.
-      :type cParams:         string or list of strings
+    * **srcFiles** TODO
+    * **destDir** (string)
+    * **debug**
+    * **debugLevel** (stirng)
+    * **cParams**    The parameters passed directly to the compiler. (string or list of strings) |None|
       
-    .. snippetref:: ExecCommonParams2
+    Common parameters from :py:class:`.Exec` task are also available.
+    
+    Returns exit code returned by executed ``javac`` command. 
+    the same data as :py:class:`.Exec` task.
      
     '''
     # prepare command line for java compiler
-    params = tparams.get('cParams', [])
-    if isinstance(params, basestring):
-      params = params.split(' ')
+    params = OS.Path.AsList(tparams.get('cParams', []), ' ')
       
     debug = tparams.get('debug', False)
     debugLevel = tparams.get('debugLevel', None)
@@ -52,7 +55,8 @@ class JavaStdCompiler(IJavaCompiler, Task):
       params.extend(['-sourcepath', sourcePath])
     
     params.extend(['-d', destDir])
-    params.extend(srcFiles)
+    
+    params.extend(OS.Path.AsList(srcFiles))
 
     if Atta.logger.GetLevel() == LogLevel.DEBUG:
       self.LogIterable('\n*** Parameters:', params)

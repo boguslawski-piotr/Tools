@@ -1,3 +1,4 @@
+'''.. no-user-reference:'''
 import os
 import platform
 

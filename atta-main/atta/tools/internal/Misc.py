@@ -1,4 +1,4 @@
-'''.. :no-user-reference:'''
+'''.. no-user-reference:'''
 import sys
 from .. import OS
 

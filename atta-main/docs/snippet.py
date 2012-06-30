@@ -297,13 +297,13 @@ class Snippet(Directive):
         self.state.nested_parse(self.content, self.content_offset,
                                 node, match_titles = 1)
 
-        node.transform_all(node)
+        #node.transform_all(node)
         return [node]
 
 class snippetref(nodes.Element): pass
 
 class SnippetRef(Directive):
-    has_content = False
+    has_content = True
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = True
@@ -315,6 +315,9 @@ class SnippetRef(Directive):
         set_source_info(self, node)
 
         node['name'] = self.arguments[0]
+        self.state.nested_parse(self.content, self.content_offset,
+                                node, match_titles = 1)
+
         return [node]
 
 def read_snippets(app, doctree):
@@ -322,13 +325,15 @@ def read_snippets(app, doctree):
     if not hasattr(env, 'snippets'):
         env.snippets = {}
     for node in doctree.traverse(snippet):
-        env.snippets[node['name']] = {'node': node.deepcopy(), 'docname' : env.docname}
+        env.snippets[node['name']] = {'node': node.deepcopy()}
 
 def resolve_snippets(app, doctree, fromdocname):
+    env = app.builder.env
+    
     for node in doctree.traverse(snippet):
+        env.snippets[node['name']] = {'node': node.deepcopy()}
         node.replace_self(node.children)
 
-    env = app.builder.env
     for node in doctree.traverse(snippetref):
         content = []
         if env.snippets.has_key(node['name']):

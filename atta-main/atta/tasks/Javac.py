@@ -1,3 +1,4 @@
+'''.. Java related: TODO: java'''
 import sys
 import stat
 import os
@@ -13,40 +14,42 @@ import atta.tools.OS as OS
   
 class Javac(Task):
   '''
-  .. code-block:: python
-
-    Javac(srcs, destDir[, **tparams])}
-
-  TODO: description
-
-  .. snippetref:: ExecReturns
-
-  :param srcs:             TODO
-  :type srcs:              if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-                           if list: each item may be: file/dir/wildcard name or FileSet
-  :param string destDir:   TODO
-  :param classPath:
-  :param sourcePath:
-
-  Standard java compiler:
+    .. code-block:: python
   
-  .. snippetref:: JavaStdCompilerParams
-
-  A deeper look:
+      Javac(srcs, destDir[, **tparams])}
   
-  :param requiresCompileImpl: Physical implementation of :py:meth:`RequiresCompile` method. 
-  :type requiresCompileImpl:  class that implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded` 
-                              passed through an instance of :py:class:`atta.tools.internal.Misc.ObjectFromClass`
-  :param compilerImpl:        Java compiler. 
-  :type compilerImpl:         class that implements :py:class:`atta.compilers.Interfaces.IJavaCompiler`
-                              passed through an instance of :py:class:`atta.tools.internal.Misc.ObjectFromClass`
-
-  .. snippet:: JavacUseCases
-  
-    Use cases:
+    TODO: description
     
-    .. literalinclude:: ../../../tests/test_Java.py
+    Parameters:
   
+    * **srcs**        TODO
+      if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
+      if list: each item may be: file/dir/wildcard name or FileSet
+    * **destDir**     TODO
+    * **classPath**
+    * **sourcePath**
+    
+    TODO Kiedy uzywany jest kompilator :py:class:`.JavaStdCompiler`...
+    parameters ``debug``, ``debugLevel`` and ``cParams`` described in 
+    :py:meth:`.JavaStdCompiler.Compile` are also available.
+    Just as common parameters from :py:class:`.Exec` task.
+    
+    Returns object with two attributtes:
+  
+    * **returnCode** Exit code returned by :py:meth:`.IJavaCompiler.Compile`.
+    * **output**     Data returned by :py:meth:`.ICompiler.GetOutput`.
+    
+    Advanced parameters:
+    
+    * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method. 
+      It must be class that implements :py:meth:`.ICompareStrategy.ActionNeeded` 
+      passed through an instance of :py:class:`.ObjectFromClass`.
+  
+    * **compilerImpl**          Implementation of wrapper to the Java compiler. 
+      It must be class that implements :py:class:`.IJavaCompiler`
+      passed through an instance of :py:class:`.ObjectFromClass`.
+  
+    **Methods:**
   ''' 
   def __init__(self, srcs, destDir = '.', **tparams):
     self._DumpParams(locals())
@@ -112,7 +115,7 @@ class Javac(Task):
   @staticmethod
   def SetDefaultRequiresCompileImpl(_class):
     '''Sets default implementation of :py:meth:`RequiresCompile` method. 
-       It may be any class that implements :py:meth:`atta.Interfaces.ICompareStrategy.ActionNeeded`'''
+       It may be any class that implements :py:meth:`.ICompareStrategy.ActionNeeded`'''
     Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
   
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
@@ -126,7 +129,7 @@ class Javac(Task):
   @staticmethod
   def SetDefaultCompilerImpl(_class):
     '''Sets default Java compiler. 
-       It may be any class that implements :py:class:`atta.compilers.Interfaces.IJavaCompiler`'''
+       It may be any class that implements :py:class:`.IJavaCompiler`'''
     Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
 
   _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler) 

@@ -1,3 +1,4 @@
+'''.. Miscellaneous: Echoes a message: echo'''
 import sys
 import os
 import stat
@@ -9,34 +10,28 @@ import atta
 
 class Echo(Task):
   '''
-  .. snippet:: Echo
-  
-    .. code-block:: python
-  
-      Echo([msg, **tparams])
-      
-    Echoes a message to the current logger. A level can be specified, 
-    which controls at what logging level the message is filtered at.
-    The task can also echo to a file, in which case the option to 
-    append rather than overwrite the file is available, 
-    and the level option is ignored. |Ant|
-  
-    :param  msg:           The message to echo (default: blank line).
-    :type msg:             any object that can be converted to string or iterable object or file-like object
+  .. code-block:: python
 
-    :param LogLevel level: Control the log level at which this message is reported (default: WARNING).
+    Echo([msg, **tparams])
+    
+  Echoes a message to the current logger. A level can be specified, 
+  which controls at what logging level the message is filtered at.
+  The task can also echo to a file, in which case the option to 
+  append rather than overwrite the file is available, 
+  and the level option is ignored. |Ant|
 
-    :param file:           The file name or a file-like object to write the message to |None|.
-    :type file:            string or file-like class 
+  Parameters:
+  
+  * **msg**   The message to echo. 
+    It can be any object that can be converted to string, a iterable or a file-like object. (default: blank line)
+  
+  * **level** Control the log level at which this message is reported. 
+    (default: :py:attr:`.LogLevel.WARNING`)
+  
+  * **file**   The file name or a file-like object to write the message to. |None|
+  * **append** Append to an existing file? |False|
+  * **force**  Overwrite read-only file? |False|
 
-    :param boolean append: Append to an existing file |False|.
-
-    :param boolean force:  Overwrite read-only file |False|.
-  
-    Use cases:
-  
-    .. literalinclude:: ../../../tests/test_echo.py
-  
   '''
   def __init__(self, msg = '', **tparams):
     level = tparams.get('level', LogLevel.WARNING)

@@ -1,3 +1,4 @@
+'''.. Execution: Executes a system command: exec'''
 import io
 import sys
 import os
@@ -12,63 +13,44 @@ from ..tools.Misc import LogLevel
 
 class Exec(Task):
   '''
-  .. snippet:: Exec
+  .. code-block:: python
+
+    Exec(executable[, params, **tparams])}
+
+  Executes a system command. 
+
+  TODO: detailed information
+    
+  Parameters:
   
-    .. code-block:: python
-
-      Exec(executable[, params, **tparams])}
-
-    Executes a system command. 
-
-  .. snippet:: ExecAdditionalInfo
+  * **executable** The command to execute without any command line arguments. 
+    You can use special macros: ``${bat}, ${cmd} or ${exe}`` on Windows will 
+    add ``.bat/.cmd/.exe`` to the `executable`, on other systems will not add anything; 
+    ``${sh}`` on non Windows systems will add ``.sh``, on Windows will add ``.bat``.
+    
+  * **params** Command line arguments. (string or list of strings) |None| 
+    
+  General parameters available in many tasks that use internally ``Exec`` task:
   
-    TODO: detailed information
-    
-  .. snippet:: ExecParams
-
-    :param string executable:   The command to execute without any command line arguments. You can use special macros:
-                                ${bat}, ${cmd} or ${exe} on Windows will add .bat/.cmd/.exe to the `executable`, on others system will not add anything,
-                                ${sh} on non Windows systems will add .sh, on Windows will add .bat.
-    
-  .. snippet:: ExecCommonParams
-
-    :param params:              Command line arguments |None|.
-    :type params:               string or list of strings
-    
-  .. snippet:: ExecCommonParams2
-  
-    :param boolean failOnError: Stop the buildprocess if the command exits with a return code signaling failure |True|.
-    
-    :param boolean logOutput:   TODO: Przesyla stdout and stderr do logu Atta |True|. 
-    
-    :param boolean useSheel:    Command will be executed through the shell |True|. 
-                                More information can be found in `subprocess.Popen <http://docs.python.org/library/subprocess.html>`_ documentation.
-    
-    :param dict env:            Environment variables. Completely replace the variables from the project |None|.
+  * **failOnError**  Stop the buildprocess if the command exits with a return code signaling failure. |True|
+  * **logOutput**    TODO: Przesyla stdout and stderr do logu Atta. |True| 
+  * **useSheel**     Command will be executed through the shell. 
+    More information can be found in :py:class:`subprocess.Popen` documentation. |True|
+  * **env**          Environment variables. Completely replace the variables from the project |None|.
                         
-  .. snippet:: ExecReturns
-                          
-    :return: Object with two attributtes:
-    
-      - returnCode (int) - Exit code returned by executed command.
-      - output (string)  - Captured contents of stdout and stderr.
+  Exec returns object with two attributtes:
+  
+  * **returnCode** Exit code returned by executed command.
+  * **output**     Captured contents of stdout and stderr.
  
   .. todo::
 
     - Add reading environment variables set by the executed process
     - Parameters: os and osFamily
 
-  .. snippet:: ExecUseCases
-  
-    Use cases:
-    
-    .. literalinclude:: ../../../tests/test_exec.py
-    .. literalinclude:: ../../../tests/test_env2.py
-
   '''
   def __init__(self, executable, params = [], **tparams):  
-    if isinstance(params, basestring):
-      params = params.split(' ')
+    params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get('failOnError', True)
     self.logOutput = tparams.get('logOutput', True)
     useShell = tparams.get('useShell', True)

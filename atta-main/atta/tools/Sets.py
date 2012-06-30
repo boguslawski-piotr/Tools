@@ -1,4 +1,4 @@
-'''Files, directories: Sets TODO'''
+'''.. Files, directories: Sets TODO'''
 import os
 import re
 
@@ -7,8 +7,6 @@ import OS
 
 class FileSet(list):
   '''       
-  .. snippet:: FileSet
-    
     .. code-block:: python
     
       FileSet(rootDir = '.', includes, excludes, **tparams])
@@ -17,8 +15,6 @@ class FileSet(list):
     
     TODO: description
     
-  .. snippet:: FileSetParams
-  
     :param string rootDir:     TODO
     :param includes:           TODO
     :type includes:            string or path (separator :) or list of strings
@@ -141,8 +137,6 @@ class FileSet(list):
 
 class DirSet(FileSet):
   ''' 
-  .. snippet:: DirSet
-    
     .. code-block:: python
     
       DirSet([rootDir, includes, excludes, **tparams])
@@ -150,8 +144,6 @@ class DirSet(FileSet):
     Creates a set of directories...
     
     TODO: description
-    
-  .. snippetref:: FileSetParams
     
   '''
   def __init__(self, rootDir = '.', includes = '**/**', excludes = [], **tparams):

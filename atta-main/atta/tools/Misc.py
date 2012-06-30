@@ -5,6 +5,7 @@ from internal.Misc import ObjectFromClass
 
 isiterable = lambda obj: \
               not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
+'''TODO: description'''
 
 #------------------------------------------------------------------------------ 
 

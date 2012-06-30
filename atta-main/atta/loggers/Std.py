@@ -3,8 +3,6 @@ from Interfaces import ILogger
 
 class Logger(ILogger):
   '''
-  .. snippet:: loggers.Std
-  
     Default logger.
      
     TODO: description

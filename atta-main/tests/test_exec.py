@@ -8,8 +8,9 @@ class test(Target):
   def Run(self):
     Echo('Exec test')
     
-    # Macro: ${bat}, ${cmd} or ${exe}: On Windows will add .bat/.cmd/.exe to the executable name, on others system will not add anything.
-    # You can use also macro ${sh}: on non Windows systems will add .sh, on Windows will add .bat.
+    # Macro: ${bat}, ${cmd} or ${exe}: On Windows will add .bat/.cmd/.exe to 
+    # the executable name, on other systems will not add anything.
+    # Macro ${sh}: on non Windows systems will add .sh, on Windows will add .bat.
     Exec('test_exec${bat}', ['1','2','3'], useShell = False)
     
     if OS.IsWindows():
