@@ -17,6 +17,7 @@ __all__ = [
            'Properties',
            'FileSet',
            'DirSet',
+           'ExtendedFileSet',
            'OS',
 
            # Tasks
@@ -115,7 +116,7 @@ class File:
     
 # Tools
 
-from tools.Sets import FileSet, DirSet
+from tools.Sets import FileSet, DirSet, ExtendedFileSet
 from tools.Properties import Properties
 from tools import OS as OS
 

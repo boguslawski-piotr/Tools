@@ -7,10 +7,6 @@ import OS
 
 class FileSet(list):
   '''       
-    .. code-block:: python
-    
-      FileSet(rootDir = '.', includes, excludes, **tparams])
-    
     Creates a set of files...
     
     TODO: description
@@ -137,10 +133,6 @@ class FileSet(list):
 
 class DirSet(FileSet):
   ''' 
-    .. code-block:: python
-    
-      DirSet([rootDir, includes, excludes, **tparams])
-    
     Creates a set of directories...
     
     TODO: description
@@ -153,3 +145,40 @@ class DirSet(FileSet):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
   
+class ExtendedFileSet(list):
+  '''
+    TODO: description
+    
+    Parameters:
+  
+    * **srcs**        TODO
+      if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
+      if list: each item may be: file/dir/wildcard name or FileSet
+  
+    Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
+  ''' 
+  def __init__(self, srcs):
+    self.AddFiles(srcs)
+    
+  def AddFiles(self, srcs):
+    srcs = OS.Path.AsList(srcs)
+    for src in srcs:
+      if len(src) <= 0:
+        continue
+      if isinstance(src, FileSet):
+        for fname in src:
+          self.append((src.rootDir, os.path.relpath(fname, src.rootDir)))
+      else:
+        if OS.Path.HasWildcards(src):
+          rootDir, includes = OS.Path.Split(src)
+          for fname in FileSet(rootDir, includes, realPaths = False, withRootDir = False):
+            self.append((rootDir, fname)) 
+        else:
+          if os.path.isdir(src):
+            for fname in FileSet(src, includes = '**/*', realPaths = False, withRootDir = False):
+              self.append((src, fname)) 
+          else:
+            src = os.path.normpath(src)
+            if os.path.exists(src):
+              self.append(os.path.dirname(src), os.path.basename(src))
+    

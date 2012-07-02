@@ -1,73 +1,162 @@
 '''.. Local: TODO'''
 import os
-import shutil
 import hashlib
 from datetime import datetime, timedelta
 
 import atta.tools.OS as OS
 from ..tasks.Base import Task
-from ..tools.Misc import LogLevel
+from ..tools.Misc import NamedFileLike, LogLevel
 from ..tools.Properties import Properties
-from ..loggers import Compact
-from Interfaces import IRepository
-from atta import AttaError
+from Base import ARepository
+from . import ArtifactNotFoundError
 
-class Repository(IRepository, Task):
+class Repository(ARepository, Task):
   '''TODO: description'''
 
-  def PrepareRealFileName(self, fileName):
-    '''TODO: description'''
-    return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
+  def VMakeDirs(self, dirName):
+    OS.MakeDirs(dirName)
+    
+  def VFileExists(self, fileName):
+    return os.path.exists(fileName)
   
-  def PrepareFileName(self, packageId): 
-    '''TODO: description'''
-    fileName = os.path.join('.repository', packageId.FileName())
-    return self.PrepareRealFileName(fileName) 
+  def VFileTime(self, fileName):
+    '''Returns the modification time of file `fileName` 
+       or 'None' if the modification time is unavailable.'''
+    return os.path.getmtime(fileName)
+    
+  def VTouch(self, fileName):
+    '''Sets the current modification time for file `fileName`.'''
+    os.utime(fileName, None) # equivalent: touch
+    
+  def VPutFileLike(self, f, fileName):
+    with open(fileName, 'wb') as lf:
+      for chunk in iter(lambda: f.read(32768), b''): 
+        lf.write(chunk)
+    return OS.FileHash(fileName, hashlib.sha1())
   
+  def VPutFile(self, fFileName, fileName):
+    self.VMakeDirs(os.path.dirname(fileName))
+    OS.CopyFile(fFileName, fileName, force = True)
+    return OS.FileHash(fileName, hashlib.sha1())
+    
+  def PrepareMarkerFileName(self, fileName):
+    '''TODO: description'''
+    dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
+    return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
+  
+  def VGetFileMarker(self, markerFileName):
+    with open(markerFileName, 'rb') as f:
+      return f.read()
+    
   def GetFileMarker(self, fileName):
     '''TODO: description'''
     try:
-      with Properties.Open(fileName + self._AttaDataExt()) as p:
-        timestamp = p.Get('timestamp', None)
-        sha1 = p.Get('sha1', None)
+      markerFileName = self.PrepareMarkerFileName(fileName)
+      contents = self.VGetFileMarker(markerFileName)
+      contents = contents.split('\n')
+      timestamp, sha1 = (None, None)
+      if len(contents) > 0:
+        timestamp = contents[0]
+      if len(contents) > 1:
+        sha1 = contents[1]
     except:
       return (None, None)
     else:
       return (timestamp, sha1)
     
-  def PutFileMarker(self, fileName, packageId):
+  def VPutMarkerFile(self, markerFileName, contents):
+    with open(markerFileName, 'wb') as f:
+      f.write(contents)
+  
+  def PutMarkerFile(self, fileName, fileSha1, packageId):
     '''TODO: description'''
-    with Properties.Create(fileName + self._AttaDataExt()) as p:
-      p.Set('timestamp', packageId.timestamp)
-      p.Set('sha1', OS.FileHash(fileName, hashlib.sha1()))
-      p.Save()
+    markerFileName = self.PrepareMarkerFileName(fileName)
+    dirName = os.path.dirname(markerFileName)
+    if not self.VFileExists(dirName):
+      self.VMakeDirs(dirName)
+    self.VPutMarkerFile(markerFileName, 
+                        str(packageId.timestamp) + '\n' + str(fileSha1))
       
-  def Get(self, packageId, store = None, **tparams):
+  def PrepareInfoFileName(self, fileName):
     '''TODO: description'''
-    fileName = self.PrepareFileName(packageId)
-    if not os.path.exists(fileName):
-      raise AttaError(self, "Can't find: " + str(packageId))
+    return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
+
+  def VGetInfoFile(self, infoFileName):
+    with open(infoFileName, 'rb') as f:
+      return f.read()
+
+  def GetInfoFile(self, fileName):  
+    infoFileName = self.PrepareInfoFileName(fileName)
+    if self.VFileExists(infoFileName):
+      return self.VGetInfoFile(infoFileName)
+    return None
+  
+  def GetFilesListFromInfoFile(self, infoFile):
+    return infoFile.split('\n')
+  
+  def VPutInfoFile(self, infoFileName, contents):
+    with open(infoFileName, 'wb') as f:
+      f.write(contents)
+      
+  def PutInfoFile(self, fileName, storedFileNames):
+    self.VPutInfoFile(self.PrepareInfoFileName(fileName), '\n'.join(storedFileNames))
+
+  def VPrepareFileName(self, fileName):
+    '''TODO: description'''
+    return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
+  
+  def PrepareFileName(self, packageId, rootDir = None): 
+    '''TODO: description'''
+    if rootDir is None:
+      fileName = os.path.join('.repository', self._styleImpl.GetObject().FileName(packageId))
+      return self.VPrepareFileName(fileName) 
+    else:
+      return os.path.join(rootDir, self._styleImpl.GetObject().FileName(packageId))
     
+  def GetAll(self, fileName):
+    infoFile = self.GetInfoFile(fileName)
+    if infoFile is not None:
+      result = self.GetFilesListFromInfoFile(infoFile)
+      for i in range(len(result)):
+        result[i] = os.path.join(os.path.dirname(fileName), result[i]) 
+    else:
+      result = [fileName]
+    return result
+  
+  def Get(self, packageId, store = None):
+    '''TODO: description'''
+    '''returns: list of filesNames'''
+    fileName = self.PrepareFileName(packageId, self._RootDir())
+    if not self.VFileExists(fileName):
+      raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+    
+    dirName = os.path.dirname(fileName)
+    result = self.GetAll(fileName)
+      
     if store is not None:
-      packageId.timestamp, packageId.sha1 = self.GetFileMarker(fileName)
-      fileInStore = store.Check(packageId, **tparams)
-      if fileInStore is None:
+      packageId.timestamp, sha1 = self.GetFileMarker(fileName)
+      filesInStore = store.Check(packageId)
+      if filesInStore is None:
         self.Log('Uploading: %s to: %s' %(str(packageId), store._Name()), level = LogLevel.INFO)
-        with open(fileName, 'rb') as f:
-          store.Put(f, packageId, **tparams)
+        store.Put(result, dirName, packageId)
       else:
-        if fileName == fileInStore[0]:
+        if fileName in filesInStore:
           self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(packageId), level = LogLevel.WARNING)
 
-    return [fileName]
+    self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
+    return result
   
+  def _LifeTime(self):
+    return timedelta(days = 14)
+    #return timedelta(seconds = 5)
+
   # TODO: uzyc wzorca Strategy do implementacji Check
-  def Check(self, packageId, **tparams):
-    '''returns: None or [fileName, fileSize, storedTimestamp]'''
-    fileName = self.PrepareFileName(packageId)
+  def Check(self, packageId):
+    '''returns: None or list of filesNames'''
     self.Log('Checking: %s' % str(packageId), level = LogLevel.VERBOSE)
-    
-    if not os.path.exists(fileName):
+
+    fileName = self.PrepareFileName(packageId, self._RootDir())
+    if not self.VFileExists(fileName):
       return None
     
     storedTimestamp, storedSha1 = self.GetFileMarker(fileName)
@@ -76,44 +165,72 @@ class Repository(IRepository, Task):
     
     # if the given timestamp isn't equal to the local file timestamp (stored with the file: see Put method) then return None 
     if packageId.timestamp is not None:
-      if long(packageId.timestamp) != long(storedTimestamp):
+      if packageId.timestamp != storedTimestamp:
         return None
       else:
-        os.utime(fileName, None) # equivalent: touch
+        self.VTouch(fileName)
 
     # if the local file was stored earlier (modification time) than _LifeTime then return None
-    fileTime = datetime.fromtimestamp(os.path.getmtime(fileName))
-    if datetime.now() - fileTime > self._LifeTime():
-      return None
+    fileTime = self.VFileTime(fileName)
+    if fileTime is not None:
+      fileTime = datetime.fromtimestamp(self.VFileTime(fileName))
+      if datetime.now() - fileTime > self._LifeTime():
+        return None
      
-    return [fileName, OS.FileSize(fileName), storedTimestamp]
+    return self.GetAll(fileName)
   
-  def Put(self, f, packageId, **tparams):
-    '''returns: None or [fileName, fileSize]'''
-    fileName = self.PrepareFileName(packageId)
+  def Put(self, f, fBaseDirName, packageId):
+    '''returns: list of filesNames'''
     self.Log('Takes: %s' % str(packageId), level = LogLevel.INFO)
+
+    fileName = self.PrepareFileName(packageId, self._RootDir())
+    dirName = os.path.normpath(os.path.dirname(fileName))
+    self.VMakeDirs(dirName)
     
-    OS.MakeDirs(os.path.dirname(fileName))
+    self.Log('to: %s' % dirName, level = LogLevel.INFO)
     
-    # TODO: handle f if string (fileName) or list (fileNames or file-like objects)
-    
-    with open(fileName, 'wb') as lf:
-      lf.write(f.read())
-      lf.close()
-    
-    self.PutFileMarker(fileName, packageId)
+    if 'read' in dir(f):
+      sha1 = self.VPutFileLike(f, fileName)
+      self.PutMarkerFile(fileName, sha1, packageId)
+      self.LogIterable('with files:', [os.path.relpath(fileName, dirName)], level = LogLevel.VERBOSE)
+      return [fileName]
+    else:
+      rnames = []
+      lnames = []
+      for fFileName in OS.Path.AsList(f):
+        if isinstance(fFileName, NamedFileLike):
+          rFileName = os.path.join(dirName, os.path.relpath(fFileName.fileName, fBaseDirName))
+          sha1 = self.VPutFileLike(fFileName.f, rFileName)
+        else:
+          rFileName = os.path.join(dirName, os.path.relpath(fFileName, fBaseDirName))
+          if fFileName == rFileName:
+            rFileName = os.path.join(dirName, os.path.basename(fFileName))
+          sha1 = self.VPutFile(fFileName, rFileName)
         
-    return [fileName, OS.FileSize(fileName)]
-  
+        self.PutMarkerFile(rFileName, sha1, packageId)
+        
+        rnames.append(rFileName)
+        lnames.append(os.path.relpath(rFileName, dirName))
+          
+      if len(lnames) > 1:
+        self.PutInfoFile(fileName, lnames)
+      
+      self.LogIterable('with files:', lnames, level = LogLevel.VERBOSE)
+      return rnames
+    
   def _Name(self):
     name = Task._Name(self)
     return 'Local.' + name
   
-  '''private section'''
-  
+  def _RootDir(self):
+    rootDir = None
+    if self.data is not None:
+      rootDir = self.data.get(ARepository.Dictionary.rootDir, None)
+    return rootDir
+   
   def _AttaDataExt(self):
     return '.atta'
+
+  def _InfoExt(self):
+    return '.info'
   
-  def _LifeTime(self):
-    return timedelta(days = 14)
-    #return timedelta(seconds = 5)

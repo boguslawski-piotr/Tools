@@ -7,6 +7,7 @@ import os
 import stat
 
 import atta.tools.VariablesLikeAntExpander
+from atta.repositories.Package import PackageId
 from atta import *
 
 class ProjectType:
@@ -21,6 +22,9 @@ class Setup:
     #print 'in Java.setup'
     #print project
     
+    if not hasattr(project, 'groupId'):
+      project.groupId = project.name
+      
     project.type_ = type_
     '''TODO: description
     available values: see ProjectType
@@ -37,9 +41,6 @@ class Setup:
     else:
       defInstallBaseDir = 'lib'
     project.installBaseDir = tparams.get('installBaseDir', defInstallBaseDir)
-    '''TODO: description'''
-    
-    project.deployBaseDir = tparams.get('deployBaseDir', 'archive')
     '''TODO: description'''
     
     
@@ -72,21 +73,33 @@ class Setup:
     project.packageNameFormat = '{0}-{1}'
     '''TODO: description
     {0} - project name
-    {1} - project version name
-    '''
+    {1} - project version name'''
     
+    if project.type_ == ProjectType.consoleApp:
+      project.packageExt = 'jar'
+    else:
+      project.packageExt = project.type_
+
     project.packageName = ''
     '''result package file name set in package target TODO: description'''
     
     project.packageAdditionalFiles = []
     '''TODO: description'''
     
-    project.javaClassPath = []
-    '''TODO: description'''
     
     project.javaMainClass = tparams.get('mainClass', 'main')
     '''TODO: description'''
-  
+
+    
+    project.installAdditionalFiles = []
+    '''TODO: description'''
+
+    project.installedFiles = []
+    '''TODO: description'''
+
+    project.deployedFiles = []
+    '''TODO: description'''
+    
     # internal settings
     
     project.defaultTarget = 'help'
@@ -193,7 +206,7 @@ class package(Target):
       raise AttaError(self, 'Project.name is not set.')
     if len(project.versionName) > 0:
       packageName = project.packageNameFormat.format(packageName, project.versionName)
-    return packageName + '.jar'
+    return packageName + '.' + project.packageExt
    
 #------------------------------------------------------------------------------ 
 
@@ -203,44 +216,58 @@ class install(Target):
   
   def Run(self):
     '''TODO: description'''
-    project = GetProject()
-    javaClassPath = []
-
     # Create install directory (if needed).
+    project = GetProject()
     if not os.path.exists(project.installBaseDir):
       Echo('Creating directory: ' + os.path.normpath(project.installBaseDir))
       OS.MakeDirs(project.installBaseDir)
     
-    self.CopyDependencies(javaClassPath)
-    self.CopyPackage(javaClassPath)
-    
+    javaClassPath = self.CopyPackage()
     if project.type_ == ProjectType.consoleApp:
+      javaClassPath += self.CopyDependencies()
       self.CreateStartupScripts(javaClassPath)
-      
-  def CopyDependencies(self, javaClassPath):
-    '''Copy dependencies. TODO: more...'''
-    project = GetProject()
-    for packageName in project.javacClassPath:
-      if os.path.exists(packageName) and not os.path.isdir(packageName):
-        destFileName = os.path.join(project.installBaseDir, os.path.basename(packageName))
-        if OS.CopyFileIfDiffrent(packageName, destFileName, useHash = True):
-          Echo('Installed: ' + destFileName)
-        javaClassPath.append(os.path.basename(packageName))
-  
-  def CopyPackage(self, javaClassPath):
+
+    project.installedFiles += javaClassPath
+    project.installedFiles += self.CopyAdditionalFiles()
+    
+  def CopyPackage(self):
     '''Copy package. TODO: more... '''
     project = GetProject()
     destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageName))
     if OS.CopyFileIfDiffrent(project.packageName, destFileName, useHash = True):
       Echo('Installed: ' + destFileName)
-    javaClassPath.insert(0, os.path.basename(project.packageName))  # Inserted at the beginning, for the case if 
-                                                                    # other libraries contain class: project.javaMainClass.
+    return [destFileName]
+  
+  def CopyDependencies(self):
+    '''Copy dependencies. TODO: more...'''
+    project = GetProject()
+    filesCopied = []
+    for packageName in project.javacClassPath:
+      if os.path.exists(packageName) and not os.path.isdir(packageName):
+        destFileName = os.path.join(project.installBaseDir, os.path.basename(packageName))
+        if OS.CopyFileIfDiffrent(packageName, destFileName, useHash = True):
+          Echo('Installed: ' + destFileName)
+        filesCopied.append(destFileName)
+    return filesCopied
+  
+  def CopyAdditionalFiles(self, ):
+    project = GetProject()
+    installedFiles = []
+    for rootDirName, fileName in ExtendedFileSet(Project.installAdditionalFiles):
+      srcFileName = os.path.join(rootDirName, fileName)
+      destFileName = os.path.join(project.installBaseDir, fileName)
+      OS.MakeDirs(os.path.dirname(destFileName))
+      OS.CopyFile(srcFileName, destFileName, force = True)
+      installedFiles.append(destFileName)
+    return installedFiles
   
   def CreateStartupScripts(self, javaClassPath):
     '''Create shell scripts. TODO: more...'''
     project = GetProject()
-    javaClassPathStr = os.pathsep + '${projectHome}/'
-    javaClassPathStr = javaClassPathStr + javaClassPathStr.join(javaClassPath)
+    
+    javaClassPathStr = ''
+    for name in javaClassPath: 
+      javaClassPathStr = javaClassPathStr + '${projectHome}/' + os.path.relpath(name, project.installBaseDir) + os.pathsep
     javaClassPathStr = os.path.normpath(javaClassPathStr)
     projectNameInScript = project.name.upper().replace(' ', '_')
     
@@ -254,6 +281,8 @@ class install(Target):
            projectHome = '%' + projectNameInScript + '_HOME%',
            mainClass   = project.javaMainClass,
            classPath   = javaClassPathStr)
+      project.installedFiles.append(scriptName)
+      
     # unix family
     with open(self.GetUnixStartupScriptTmplFileName(), 'rb') as f:
       scriptName = os.path.join(project.installBaseDir, project.name)
@@ -264,6 +293,7 @@ class install(Target):
            classPath   = javaClassPathStr.replace('\\', '/').replace(';', ':')) 
       if not OS.IsWindows():
         os.chmod(scriptName, stat.S_IEXEC)
+      project.installedFiles.append(scriptName)
     
     Atta.variablesExpander.SetImpl(ove)
     
@@ -277,6 +307,25 @@ class install(Target):
   
 #------------------------------------------------------------------------------ 
 
+import sys
+from atta.repositories.Base import ARepository
+
+def Deploy(packageId, files, baseDirName, data):
+  files = OS.Path.AsList(files)
+
+  for e in data:
+    repositoryName = e.get(ARepository.Dictionary.repository)
+    if repositoryName is None:
+      continue
+    
+    try:
+      __import__(repositoryName)
+      repository = sys.modules[repositoryName].Repository(e)
+      result = repository.Put(files, baseDirName, packageId)
+      #Atta.logger.LI('***', result, level = LogLevel.ERROR)
+    finally:
+      repository = None
+    
 class deploy(Target):
   '''TODO: Wysyla do roznych (konfiguracja) repozytoriow.
   Zwieksza numer builda.
@@ -285,7 +334,10 @@ class deploy(Target):
 
   def Run(self):
     '''TODO: description'''
-    Echo('Deplyoing into: ')
+    project = GetProject()
+    packageId = PackageId(project.groupId, project.name, project.versionName, project.packageExt, 
+                          timestamp = os.path.getmtime(project.packageName))
+    Deploy(packageId, project.installedFiles, project.installBaseDir, project.deployTo) 
     
 #------------------------------------------------------------------------------ 
 

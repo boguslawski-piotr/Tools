@@ -5,7 +5,8 @@ from atta.targets import Java
 Project setup.
 '''
 
-Project.name = 'JavaExample'
+Project.groupId = 'org.atta'
+Project.name = 'JavaMedium'
 Project.versionName = '0.1'
 
 Java.Setup(Java.ProjectType.consoleApp)
@@ -36,6 +37,10 @@ Project.javaMainClass = 'main'
 Project.packageAdditionalFiles += ['*.java', '*.py', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
+'''
+#Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
+
+'''
 Customizing Java targets that come with Atta. It's easy :)
 
 Just define a class that inherits from the class of the Java module.
@@ -51,7 +56,38 @@ class compile(Java.compile):
   def Run(self):
     Echo('My compile')
     Java.compile.Run(self)
+
+'''
+Deploy
+'''
+
+from atta.repositories.Styles import Flat
     
+class MyStylePackageId(Flat):
+  def DirName(self, packageId):
+    return '%s' % (str(packageId.version))
+
+Project.deployTo = [
+                    {
+                     # into ftp repository
+                     'repository' : 'atta.repositories.Ftp',
+                     'host'       : 'w2.automapa.pl',
+                     'rootDir'    : 'Exchange/Piotrb',
+                     'user'       : 'piotrb',
+                     'password'   : 'vi-65-dze',
+                    },
+#                    {
+#                     # into subdirectory archive
+#                     'repository' : 'atta.repositories.Local',
+#                     'style'      : 'build.MyStylePackageId',
+#                     #'style'      : 'atta.repositories.Styles.Flat',
+#                     'rootDir'    : 'archive',
+#                    },
+#                    {
+#                     # into machine local repository
+#                     'repository' : 'atta.repositories.Local',
+#                    }
+                    ]        
 '''
 Dependencies
 ------------
@@ -66,16 +102,46 @@ Result:
 ./../JavaBasic/build/HelloWorld-1.0.jar
 ./.repository/javax/mail/mail/1.4.5/mail-1.4.5.jar
 
+PROBLEM (do rozwiazania):
+pobieram z Maven wrzucajac do Ftp
+Ftp zwraca pliki, ale one sa nie do uzycia !
+???
 '''
-    
-Project.ResolveDependencies([{'repository' : 'atta.repositories.Maven', 
-                              'package'    : 'javax.mail:mail.jar:1.4.5', 
-                              'putIn'      : 'atta.repositories.Local'
-                             }])
+
+#test = [
+#        {
+#         'repository' : 'atta.repositories.Ftp',
+#         'host'       : 'w2.automapa.pl',
+#         'rootDir'    : 'Exchange/Piotrb',
+#         'user'       : 'piotrb',
+#         'password'   : 'vi-65-dze',
+#         'package'    : 'org.atta:JavaMedium.jar:0.1',
+#         'putIn'      : 'atta.repositories.Project',
+#        },
+#        ] 
+
+test = [{
+       'repository' : 'atta.repositories.Maven',
+       'package'    : 'commons-net.jar:3.1',
+       'putIn' :
+          {
+           'repository' : 'atta.repositories.Ftp',
+           'style'      : 'atta.repositories.Styles.Flat',
+           'host'       : 'w2.automapa.pl',
+           'rootDir'    : 'Exchange/Piotrb',
+           'user'       : 'piotrb',
+           'password'   : 'vi-65-dze',
+#           'package'    : 'org.atta:JavaMedium.jar:0.1',
+#           'putIn'      : 'atta.repositories.Project',
+          },
+        }] 
+
+r = Project.ResolveDependencies(test)
+#print r
 
 # gets ...
 Project.dependsOn += [{
-                       'repository': 'atta.repositories.Maven',   # it can be any module with class Repository which implements IRepository
+                       'repository': 'atta.repositories.Maven',   # it can be any module with class Repository which inherits from ARepository
                        'groupId'   : 'com.beust',
                        'artifactId': 'jcommander',
                        'version'   : '1.26',
@@ -89,7 +155,6 @@ Project.dependsOn += [{
                                      'putIn'      : 'atta.repositories.Local',
                                     }],
                                               # and we could continue long ...
-                      #'ifNotExists': [{}]
                       }]
 
 Project.dependsOn += [{
@@ -110,7 +175,15 @@ Project.dependsOn += [{
 
 Project.dependsOn += [{
                        'repository' : 'atta.repositories.Local',
+                       'style'      : 'atta.repositories.Styles.Flat',
                        'package'    : 'javax.mail:mail.jar:1.4.5',
-                       'putIn'      : 'atta.repositories.Project',
+                       'ifNotExists': [{
+                                        'repository' : 'atta.repositories.Maven', 
+                                        'package'    : 'javax.mail:mail.jar:1.4.5', 
+                                        'putIn'      : { 
+                                                        'repository' : 'atta.repositories.Local',
+                                                        'style'      : 'atta.repositories.Styles.Flat',
+                                                       }
+                                       }]
                       }]
 

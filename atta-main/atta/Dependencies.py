@@ -1,5 +1,8 @@
 import sys
-from repositories.Interfaces import PackageId, IRepository
+
+from atta.repositories.Base import ARepository
+from repositories.Package import PackageId
+from repositories import ArtifactNotFoundError
 
 class Resolver:
   '''TODO: description'''
@@ -9,36 +12,52 @@ class Resolver:
   def Resolve(self, data):
     rc = False
     for e in data:
-      if e.has_key(IRepository.Dictionary.dependsOn):
+      if ARepository.Dictionary.dependsOn in e:
         # recursively resolve the dependencies
-        self.Resolve(e[IRepository.Dictionary.dependsOn])
+        self.Resolve(e[ARepository.Dictionary.dependsOn])
       
-      repositoryName = e.get(IRepository.Dictionary.repository)
+      repositoryName = e.get(ARepository.Dictionary.repository)
       if repositoryName is None:
         continue
       
       __import__(repositoryName)
-      repository = sys.modules[repositoryName].Repository()
+      repository = sys.modules[repositoryName].Repository(e)
       
-      packageStrId = e.get(IRepository.Dictionary.package)
+      packageStrId = e.get(ARepository.Dictionary.package)
       if packageStrId is not None:
         packageId = PackageId.FromStr(packageStrId)
       else:
-        packageId = PackageId(e.get(IRepository.Dictionary.groupId), e.get(IRepository.Dictionary.artifactId), e.get(IRepository.Dictionary.version), e.get(IRepository.Dictionary.type))
+        packageId = PackageId(e.get(ARepository.Dictionary.groupId), 
+                              e.get(ARepository.Dictionary.artifactId), 
+                              e.get(ARepository.Dictionary.version), 
+                              e.get(ARepository.Dictionary.type))
       
       store = None
-      storeName = e.get(IRepository.Dictionary.putIn)
+      storeName = e.get(ARepository.Dictionary.putIn)
       if storeName is not None:
+        storeData = None
+        if isinstance(storeName, dict):
+          storeData = storeName
+          storeName = storeData.get(ARepository.Dictionary.repository)
         __import__(storeName)
-        store = sys.modules[storeName].Repository()
+        store = sys.modules[storeName].Repository(storeData)
       
-      result = repository.Get(packageId, store, data = e)
-      if result is not None and len(result) > 0:
-        self.result += result
-        rc = True
-      else:
-        pass
-        # TODO: handle ifNotExists
+      try:
+        result = repository.Get(packageId, store)
+      except ArtifactNotFoundError:
+        if ARepository.Dictionary.ifNotExists in e:
+          rc = self.Resolve(e[ARepository.Dictionary.ifNotExists])
+        else:
+          raise
+      else:  
+        if result is not None and len(result) > 0:
+          self.result += result
+          rc = True
+        else:
+          if ARepository.Dictionary.ifNotExists in e:
+            rc = self.Resolve(e[ARepository.Dictionary.ifNotExists])
+      finally:
+        repository = None
     
     return rc
     

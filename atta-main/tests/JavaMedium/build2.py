@@ -11,7 +11,7 @@ Javac.SetDefaultRequiresCompileImpl(SrcHashStrategy)
 class clean(Java.clean):
   def Run(self):
     Java.clean.Run(self)
-    dirName = '.atta/markers'
+    dirName = '.atta/srchash'
     Echo('Deleting directory: ' + dirName)
     shutil.rmtree(dirName, True)
 

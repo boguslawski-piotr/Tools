@@ -12,10 +12,10 @@ import Local
 class Repository(Local.Repository):
   '''TODO: description'''
   
-  def PrepareRealFileName(self, fileName):
+  def VPrepareFileName(self, fileName):
     return os.path.normpath(os.path.join(GetProject().dirName, fileName))
 
-  def Get(self, packageId, store = None, **tparams):
+  def Get(self, packageId, store = None):
     if packageId.groupId is None:
       raise AttaError(self, 'Not given name / directory of the project (grupId entry).')
     
@@ -28,13 +28,9 @@ class Repository(Local.Repository):
     if not os.path.exists(projectName):
       raise AttaError(self, 'File: %s does not exists!' % projectName)
     
-    data = tparams.get('data')
+    targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
+    resultPropertyName = self.data.get('resultIn', 'packageName')
     result = None
-    
-    targetNames = data.get('target', ['package'])
-    if isinstance(targetNames, basestring):
-      targetNames = targetNames.split(' ')
-    resultPropertyName = data.get('resultIn', 'packageName')
     
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
     try:
@@ -52,18 +48,12 @@ class Repository(Local.Repository):
         Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
         
-        if hasattr(project, resultPropertyName):
-          result = getattr(project, resultPropertyName)
-          if result is not None:
-            result = OS.Path.AsList(result)
-            for i in range(0, len(result)):
-              if not os.path.exists(result[i]):
-                result[i] = os.path.join(dirName, result[i])
-          
-              # TODO: obsluzyc store... (?)
-              #print "***"
-              #print self.PrepareFileName(groupId, OS.Path.RemoveExt(os.path.basename(result[i])), None, OS.Path.Ext((os.path.basename(result[i]))))
-                                         
+        result = getattr(project, resultPropertyName, None)
+        if result is not None:
+          result = OS.Path.AsList(result)
+          for i in range(0, len(result)):
+            if not os.path.exists(result[i]):
+              result[i] = os.path.join(dirName, result[i])
       except:
         raise
       finally:
@@ -75,6 +65,7 @@ class Repository(Local.Repository):
     if result is None:
       raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultPropertyName))
     
+    self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
     return result
 
   def _Name(self):

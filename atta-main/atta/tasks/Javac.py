@@ -38,20 +38,18 @@ class Javac(Task):
     Advanced parameters:
     
     * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method. 
-      It must be class that implements :py:meth:`.ICompareStrategy.ActionNeeded` 
-      passed through an instance of :py:class:`.ObjectFromClass`.
+      It must be class that implements :py:meth:`.ICompareStrategy.ActionNeeded`. 
   
     * **compilerImpl**          Implementation of wrapper to the Java compiler. 
-      It must be class that implements :py:class:`.IJavaCompiler`
-      passed through an instance of :py:class:`.ObjectFromClass`.
+      It must be class that implements :py:class:`.IJavaCompiler`.
   
     **Methods:**
   ''' 
   def __init__(self, srcs, destDir = '.', **tparams):
     self._DumpParams(locals())
 
-    self._requiresCompileImpl = tparams.get('requiresCompileImpl', Javac._defaultRequiresCompileImpl)
-    self._compilerImpl = tparams.get('compilerImpl', Javac._defaultCompilerImpl)
+    self._requiresCompileImpl = ObjectFromClass(tparams.get('requiresCompileImpl', Javac.GetDefaultRequiresCompileImpl()))
+    self._compilerImpl = ObjectFromClass(tparams.get('compilerImpl', Javac.GetDefaultCompilerImpl()))
     
     srcs = OS.Path.AsList(srcs)
     classPath = OS.Path.AsList(tparams.get('classPath', []))
@@ -108,13 +106,17 @@ class Javac(Task):
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
     self.output = self._compilerImpl.GetObject().GetOutput()
 
+  _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
+    
   @staticmethod
   def SetDefaultRequiresCompileImpl(_class):
     '''Sets default implementation of :py:meth:`RequiresCompile` method. 
        It may be any class that implements :py:meth:`.ICompareStrategy.ActionNeeded`'''
     Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
-  
-  _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
+
+  @staticmethod
+  def GetDefaultRequiresCompileImpl():
+    return Javac._defaultRequiresCompileImpl.GetClass()
     
   def RequiresCompile(self, destDir, srcDir, fileName, **tparams): 
     '''TODO: description'''
@@ -122,10 +124,15 @@ class Javac(Task):
     src = os.path.join(srcDir, fileName)
     return self._requiresCompileImpl.GetObject().ActionNeeded(src, dest)
 
+  _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler) 
+
   @staticmethod
   def SetDefaultCompilerImpl(_class):
     '''Sets default Java compiler. 
        It may be any class that implements :py:class:`.IJavaCompiler`'''
-    Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
+    Javac._defaultCompilerImpl = ObjectFromClass(_class)
 
-  _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler) 
+  @staticmethod
+  def GetDefaultCompilerImpl():
+    return Javac._defaultCompilerImpl.GetClass()
+

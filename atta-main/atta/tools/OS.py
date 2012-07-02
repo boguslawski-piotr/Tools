@@ -5,6 +5,7 @@ import hashlib
 import re
 import shutil
 import platform
+import stat
 
 from datetime import datetime, timedelta
 from time import sleep
@@ -57,10 +58,27 @@ class Path:
     return l, r
   
   @staticmethod
+  def NormUnix(path):
+    path = os.path.normpath(path).replace('\\', '/')
+    return path
+  
+  @staticmethod
   def AsList(paths, sep = ':'):
     '''TODO: description'''
     if isinstance(paths, basestring):
-      paths = paths.split(sep)
+      if sep == ':' and IsWindows():
+        # This is a very ugly solution, but effective.
+        while True:
+          m = re.search('[a-zA-Z]{1,1}(\\:)\\\\', paths)
+          if m is not None:
+            paths = paths.replace(m.group(0), m.group(0).replace(':', '<'))
+          else:
+            break
+        paths = paths.split(sep)
+        for i, path in enumerate(paths):
+          paths[i] = path.replace('<', ':') 
+      else:
+        paths = paths.split(sep)
     return list(paths) # return copy
   
   @staticmethod
@@ -130,12 +148,26 @@ def FileSize(fileName):
     return INVALID_FILE_SIZE
   return info.st_size
 
-def CopyFileIfDiffrent(fileName, destName, useHash = False):
+def CopyFile(fileName, destName, force = False):
+  '''
+  Copies the file `fileName` to the file or directory `destName`.
+  If `destName` is a directory, a file with the same basename as 
+  `fileName` is created (or overwritten) in the directory specified.
+  The parameter `force` allows overwrite files with read-only attribute.
+  Uses :py:func:`shutil.copy2`.
+  '''
+  if force and os.path.exists(destName) and not os.path.isdir(destName):
+    st = os.stat(destName)
+    os.chmod(destName, stat.S_IMODE(st.st_mode) | stat.S_IWRITE)
+  shutil.copy2(fileName, destName)
+  
+def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False):
   '''
   Copies the file `fileName` to the file or directory `destName`
   only if modification times or SHA1-hashs are different or `destName` not exists. 
   If `destName` is a directory, a file with the same basename as 
   `fileName` is created (or overwritten) in the directory specified.
+  The parameter `force` allows overwrite files with read-only attribute.
   Uses :py:func:`shutil.copy2`.
   Returns True if file was copied.
   '''
@@ -153,7 +185,7 @@ def CopyFileIfDiffrent(fileName, destName, useHash = False):
         destTime = datetime.fromtimestamp(os.path.getmtime(destName))
         shouldCopy = abs((srcTime - destTime)) > timedelta(seconds = 1)
   if shouldCopy:
-    shutil.copy2(fileName, destName)
+    CopyFile(fileName, destName, force)
   return shouldCopy
 
 def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):

@@ -5,6 +5,7 @@
 
 .settings
 .atta
+.repository
 
 .build
 build
@@ -13,13 +14,12 @@ bin
 
 /docs/html
 /docs/modules
-/docs/modules.rst
-/tests/test_Java
-/tests/JavaMedium/libs
-/tests/JavaMedium/.repository
 /docs/modules_user
 /docs/targets.rst
 /docs/tasks.rst
 /docs/tools.rst
 /docs/*_user.rst
 /docs/*_dev.rst
+
+/tests/test_Java
+/tests/JavaMedium/archive

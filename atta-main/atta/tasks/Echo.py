@@ -18,15 +18,15 @@ class Echo(Task):
 
   Parameters:
   
-  * **msg**   The message to echo. 
+  * **msg** -    The message to echo. 
     It can be any object that can be converted to string, a iterable or a file-like object. (default: blank line)
   
-  * **level** Control the log level at which this message is reported. 
+  * **level** -  Control the log level at which this message is reported. 
     (default: :py:attr:`.LogLevel.WARNING`)
   
-  * **file**   The file name or a file-like object to write the message to. |None|
-  * **append** Append to an existing file? |False|
-  * **force**  Overwrite read-only file? |False|
+  * **file** -   The file name or a file-like object to write the message to. |None|
+  * **append** - Append to an existing file? |False|
+  * **force** -  Overwrite read-only file? |False|
 
   '''
   def __init__(self, msg = '', **tparams):

@@ -9,6 +9,22 @@ isiterable = lambda obj: \
 
 #------------------------------------------------------------------------------ 
 
+class NamedFileLike:
+  '''TODO: description'''
+  def __init__(self, fileName, f):
+    self.fileName = fileName
+    self.f = f
+    
+  def __del__(self):
+    if self.f != None:
+      self.f.close()
+    self.f = None
+
+  # TODO: full support for with
+  # TODO: and others methods for file-like
+  
+#------------------------------------------------------------------------------ 
+
 class LogLevel:
   '''Defines the available log levels.'''
   DEBUG = 0
@@ -83,7 +99,7 @@ class Logger:
 
   def LI(self, msg = '', iterable = [], **args):
     '''Shortcut for LogIterable'''
-    self.Log(msg, **args)
+    self.LogIterable(msg, iterable, **args)
       
   def SetLevel(self, level):
     '''Sets actual log level.'''

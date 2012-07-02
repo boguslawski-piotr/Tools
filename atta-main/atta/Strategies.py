@@ -23,10 +23,10 @@ class SrcHashStrategy(ICompareStrategy):
     if not os.path.exists(srcFileName):  
       return False
     
-    srcHashFileName = os.path.join('.atta/markers', os.path.dirname(srcFileName))
+    srcHashFileName = os.path.join('.atta/srchash', os.path.dirname(srcFileName))
     if not os.path.exists(srcHashFileName):
       OS.MakeDirs(srcHashFileName)
-    srcHashFileName = os.path.join(srcHashFileName, os.path.basename(srcFileName))
+    srcHashFileName = os.path.join(srcHashFileName, os.path.basename(srcFileName) + '.sha1')
     realSrcFileName = srcFileName
 
     srcHash = OS.FileHash(realSrcFileName, hashlib.sha1())
