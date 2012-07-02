@@ -24,6 +24,7 @@ class ARepository:
     user       = 'user'
     pasword    = 'password'
     passive    = 'passive'
+    useCache   = 'useCache'
     
   def __init__(self, data):
     self.data = data

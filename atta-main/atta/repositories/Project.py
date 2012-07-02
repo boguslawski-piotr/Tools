@@ -12,7 +12,7 @@ import Local
 class Repository(Local.Repository):
   '''TODO: description'''
   
-  def VPrepareFileName(self, fileName):
+  def vPrepareFileName(self, fileName):
     return os.path.normpath(os.path.join(GetProject().dirName, fileName))
 
   def Get(self, packageId, store = None):

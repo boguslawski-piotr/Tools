@@ -74,7 +74,8 @@ Project.deployTo = [
                      'host'       : 'w2.automapa.pl',
                      'rootDir'    : 'Exchange/Piotrb',
                      'user'       : 'piotrb',
-                     'password'   : 'vi-65-dze',
+                     'password'   : '***',
+                     'useCache'   : False,
                     },
 #                    {
 #                     # into subdirectory archive
@@ -111,12 +112,14 @@ Ftp zwraca pliki, ale one sa nie do uzycia !
 #test = [
 #        {
 #         'repository' : 'atta.repositories.Ftp',
+#         'style'      : 'atta.repositories.Styles.Flat',
 #         'host'       : 'w2.automapa.pl',
 #         'rootDir'    : 'Exchange/Piotrb',
 #         'user'       : 'piotrb',
-#         'password'   : 'vi-65-dze',
-#         'package'    : 'org.atta:JavaMedium.jar:0.1',
-#         'putIn'      : 'atta.repositories.Project',
+#         'password'   : '***',
+#         'package'    : 'commons-net.jar:3.1',
+#         #'package'    : 'org.atta:JavaMedium.jar:0.1',
+#         #'putIn'      : 'atta.repositories.Project',
 #        },
 #        ] 
 
@@ -130,14 +133,14 @@ test = [{
            'host'       : 'w2.automapa.pl',
            'rootDir'    : 'Exchange/Piotrb',
            'user'       : 'piotrb',
-           'password'   : 'vi-65-dze',
+           'password'   : '***',
 #           'package'    : 'org.atta:JavaMedium.jar:0.1',
 #           'putIn'      : 'atta.repositories.Project',
           },
         }] 
 
 r = Project.ResolveDependencies(test)
-#print r
+print r
 
 # gets ...
 Project.dependsOn += [{
