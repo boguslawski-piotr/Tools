@@ -40,6 +40,9 @@ class Logger(ILogger):
   def _HandleTarget(self, msg, **args):
     if 'target' in args: 
       if 'prepare' in args:
+        _msg = os.linesep + args['target'] + ':prepare:'
+        return _msg
+      if 'start' in args:
         _msg = os.linesep + args['target'] + ':'
         return _msg
       if 'log' in args:

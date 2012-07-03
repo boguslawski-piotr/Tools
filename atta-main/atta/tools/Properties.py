@@ -43,8 +43,9 @@ class Properties:
     '''TODO: description'''
     self.c.set('p', name, value)
   
-  def Save(self):
+  def Save(self, force = True):
     '''TODO: description'''
+    # TODO: handle force (== remove ro attribute)
     with open(self.fileName, 'wb') as f:
       for (key, value) in self.c.items('p'):
         if key == "__name__":

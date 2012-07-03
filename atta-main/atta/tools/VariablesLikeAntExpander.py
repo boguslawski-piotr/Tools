@@ -58,7 +58,7 @@ class Expander:
           pass
       vpatternl = vpattern.split('(')[0]
       vpatternr = vpattern.split(')')[1]
-      txt = re.sub(vpatternl + paramName + vpatternr, param.replace('\\', '\\\\'), txt)
+      txt = re.sub(vpatternl + paramName + vpatternr, str(param).replace('\\', '\\\\'), txt)
 
     # Normalize escaped variables.
     escape = r'([\\])'

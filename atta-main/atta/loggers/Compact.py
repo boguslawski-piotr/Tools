@@ -14,7 +14,7 @@ class Logger(Std.Logger):
     
     if _msg is None:
       if 'target' in args: 
-        if 'prepare' in args: 
+        if 'start' in args or 'prepare' in args: 
           self.targetName = self._HandleTarget(msg, **args)
         if 'end' in args: 
           self.targetName = ''

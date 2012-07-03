@@ -21,7 +21,6 @@ class ILogger:
     prepare
     start
     end
-    finalize
     msg
     
   task

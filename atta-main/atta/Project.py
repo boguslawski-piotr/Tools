@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 from tools.Misc import LogLevel
 import tools.OS as OS
+import tools.Ver as V
 from Env import *
 import Dependencies
 import Deploy
@@ -34,7 +35,7 @@ class Project:
     self.description = ''
     '''TODO: description'''
 
-    self.version = ''
+    self.version = None
     '''TODO: description'''
 
     self.url = ''
@@ -158,12 +159,17 @@ class Project:
     if not self._executedTargets.has_key(targetClass):
       target = targetClass()
       if target.CanRun():
-        self._targetsLevel += 1
-        self._executedTargets[targetClass] = [target, self._targetsLevel]
-        for dependClass in target.dependsOn:
-          self.RunTarget(dependClass)
-        target._Run()
-        self._targetsLevel -= 1
+        prepareOK = True
+        if 'Prepare' in dir(target):
+          target._Log(prepare = True)
+          prepareOK = target.Prepare()
+        if prepareOK:
+          self._targetsLevel += 1
+          self._executedTargets[targetClass] = [target, self._targetsLevel]
+          for dependClass in target.dependsOn:
+            self.RunTarget(dependClass)
+          target._Run()
+          self._targetsLevel -= 1
       return target
     return None
   
@@ -194,7 +200,8 @@ class Project:
       self.fileName = os.path.join(self.dirName, OS.Path.RemoveExt(os.path.basename(fileName)) + '.py')
       self.env = Env(environ)
       self.env.chdir(self.dirName)
-
+      self.version = V.Version()
+      
       if not os.path.exists(self.fileName):
         raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
       

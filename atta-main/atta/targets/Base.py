@@ -15,10 +15,12 @@ class Target(Activity):
 
   dependsOn = []
   '''TODO: description'''
+
   system = []
   '''TODO: description'''
   
   def CanRun(self):
+    '''TODO: description'''
     canRun = True
     if len(self.system) > 0:
       canRun = False
@@ -30,14 +32,17 @@ class Target(Activity):
           break
     return canRun
   
-  def Prepare(self):
-    return True
+  '''
+  Method 'Prepare' must be defined in a class that inherits from the Target. Then will start.
+  When it returns False, project will not run any targets from 
+  the section 'dependsOn' as well as the Run method.
+  '''
+  #def Prepare(self):
+  #  return True
   
   def Run(self):
+    '''TODO: description'''
     pass
-  
-  def Finalize(self):
-    return True
   
   '''private section'''
       
@@ -55,13 +60,9 @@ class Target(Activity):
   
   def _Run(self):
     if not hasattr(self, 'wasExecuted') or not self.wasExecuted:
-      self._Log(prepare = True)
-      if self.Prepare():
-        self._Log(start = True)
-        self.Run()
-        self._Log(finalize = True)
-        self.Finalize()
-        self._Log(end = True)
+      self._Log(start = True)
+      self.Run()
+      self._Log(end = True)
     self.wasExecuted = True
     
     

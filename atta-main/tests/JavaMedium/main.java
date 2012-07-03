@@ -1,4 +1,7 @@
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import p1.*;
 import p2.*;
 import b1.*;
@@ -13,6 +16,18 @@ class Args {
 
 public class main {
   private static JCommander jc = null;
+
+  static Properties config = new Properties();
+
+  public static void loadConfig() {
+    InputStream in = ClassLoader.getSystemResourceAsStream("v.i");
+    try {
+      config.load(in);
+    }
+    catch (Exception e) {
+      config.setProperty("version", "(not known)");
+    }
+  }
   
   public static void main(String[] args) throws Exception {
     Args parsedArgs = new Args();
@@ -24,8 +39,10 @@ public class main {
       return;
     }
     if (args.length == 0) {
-      jc.setProgramName("main");
+      loadConfig();
+      jc.setProgramName("main ${version} (build: ${build})");
       jc.usage();
+      System.out.println("From v.i:\n  build: " + config.getProperty("build"));
       return;
     }
     

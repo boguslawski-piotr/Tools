@@ -26,3 +26,5 @@ bin
 
 /tests/JavaMedium/password.properties
 /tests/JavaMedium/deploy.properties
+/tests/JavaBasic/version.info
+/tests/JavaMedium/v.i

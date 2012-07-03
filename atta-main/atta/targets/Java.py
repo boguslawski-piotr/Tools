@@ -218,7 +218,7 @@ class package(Target):
     project = GetProject()
     manifest = {
                 'Implementation-Title'  : project.name,
-                'Implementation-Version': project.version,
+                'Implementation-Version': str(project.version),
                 'Main-Class'            : project.javaMainClass,
                }
     return manifest
@@ -228,7 +228,7 @@ class package(Target):
     project = GetProject()
     if len(project.name) <= 0:
       raise AttaError(self, Dict.errNotSpecified.format('Project.name'))
-    packageId = PackageId(project.groupId, project.name, project.version, project.packageExt)
+    packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
     return project.packageNameStyle().FileName(packageId)
    
 #------------------------------------------------------------------------------ 
@@ -353,7 +353,7 @@ class install(Target):
            groupId = project.groupId,
            artifactId = project.name,
            type_ = project.packageExt,
-           version = project.version,
+           version = str(project.version),
            displayName = project.displayName if len(project.displayName) > 0 else project.name,
            description = project.description,
            url = project.url, 
@@ -375,9 +375,20 @@ class deploy(Target):
   def Run(self):
     '''TODO: description'''
     project = GetProject()
-    packageId = PackageId(project.groupId, project.name, project.version, project.packageExt, 
+    packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt, 
                           timestamp = os.path.getmtime(project.packageName))
     project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir) 
+    
+    self.NextBuild()
+    self.CommitChanges()
+    
+  def NextBuild(self):  
+    GetProject().version.NextBuild()
+    
+  def CommitChanges(self):
+    # commit
+    # push
+    pass  
     
 #------------------------------------------------------------------------------ 
 
@@ -386,6 +397,7 @@ class clean(Target):
   def Run(self):
     project = GetProject()
     Echo(Dict.msgDelDirectory % os.path.normpath(project.buildBaseDir))
+    # TODO: zrobic wersje w OS, ktora radzi sobie z plikami read-only!
     shutil.rmtree(project.buildBaseDir, True)
     Echo(Dict.msgDelDirectory % os.path.normpath(project.installBaseDir))
     shutil.rmtree(project.installBaseDir, True)

@@ -64,7 +64,7 @@ class Repository(Local.Repository):
         # Prepare valid packageId if it's possible.
         packageId.groupId = getattr(project, Dict.groupId, None)
         packageId.artifactId = getattr(project, Dict.name, None)
-        packageId.version = getattr(project, Dict.version, None)
+        packageId.version = str(getattr(project, Dict.version, None))
         packageId.type_ = None
         if result != None and len(result) > 0:
           packageId.systemPath = '\\${pathTo' + (packageId.artifactId if packageId.artifactId != None else '') + '}'

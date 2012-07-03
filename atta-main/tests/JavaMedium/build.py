@@ -7,7 +7,17 @@ Project setup.
 
 Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
-Project.version = '0.1'
+
+Project.version.Configure({
+                           'master' : 'v.i',
+                           # In this project we don't use ${patch} and ${build} version element.
+                           'format' : '${major}.${minor}${postfix}', 
+                           'prefix' : '',
+                           # More about postfixs you can find in deploy_rc, deploy_release targets below.
+                           'postfix': '-SNAPSHOT', 
+                          })
+
+#Project.version.
 
 Java.Setup(Java.ProjectType.app)
 
@@ -34,11 +44,11 @@ Project.javaMainClass = 'main'
 
 '''
 '''
-Project.packageAdditionalFiles += ['*.java', '*.py', FileSet(includes = 'src/**/*', realPaths = False)]
+Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
 '''
-Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
+#Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
 Customizing Java targets that come with Atta. It's easy :)
@@ -56,15 +66,34 @@ class compile(Java.compile):
     Echo('My compile')
     Java.compile.Run(self)
 
+class deploy_rc(Java.deploy):
+  def Prepare(self):
+    rcN = Project.env.get('N', None)
+    if rcN == None or rcN == '':
+      raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
+    Project.version.SetPostfix('-rc%d' % int(rcN))
+    Echo('Deploying %s %s' % (Project.name, str(Project.version)))
+    return True
+
+class deploy_release(Java.deploy):
+  def Prepare(self):
+    Project.version.UsePostfix(False)
+    Echo('Deploying %s %s' % (Project.name, str(Project.version)))
+    Project.RunTarget(Java.clean)
+    return True
+  
+  def NextBuild(self):
+    Project.version.NextMinor()
+    
 '''
 Deploy
 '''
 
 p = Properties.Open('deploy.properties')
 
-from atta.repositories.Styles import Flat
+from atta.repositories import Styles
     
-class MyStyle(Flat):
+class MyStyle(Styles.Flat):
   def DirName(self, packageId):
     return '%s' % (str(packageId.version))
 
