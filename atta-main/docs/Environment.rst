@@ -31,3 +31,10 @@ File
 .. autoclass:: atta.File
   :members:
   :member-order: bysource
+
+Dictionary
+----------
+
+.. automodule:: atta.Dictionary
+  :members:
+  :undoc-members:

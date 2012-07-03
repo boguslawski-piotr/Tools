@@ -165,7 +165,7 @@ class Repository(ARepository, Task):
     fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dictionary.pom)
     if not self.vFileExists(fileName):
       return None
-    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), scope)
+    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), Dictionary.Scopes.map2POM.get(scope, []))
   
   def _LifeTime(self):
     return timedelta(days = 14)

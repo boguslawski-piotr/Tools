@@ -7,7 +7,7 @@ Project setup.
 
 Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
-Project.versionName = '0.1'
+Project.version = '0.1'
 
 Java.Setup(Java.ProjectType.app)
 
@@ -105,10 +105,6 @@ Result:
 ./../JavaBasic/build/HelloWorld-1.0.jar
 ./.repository/javax/mail/mail/1.4.5/mail-1.4.5.jar
 
-PROBLEM (do rozwiazania):
-pobieram z Maven wrzucajac do Ftp
-Ftp zwraca pliki, ale one sa nie do uzycia !
-???
 '''
 
 #test = [
@@ -123,11 +119,11 @@ Ftp zwraca pliki, ale one sa nie do uzycia !
 #        },
 #        ] 
 
-test = [{
-       'repository' : 'atta.repositories.Maven',
-       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-       'package'    : 'org.apache.velocity:velocity.jar:1.5'
-       }]
+#test = [{
+#       'repository' : 'atta.repositories.Maven',
+#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       'package'    : 'org.apache.velocity:velocity.jar:1.5'
+#       }]
 
 #test = [{
 #       'repository' : 'atta.repositories.Local',
@@ -149,7 +145,7 @@ test = [{
 #          },
 #        }] 
 
-r = Project.ResolveDependencies(test)
+#r = Project.ResolveDependencies(test)
 #print r
 
 # gets ...
@@ -189,6 +185,7 @@ Project.dependsOn += [{
 Project.dependsOn += [{
                        'repository' : 'atta.repositories.Local',
                        'style'      : 'atta.repositories.Styles.Flat',
+                       'scope'      : 'install',
                        'package'    : 'javax.mail:mail.jar:1.4.5',
                        'ifNotExists': [{
                                         'repository' : 'atta.repositories.Maven', 

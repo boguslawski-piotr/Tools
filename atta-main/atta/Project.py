@@ -28,7 +28,16 @@ class Project:
     self.name = ''
     '''TODO: description'''
 
-    self.versionName = ''
+    self.displayName = ''
+    '''TODO: description'''
+
+    self.description = ''
+    '''TODO: description'''
+
+    self.version = ''
+    '''TODO: description'''
+
+    self.url = ''
     '''TODO: description'''
 
     self.dirName = ''
@@ -129,12 +138,13 @@ class Project:
     
     return (moduleName, module)
 
-  def ResolveDependencies(self, data = None, scope = Dictionary.Scopes.compile):
+  def ResolveDependencies(self, data = None, scope = Dictionary.Scopes.compile, returnPackages = True):
     '''TODO: description'''
     resolver = Dependencies.Resolver()
     if resolver.Resolve(self.dependsOn if data is None else data, scope):
-      return resolver.Result()
-    return None
+      return resolver.Result() if not returnPackages else (resolver.Result(), resolver.ResultPackages())
+    else:
+      return None if not returnPackages else (None, None)
   
   def GetTarget(self, targetClass):
     '''TODO: description'''

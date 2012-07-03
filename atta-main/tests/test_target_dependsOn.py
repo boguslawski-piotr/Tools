@@ -19,12 +19,12 @@ class precompile(Target):
   def Run(self):
     Echo('precompile (should be third)')
 
-class compile(Target):
+class compile_(Target):
   dependsOn = [prepare, precompile]
   def Run(self):
     Echo('compile (should be fourth)')
     
 class install(Target):
-  dependsOn = [prepare, compile, precompile]
+  dependsOn = [prepare, compile_, precompile]
   def Run(self):
     Echo('install (should be last)')

@@ -1,10 +1,28 @@
 '''TODO: description'''
 
 class Scopes:
-  compile = 'compile'
-  test = 'test'
-  runtime = 'runtime'
+  '''TODO: description'''
+  compile     = 'compile'
+  testcompile = 'testcompile'
+  install     = 'install'
+  testrun     = 'testrun'
   
+  map2POM = {
+             compile     : ['compile'],
+             testcompile : ['compile'],
+             install     : ['compile', 'runtime'],
+             testrun     : ['compile', 'runtime']
+            }
+  '''TODO: description'''
+  
+#
+# Common
+
+newLine = '\n'
+name = 'name'
+true = 'true'
+false = 'false'
+
 #
 # Repositories related
 
@@ -16,9 +34,12 @@ groupId    = 'groupId'
 artifactId = 'artifactId'
 version    = 'version'
 type       = 'type'
+systemPath = 'systemPath'
+system     = 'system'
 dependsOn  = 'dependsOn'
 putIn      = 'putIn'
 ifNotExists= 'ifNotExists'
+resultIn   = 'resultIn'
 rootDir    = 'rootDir'
 host       = 'host'
 port       = 'port'
@@ -28,8 +49,27 @@ passive    = 'passive'
 useCache   = 'useCache'
 
 #
+# POM releated
+
+dependencies = 'dependencies'
+exclusions = 'exclusions'
+optional = 'optional'
+dependencyStartTag = '<dependency>'
+dependencyEndTag   = '</dependency>'
+
+#
 # Java related
 
 jar = 'jar'
 war = 'war'
 pom = 'pom'
+
+#
+# Errors
+
+errNotImplemented = 'Not implemented: {0}'
+errNotSpecified = 'Not specified: {0}'
+errNotEnoughParams = 'Not enough parameters.'
+
+#
+# Others

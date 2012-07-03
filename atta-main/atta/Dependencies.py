@@ -23,12 +23,6 @@ class Resolver:
       packageScope = e.get(Dictionary.scope, Dictionary.Scopes.compile)
       if packageScope != scope:
         continue
-      # TODO: co zrobic z zaleznymi pakietami gdy scope == test
-      # czyli co przekazywac do Get?
-      # jak przekaze 'test' to bez sensu beda sie pobierac pakiety,
-      # ktore sa potrzebne tylko do testowania kodu pakietow, od ktorych zalezy projekt
-      # chyba najlepsze wyjscie to obslugiwac 'test' tylko tutaj (co juz zrobione w liniach wyzej)
-      # ale do Get (i dalszego rozwiazywania zaleznsci) przekazywac compile lub runtime gdy uruchamianie testow 
       
       packageStrId = e.get(Dictionary.package)
       if packageStrId is not None:
@@ -62,6 +56,9 @@ class Resolver:
       else:  
         if result is not None and len(result) > 0:
           self.result += result
+          if not Dictionary.scope in dir(packageId):
+            packageId.scope = scope
+          self.resultPackages.append(packageId)
           rc = True
         else:
           if Dictionary.ifNotExists in e:
@@ -75,6 +72,10 @@ class Resolver:
     self.result = list(set(self.result))  # remove duplicates
     return self.result
   
+  def ResultPackages(self):
+    # TODO: remove duplicates
+    return self.resultPackages
+
   def Clear(self):
     self.result = []
-    
+    self.resultPackages = []

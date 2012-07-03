@@ -10,6 +10,7 @@ import atta.tools.VariablesLikeAntExpander
 from atta.repositories.Package import PackageId
 from atta import *
 import atta.Dictionary as Dictionary
+import atta.repositories.Styles as Styles
 
 class ProjectType:
   app = 'app'
@@ -73,10 +74,8 @@ class Setup:
     '''TODO: description'''
     
     
-    project.packageNameFormat = '{0}-{1}'
-    '''TODO: description
-    {0} - project name
-    {1} - project version name'''
+    project.packageNameStyle = Styles.Maven
+    '''TODO: description'''
     
     if project.type_ == ProjectType.app:
       project.packageExt = Dictionary.jar
@@ -100,6 +99,9 @@ class Setup:
     project.installedFiles = []
     '''TODO: description'''
 
+    project.neededPackages = []
+    '''TODO: description'''
+    
     project.deployedFiles = []
     '''TODO: description'''
     
@@ -107,14 +109,36 @@ class Setup:
     
     project.defaultTarget = 'help'
   
-    project.targetsMap['help']    = 'atta.targets.Java.help'
-    project.targetsMap['clean']   = 'atta.targets.Java.clean'
     project.targetsMap['prepare'] = 'atta.targets.Java.prepare'
     project.targetsMap['compile'] = 'atta.targets.Java.compile'
     project.targetsMap['package'] = 'atta.targets.Java.package'
     project.targetsMap['install'] = 'atta.targets.Java.install'
     project.targetsMap['deploy']  = 'atta.targets.Java.deploy'
+    project.targetsMap['clean']   = 'atta.targets.Java.clean'
+    project.targetsMap['help']    = 'atta.targets.Java.help'
   
+#------------------------------------------------------------------------------ 
+
+def ResolveDependencies(scope):
+  '''TODO: description'''
+  project = GetProject()
+  files, packages = project.ResolveDependencies(scope = scope, returnPackages = True)
+  
+  result = []
+  if files is not None:
+    # Leave only the files that make sense for the Java compiler or/and Java runtime.
+    for p in files:
+      append = os.path.isdir(p)
+      if not append:
+        append = OS.Path.Ext(p) in project.javacClassPathAllowedExts
+      if append:
+        result.append(p)
+  
+  if packages != None:
+    project.neededPackages += packages
+    
+  return result
+
 #------------------------------------------------------------------------------ 
 
 class prepare(Target):
@@ -122,7 +146,6 @@ class prepare(Target):
   def Run(self):
     '''TODO: description'''
     self.PrepareEnvironment()
-    self.ResolveDependencies()
     
   def PrepareEnvironment(self):
     '''Create the necessary directories.'''
@@ -138,19 +161,6 @@ class prepare(Target):
         Echo('  ' + os.path.normpath(classDir))
       OS.MakeDirs(project.classDirs)
   
-  def ResolveDependencies(self):
-    '''TODO: description'''
-    project = GetProject()
-    packages = project.ResolveDependencies()
-    if packages is not None:
-      # Leave only the files that make sense for the Java compiler.
-      for p in packages:
-        append = os.path.isdir(p)
-        if not append:
-          append = OS.Path.Ext(p) in project.javacClassPathAllowedExts
-        if append:
-          project.javacClassPath.append(p)
-      
 #------------------------------------------------------------------------------ 
 
 class compile(Target):
@@ -160,6 +170,7 @@ class compile(Target):
   def Run(self):
     '''TODO: description'''
     project = GetProject()
+    self.ResolveDependencies()
     i = 0
     for srcDir in project.javaDirs:
       if not project.classDirs[i] in project.javacClassPath:
@@ -178,6 +189,11 @@ class compile(Target):
       
       if i < len(project.classDirs) - 1:
         i += 1
+
+  def ResolveDependencies(self):
+    '''TODO: description'''
+    project = GetProject()
+    project.javacClassPath += ResolveDependencies(scope = Dictionary.Scopes.compile)
     
 #------------------------------------------------------------------------------ 
 
@@ -202,7 +218,7 @@ class package(Target):
     project = GetProject()
     manifest = {
                 'Implementation-Title'  : project.name,
-                'Implementation-Version': project.versionName,
+                'Implementation-Version': project.version,
                 'Main-Class'            : project.javaMainClass,
                }
     return manifest
@@ -210,12 +226,10 @@ class package(Target):
   def GetPackageName(self):
     '''Creates package (base) file name.'''
     project = GetProject()
-    packageName = project.name
-    if len(packageName) <= 0:
-      raise AttaError(self, 'Project.name is not set.')
-    if len(project.versionName) > 0:
-      packageName = project.packageNameFormat.format(packageName, project.versionName)
-    return packageName + '.' + project.packageExt
+    if len(project.name) <= 0:
+      raise AttaError(self, Dictionary.errNotSpecified.format('Project.name'))
+    packageId = PackageId(project.groupId, project.name, project.version, project.packageExt)
+    return project.packageNameStyle().FileName(packageId)
    
 #------------------------------------------------------------------------------ 
 
@@ -232,12 +246,15 @@ class install(Target):
       OS.MakeDirs(project.installBaseDir)
     
     javaClassPath = self.CopyPackage()
+    
     if project.type_ == ProjectType.app:
       javaClassPath += self.CopyDependencies()
       self.CreateStartupScripts(javaClassPath)
 
     project.installedFiles += javaClassPath
     project.installedFiles += self.CopyAdditionalFiles()
+    
+    self.CreatePOM()
     
   def CopyPackage(self):
     '''Copy package. TODO: more... '''
@@ -250,16 +267,20 @@ class install(Target):
   def CopyDependencies(self):
     '''Copy dependencies. TODO: more...'''
     project = GetProject()
+    filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
+    filesCopied += self.CopyDependenciesFiles(
+                        ResolveDependencies(scope = Dictionary.Scopes.install))
+    return filesCopied
+  
+  def CopyDependenciesFiles(self, files):
+    project = GetProject()
     filesCopied = []
-    for packageName in project.javacClassPath:
-      if os.path.exists(packageName) and not os.path.isdir(packageName):
-        destFileName = os.path.join(project.installBaseDir, os.path.basename(packageName))
-        if OS.CopyFileIfDiffrent(packageName, destFileName, useHash = True, force = True):
+    for name in files:
+      if os.path.exists(name) and not os.path.isdir(name):
+        destFileName = os.path.join(project.installBaseDir, os.path.basename(name))
+        if OS.CopyFileIfDiffrent(name, destFileName, useHash = True, force = True):
           Echo('Installed: ' + destFileName)
         filesCopied.append(destFileName)
-    
-    # TODO: resolve (and install/copy) dependencies declared for 'runtime' scope
-     
     return filesCopied
   
   def CopyAdditionalFiles(self):
@@ -309,14 +330,39 @@ class install(Target):
       project.installedFiles.append(scriptName)
     
     Atta.variablesExpander.SetImpl(ove)
-    
+  
   def GetWinStartupScriptTmplFileName(self):
     '''TODO: description'''
-    return Atta.dirName + '/atta/templates/JavaConsoleApp.bat.tmpl'
+    return Atta.dirName + '/atta/templates/JavaApp.bat.tmpl'
   
   def GetUnixStartupScriptTmplFileName(self):
     '''TODO: description'''
-    return Atta.dirName + '/atta/templates/JavaConsoleApp.sh.tmpl'
+    return Atta.dirName + '/atta/templates/JavaApp.sh.tmpl'
+
+  def CreatePOM(self):
+    project = GetProject()
+    
+    dependencies4POM = [p.AsDependencyInPOM() for p in project.neededPackages]
+    dependencies4POM = list(set(dependencies4POM))
+    dependencies4POM = '\n'.join(dependencies4POM)
+    
+    with open(self.GetPOMTmplFileName(), 'rb') as f:
+      pomFileName = os.path.join(project.installBaseDir, 
+                                 OS.Path.JoinExt(OS.Path.RemoveExt(os.path.basename(project.packageName)), Dictionary.pom))
+      Echo(f, file = pomFileName, force = True,
+           groupId = project.groupId,
+           artifactId = project.name,
+           type_ = project.packageExt,
+           versionName = project.version,
+           displayName = project.displayName if len(project.displayName) > 0 else project.name,
+           description = project.description,
+           url = project.url, 
+           dependencies = dependencies4POM,
+          )
+      project.installedFiles.append(pomFileName)
+
+  def GetPOMTmplFileName(self):  
+    return Atta.dirName + '/atta/templates/JavaPOM.tmpl'
   
 #------------------------------------------------------------------------------ 
 
@@ -329,7 +375,7 @@ class deploy(Target):
   def Run(self):
     '''TODO: description'''
     project = GetProject()
-    packageId = PackageId(project.groupId, project.name, project.versionName, project.packageExt, 
+    packageId = PackageId(project.groupId, project.name, project.version, project.packageExt, 
                           timestamp = os.path.getmtime(project.packageName))
     project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir) 
     

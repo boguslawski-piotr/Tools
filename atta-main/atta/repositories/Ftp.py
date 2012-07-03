@@ -20,9 +20,9 @@ class Repository(Local.Repository):
     
     self.host = data.get(Dictionary.host)
     if self.host == None:
-      raise AttaError(self, 'Not specified: ' + Dictionary.host)
+      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.host))
     if self._RootDir() == None:
-      raise AttaError(self, 'Not specified: ' + Dictionary.rootDir)
+      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.rootDir))
 
     self.ftp = FTP()
     self.ftp.set_debuglevel(0)
@@ -159,7 +159,7 @@ class Repository(Local.Repository):
     if store is None:
       store = self.cache
     if store is None:
-      raise AttaError(self, 'Not specified: ' + Dictionary.putIn)
+      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.putIn))
       
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:

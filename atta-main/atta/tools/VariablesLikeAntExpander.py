@@ -8,6 +8,8 @@ class Expander:
     Expand Ant like variables in given text.
     
     TODO: description
+    If you use \${var} then result will be ${var}.
+    Trying expanding 'var' will not be made. 
     
     Example:
     
@@ -22,13 +24,16 @@ class Expander:
     .. todo::
     
       - add posibility to expand environment variables (przekazac env do tej funkcji)
+      - write it from scratch and better
     '''
+    # Expand variables except those that begin at the character '\'.
+    escape = r'(^|[^\\])'
     vpattern = self.VariablePattern()
     while True:
-      m = re.search(vpattern, txt)
+      m = re.search(escape + vpattern, txt)
       if m is None:
         break
-      paramName = m.group(1)
+      paramName = m.group(2)
       param = tparams.get(paramName, None)
       if param is None:
         param = paramName + '-NOT-FOUND'
@@ -54,6 +59,16 @@ class Expander:
       vpatternl = vpattern.split('(')[0]
       vpatternr = vpattern.split(')')[1]
       txt = re.sub(vpatternl + paramName + vpatternr, param.replace('\\', '\\\\'), txt)
+
+    # Normalize escaped variables.
+    escape = r'([\\])'
+    vpattern = escape + self.VariablePattern()
+    while True:
+      m = re.search(vpattern, txt)
+      if m == None:
+        break
+      txt = txt.replace(m.group(0), m.group(0)[1:])
+    
     return txt
 
   def VariablePattern(self):

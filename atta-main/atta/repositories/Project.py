@@ -6,7 +6,7 @@ import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 from ..loggers import Compact
-from atta import Atta, AttaError, GetProject
+from atta import Atta, AttaError, GetProject, Dictionary
 import Local
 
 class Repository(Local.Repository):
@@ -29,7 +29,7 @@ class Repository(Local.Repository):
       raise AttaError(self, 'File: %s does not exists!' % projectName)
     
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
-    resultPropertyName = self.data.get('resultIn', 'packageName')
+    resultPropertyName = self.data.get(Dictionary.resultIn, 'packageName')
     result = None
     
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
@@ -40,6 +40,7 @@ class Repository(Local.Repository):
     else:
       prevLoggerClass = Atta.logger.SetImpl(Compact.Logger)
       try:
+        # Invoke Atta project.
         Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
         
@@ -48,12 +49,26 @@ class Repository(Local.Repository):
         Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
         
+        # Collect produced file(s).
         result = getattr(project, resultPropertyName, None)
-        if result is not None:
+        if result != None:
           result = OS.Path.AsList(result)
           for i in range(0, len(result)):
             if not os.path.exists(result[i]):
               result[i] = os.path.join(dirName, result[i])
+        
+        # Prepare valid packageId if it's possible.
+        packageId.groupId = getattr(project, Dictionary.groupId, None)
+        packageId.artifactId = getattr(project, Dictionary.name, None)
+        packageId.version = getattr(project, Dictionary.version, None)
+        packageId.type_ = None
+        if result != None and len(result) > 0:
+          packageId.systemPath = '\\${pathTo' + (packageId.artifactId if packageId.artifactId != None else '') + '}'
+          packageId.scope = Dictionary.system
+          # We assume that the main file of the project is always the first on the list.
+#          packageId.systemPath = OS.Path.NormUnix(os.path.realpath(result[0]))
+#          packageId.type_ = OS.Path.Ext(packageId.systemPath)
+        
       except:
         raise
       finally:

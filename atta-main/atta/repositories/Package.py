@@ -1,5 +1,6 @@
 '''.. no-user-reference:'''
 import atta.tools.OS as OS
+from atta import Dictionary
 
 class PackageId:
   '''TODO: description'''
@@ -31,6 +32,32 @@ class PackageId:
       return '%s.%s:%s' % (str(packageId.artifactId), str(packageId.type_), str(packageId.version))
     else: 
       return '%s:%s.%s:%s' % (str(packageId.groupId), str(packageId.artifactId), str(packageId.type_), str(packageId.version))
+  
+  def AsDependencyInPOM(self):
+    xml = Dictionary.dependencyStartTag + Dictionary.newLine
+    
+    def OneLine(n, v):
+      if not v:
+        return ''
+      return '<' + n + '>' + v + '</' + n + '>' + Dictionary.newLine
+    
+    xml = xml + OneLine(Dictionary.groupId, self.groupId)    
+    xml = xml + OneLine(Dictionary.artifactId, self.artifactId)    
+    xml = xml + OneLine(Dictionary.version, self.version)    
+    xml = xml + OneLine(Dictionary.type, self.type_)    
+    
+    if Dictionary.systemPath in dir(self):
+      xml = xml + OneLine(Dictionary.systemPath, self.systemPath)    
+    if Dictionary.scope in dir(self):
+      scopes = Dictionary.Scopes.map2POM.get(self.scope, [])
+      if len(scopes) > 0:
+        scope = scopes[len(scopes)-1]
+      else:
+        scope = self.scope
+      xml = xml + OneLine(Dictionary.scope, scope)    
+          
+    xml = xml + Dictionary.dependencyEndTag + Dictionary.newLine
+    return xml
   
   @staticmethod
   def FromStr(packageStrId):

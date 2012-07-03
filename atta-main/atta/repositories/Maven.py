@@ -5,7 +5,7 @@ import re
 import xml.etree.ElementTree
 import cStringIO
 
-from atta import AttaError, LogLevel, Task
+from atta import AttaError, LogLevel, Task, Dictionary
 from ..tools.Misc import NamedFileLike
 from Base import ARepository
 from . import ArtifactNotFoundError
@@ -23,12 +23,12 @@ class Repository(ARepository, Task):
     '''TODO: description'''
     self._DumpParams(locals())
     if not packageId:
-      raise AttaError(self, 'Not enough parameters.')
+      raise AttaError(self, Dictionary.errNotEnoughParams)
     
     if store is None:
       store = Local.Repository({Dictionary.style : Styles.Maven}) 
     if store is None:
-      raise AttaError(self, 'Not specified: ' + Dictionary.putIn)
+      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.putIn))
 
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
@@ -43,7 +43,7 @@ class Repository(ARepository, Task):
         filesInStore = []
         pom = Repository.GetArtifactPOMContents(packageId)
         if pom:
-          packages = Repository.GetDependenciesFromPOM(pom, scope)
+          packages = Repository.GetDependenciesFromPOM(pom, Dictionary.Scopes.map2POM.get(scope, []))
           for p in packages:
             #new = Repository(self.data)
             #filesInStore += new.Get(p, scope, store)
@@ -116,8 +116,6 @@ class Repository(ARepository, Task):
   
   @staticmethod
   def GetArtifactUrlFromPOM(pom):
-    if pom == None:
-      return None
     # TODO: handle this (?):
     '''
 <relocation>
@@ -127,6 +125,8 @@ class Repository(ARepository, Task):
       <message>We have moved the Project under Apache</message>
 </relocation>
 '''          
+    if pom == None:
+      return None
     pom = xml.etree.ElementTree.fromstring(pom)
     for e in list(pom):
       if 'distributionmanagement' in e.tag.lower():
@@ -137,14 +137,15 @@ class Repository(ARepository, Task):
     return None
   
   @staticmethod
-  def GetDependenciesFromPOM(pom, scope, includeOptional = False):
+  def GetDependenciesFromPOM(pom, scopes, includeOptional = False):
     def _RemoveNS(tag):
       ns = re.search('({.*})', tag)
       if ns != None: 
         tag = tag.replace(ns.group(1), '')
       return tag
     
-    assert scope != None
+    assert scopes != None
+    assert isinstance(scopes, list)
     
     # TODO: handle <properties>
     # TODO: handle: <parent> (? czy aby na pewno)
@@ -160,19 +161,19 @@ class Repository(ARepository, Task):
     pom = xml.etree.ElementTree.fromstring(pom)
     dependencies = []
     for e in list(pom):
-      if 'dependencies' in e.tag:
+      if Dictionary.dependencies in e.tag:
         for d in list(e):
           packageId = PackageId(type_ = 'jar')
           packageId.scope = Dictionary.Scopes.compile
           for i in list(d):
             tag  = _RemoveNS(i.tag)
             ltag = tag.lower()
-            if ltag == 'exclusions':
+            if ltag == Dictionary.exclusions:
               pass # TODO: handle it!
             else:
               if not includeOptional:
-                if ltag == 'optional':
-                  if i.text.lower().strip() == 'true':
+                if ltag == Dictionary.optional:
+                  if i.text.lower().strip() == Dictionary.true:
                     packageId = None
                     break
               setattr(packageId, tag, i.text)
@@ -181,16 +182,16 @@ class Repository(ARepository, Task):
           # teraz sie po prostu nie zalapie, ale moze trzeba szukac wersji najnowszej?
            
           if packageId:
-            if packageId.scope == scope:
+            if packageId.scope in scopes:
               dependencies.append(packageId)
             
     return dependencies
 
   def Check(self, packageId, scope):
-    raise AttaError(self, 'Not implemented: Check')
+    raise AttaError(self, Dictionary.errNotImplemented.format('Check'))
   
   def Put(self, f, fBaseDirName, packageId):
-    raise AttaError(self, 'Not implemented: Put')
+    raise AttaError(self, Dictionary.errNotImplemented.format('Put'))
 
   def _Name(self):
     name = Task._Name(self)
