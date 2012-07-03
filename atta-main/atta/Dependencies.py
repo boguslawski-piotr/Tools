@@ -2,67 +2,67 @@ import sys
 
 from repositories.Package import PackageId
 from repositories import ArtifactNotFoundError
-import Dictionary
+import Dict
 
 class Resolver:
   '''TODO: description'''
   def __init__(self):
     self.Clear()
   
-  def Resolve(self, data, scope = Dictionary.Scopes.compile):
+  def Resolve(self, data, scope = Dict.Scopes.compile):
     rc = False
     for e in data:
-      if Dictionary.dependsOn in e:
+      if Dict.dependsOn in e:
         # Recursively resolve the dependencies.
-        self.Resolve(e[Dictionary.dependsOn], scope)
+        self.Resolve(e[Dict.dependsOn], scope)
       
-      repositoryName = e.get(Dictionary.repository)
+      repositoryName = e.get(Dict.repository)
       if repositoryName is None:
         continue
       
-      packageScope = e.get(Dictionary.scope, Dictionary.Scopes.compile)
+      packageScope = e.get(Dict.scope, Dict.Scopes.compile)
       if packageScope != scope:
         continue
       
-      packageStrId = e.get(Dictionary.package)
+      packageStrId = e.get(Dict.package)
       if packageStrId is not None:
         packageId = PackageId.FromStr(packageStrId)
       else:
-        packageId = PackageId(e.get(Dictionary.groupId), 
-                              e.get(Dictionary.artifactId), 
-                              e.get(Dictionary.version), 
-                              e.get(Dictionary.type))
+        packageId = PackageId(e.get(Dict.groupId), 
+                              e.get(Dict.artifactId), 
+                              e.get(Dict.version), 
+                              e.get(Dict.type))
       
       __import__(repositoryName)
       repository = sys.modules[repositoryName].Repository(e)
 
       store = None
-      storeName = e.get(Dictionary.putIn)
+      storeName = e.get(Dict.putIn)
       if storeName is not None:
         storeData = None
         if isinstance(storeName, dict):
           storeData = storeName
-          storeName = storeData.get(Dictionary.repository)
+          storeName = storeData.get(Dict.repository)
         __import__(storeName)
         store = sys.modules[storeName].Repository(storeData)
       
       try:
         result = repository.Get(packageId, scope, store)
       except ArtifactNotFoundError:
-        if Dictionary.ifNotExists in e:
-          rc = self.Resolve(e[Dictionary.ifNotExists])
+        if Dict.ifNotExists in e:
+          rc = self.Resolve(e[Dict.ifNotExists])
         else:
           raise
       else:  
         if result is not None and len(result) > 0:
           self.result += result
-          if not Dictionary.scope in dir(packageId):
+          if not Dict.scope in dir(packageId):
             packageId.scope = scope
           self.resultPackages.append(packageId)
           rc = True
         else:
-          if Dictionary.ifNotExists in e:
-            rc = self.Resolve(e[Dictionary.ifNotExists])
+          if Dict.ifNotExists in e:
+            rc = self.Resolve(e[Dict.ifNotExists])
       finally:
         repository = None
     

@@ -8,7 +8,7 @@ from ..tasks.Base import Task
 from ..tools.Misc import NamedFileLike, LogLevel
 from Base import ARepository
 from . import ArtifactNotFoundError
-import atta.Dictionary as Dictionary
+import atta.Dict as Dict
 import Maven
 
 class Repository(ARepository, Task):
@@ -162,10 +162,10 @@ class Repository(ARepository, Task):
 
   def GetDependenciesFromPOM(self, packageId, scope):
     fileName = self.PrepareFileName(packageId, self._RootDir())
-    fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dictionary.pom)
+    fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dict.pom)
     if not self.vFileExists(fileName):
       return None
-    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), Dictionary.Scopes.map2POM.get(scope, []))
+    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), Dict.Scopes.map2POM.get(scope, []))
   
   def _LifeTime(self):
     return timedelta(days = 14)
@@ -258,7 +258,7 @@ class Repository(ARepository, Task):
   def _RootDir(self):
     rootDir = None
     if self.data is not None:
-      rootDir = self.data.get(Dictionary.rootDir, None)
+      rootDir = self.data.get(Dict.rootDir, None)
     return rootDir
    
   def _AttaDataExt(self):

@@ -50,7 +50,6 @@ No matter on which it will be call level, this class will be used.
 class prepare(Java.prepare):
   def ResolveDependencies(self):
     Echo('My ResolveDependencies')
-    Java.prepare.ResolveDependencies(self)
 
 class compile(Java.compile):
   def Run(self):
@@ -69,23 +68,23 @@ class MyStylePackageId(Flat):
     return '%s' % (str(packageId.version))
 
 Project.deployTo = [
-                    {
-                     # into ftp repository
-                     'repository' : 'atta.repositories.Ftp',
-                     'host'       : 'w2.automapa.pl',
-                     'rootDir'    : 'Exchange/Piotrb',
-                     'user'       : 'piotrb',
-                     'password'   : p.Get('password'),
-                     'useCache'   : False,
-                    },
-                    {
-                     # into machine local repository
-                     'repository' : 'atta.repositories.Local',
-                    },
+#                    {
+#                     # into ftp repository
+#                     'repository' : 'atta.repositories.Ftp',
+#                     'host'       : 'w2.automapa.pl',
+#                     'rootDir'    : 'Exchange/Piotrb',
+#                     'user'       : 'piotrb',
+#                     'password'   : p.Get('password'),
+#                     'useCache'   : False,
+#                    },
+#                    {
+#                     # into machine local repository
+#                     'repository' : 'atta.repositories.Local',
+#                    },
                     {
                      # into project subdirectory archive
                      'repository' : 'atta.repositories.Local',
-                     'style'      : 'build.MyStylePackageId',
+                     'style'      : MyStylePackageId,
                      #'style'      : 'atta.repositories.Styles.Flat',
                      'rootDir'    : 'archive',
                     },

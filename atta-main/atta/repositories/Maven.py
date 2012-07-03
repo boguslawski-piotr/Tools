@@ -5,15 +5,15 @@ import re
 import xml.etree.ElementTree
 import cStringIO
 
-from atta import AttaError, LogLevel, Task, Dictionary
+from atta import AttaError, LogLevel, Task
+import atta.tools.OS as OS
+import atta.Dict as Dict
 from ..tools.Misc import NamedFileLike
 from Base import ARepository
 from . import ArtifactNotFoundError
 from Package import PackageId
 import Styles
 import Local
-import atta.tools.OS as OS
-import atta.Dictionary as Dictionary
   
 class Repository(ARepository, Task):
   '''TODO: description
@@ -23,12 +23,12 @@ class Repository(ARepository, Task):
     '''TODO: description'''
     self._DumpParams(locals())
     if not packageId:
-      raise AttaError(self, Dictionary.errNotEnoughParams)
+      raise AttaError(self, Dict.errNotEnoughParams)
     
     if store is None:
-      store = Local.Repository({Dictionary.style : Styles.Maven}) 
+      store = Local.Repository({Dict.style : Styles.Maven}) 
     if store is None:
-      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.putIn))
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
 
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
@@ -43,7 +43,7 @@ class Repository(ARepository, Task):
         filesInStore = []
         pom = Repository.GetArtifactPOMContents(packageId)
         if pom:
-          packages = Repository.GetDependenciesFromPOM(pom, Dictionary.Scopes.map2POM.get(scope, []))
+          packages = Repository.GetDependenciesFromPOM(pom, Dict.Scopes.map2POM.get(scope, []))
           for p in packages:
             #new = Repository(self.data)
             #filesInStore += new.Get(p, scope, store)
@@ -54,7 +54,7 @@ class Repository(ARepository, Task):
         filesToDownload = [NamedFileLike(Styles.Maven().FileName(packageId), Repository.GetArtifactFile(packageId, pom, self.Log))]
         if pom:
           filesToDownload.append(
-            NamedFileLike(Styles.Maven().FileName(PackageId.FromPackageId(packageId, type_ = Dictionary.pom)), cStringIO.StringIO(pom)))
+            NamedFileLike(Styles.Maven().FileName(PackageId.FromPackageId(packageId, type_ = Dict.pom)), cStringIO.StringIO(pom)))
         try:
           filesInStore += store.Put(filesToDownload, '', packageId)
         finally:
@@ -107,7 +107,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetArtifactPOMFile(packageId):
-    return Repository.GetArtifactFile(PackageId.FromPackageId(packageId, type_ = Dictionary.pom), None)
+    return Repository.GetArtifactFile(PackageId.FromPackageId(packageId, type_ = Dict.pom), None)
   
   @staticmethod
   def GetArtifactPOMContents(packageId):
@@ -161,19 +161,19 @@ class Repository(ARepository, Task):
     pom = xml.etree.ElementTree.fromstring(pom)
     dependencies = []
     for e in list(pom):
-      if Dictionary.dependencies in e.tag:
+      if Dict.dependencies in e.tag:
         for d in list(e):
           packageId = PackageId(type_ = 'jar')
-          packageId.scope = Dictionary.Scopes.compile
+          packageId.scope = Dict.Scopes.compile
           for i in list(d):
             tag  = _RemoveNS(i.tag)
             ltag = tag.lower()
-            if ltag == Dictionary.exclusions:
+            if ltag == Dict.exclusions:
               pass # TODO: handle it!
             else:
               if not includeOptional:
-                if ltag == Dictionary.optional:
-                  if i.text.lower().strip() == Dictionary.true:
+                if ltag == Dict.optional:
+                  if i.text.lower().strip() == Dict.true:
                     packageId = None
                     break
               setattr(packageId, tag, i.text)
@@ -188,10 +188,10 @@ class Repository(ARepository, Task):
     return dependencies
 
   def Check(self, packageId, scope):
-    raise AttaError(self, Dictionary.errNotImplemented.format('Check'))
+    raise AttaError(self, Dict.errNotImplemented.format('Check'))
   
   def Put(self, f, fBaseDirName, packageId):
-    raise AttaError(self, Dictionary.errNotImplemented.format('Put'))
+    raise AttaError(self, Dict.errNotImplemented.format('Put'))
 
   def _Name(self):
     name = Task._Name(self)

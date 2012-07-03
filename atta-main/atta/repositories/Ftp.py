@@ -10,7 +10,7 @@ from ..tools.Misc import NamedFileLike, LogLevel
 from atta import AttaError
 from Base import ARepository
 from . import ArtifactNotFoundError
-import atta.Dictionary as Dictionary
+import atta.Dict as Dict
 import Local
 
 class Repository(Local.Repository):
@@ -18,34 +18,34 @@ class Repository(Local.Repository):
   def __init__(self, data):
     ARepository.__init__(self, data)
     
-    self.host = data.get(Dictionary.host)
+    self.host = data.get(Dict.host)
     if self.host == None:
-      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.host))
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.host))
     if self._RootDir() == None:
-      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.rootDir))
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDir))
 
     self.ftp = FTP()
     self.ftp.set_debuglevel(0)
     
-    self.port = data.get(Dictionary.port, 21)
+    self.port = data.get(Dict.port, 21)
     self.ftp.connect(self.host, self.port)
     
     # TODO: anonymous login?
-    user = data.get(Dictionary.user)
-    passwd = data.get(Dictionary.pasword)
+    user = data.get(Dict.user)
+    passwd = data.get(Dict.pasword)
     self.ftp.login(user, passwd)
     
-    self.ftp.set_pasv(data.get(Dictionary.passive, False))
+    self.ftp.set_pasv(data.get(Dict.passive, False))
     
     self.cache = None
-    if data.get(Dictionary.useCache, True):
+    if data.get(Dict.useCache, True):
       # NOTE: Cache is on the local file system.
       # Any change of this assumption will result in the need 
       # to change the function: self.vPutFileLike(). 
       cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), '.ftpcache'))
       self.cache = Local.Repository({
-                                     Dictionary.style   : data.get(Dictionary.style, ARepository.GetDefaultStyleImpl()), 
-                                     Dictionary.rootDir : cacheDirName
+                                     Dict.style   : data.get(Dict.style, ARepository.GetDefaultStyleImpl()), 
+                                     Dict.rootDir : cacheDirName
                                     })
   
   def __del__(self):
@@ -159,7 +159,7 @@ class Repository(Local.Repository):
     if store is None:
       store = self.cache
     if store is None:
-      raise AttaError(self, Dictionary.errNotSpecified.format(Dictionary.putIn))
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
       
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:

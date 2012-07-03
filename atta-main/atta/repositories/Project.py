@@ -6,7 +6,7 @@ import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 from ..loggers import Compact
-from atta import Atta, AttaError, GetProject, Dictionary
+from atta import Atta, AttaError, GetProject, Dict
 import Local
 
 class Repository(Local.Repository):
@@ -29,7 +29,7 @@ class Repository(Local.Repository):
       raise AttaError(self, 'File: %s does not exists!' % projectName)
     
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
-    resultPropertyName = self.data.get(Dictionary.resultIn, 'packageName')
+    resultPropertyName = self.data.get(Dict.resultIn, 'packageName')
     result = None
     
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
@@ -58,13 +58,13 @@ class Repository(Local.Repository):
               result[i] = os.path.join(dirName, result[i])
         
         # Prepare valid packageId if it's possible.
-        packageId.groupId = getattr(project, Dictionary.groupId, None)
-        packageId.artifactId = getattr(project, Dictionary.name, None)
-        packageId.version = getattr(project, Dictionary.version, None)
+        packageId.groupId = getattr(project, Dict.groupId, None)
+        packageId.artifactId = getattr(project, Dict.name, None)
+        packageId.version = getattr(project, Dict.version, None)
         packageId.type_ = None
         if result != None and len(result) > 0:
           packageId.systemPath = '\\${pathTo' + (packageId.artifactId if packageId.artifactId != None else '') + '}'
-          packageId.scope = Dictionary.system
+          packageId.scope = Dict.system
           # We assume that the main file of the project is always the first on the list.
 #          packageId.systemPath = OS.Path.NormUnix(os.path.realpath(result[0]))
 #          packageId.type_ = OS.Path.Ext(packageId.systemPath)

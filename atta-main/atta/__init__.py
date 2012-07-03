@@ -38,7 +38,7 @@ __all__ = [
 from tools.Misc import LogLevel, Logger, VariablesExpander
 import loggers.Std
 import tools.VariablesLikeAntExpander
-from version import attaVersionName
+from version import AttaVersion
   
 class AttaError(RuntimeError): 
   '''Base class for all exceptions thrown by Atta.'''
@@ -57,10 +57,10 @@ class Atta:
   name        = 'Atta'
   description = 'Build tool in pure Python.'
   
-  versionName = attaVersionName
+  version = AttaVersion
   '''TODO: description'''
   
-  version = int(attaVersionName.replace('.', ''))  
+  versionInt = int(AttaVersion.replace('.', ''))  
   '''TODO: description'''
   
   dirName = None

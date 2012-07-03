@@ -16,7 +16,7 @@ def _ParseArgv(argv):
     prog = Atta.name,
     formatter_class = argparse.RawDescriptionHelpFormatter,
     description = Atta.name 
-                  + ' v' + Atta.versionName 
+                  + ' v' + Atta.version 
                   + os.linesep 
                   + Atta.description, 
     epilog = 'Bugs, comments and suggestions please report on page\nhttps://github.com/boguslawski-piotr/Atta/issues'
@@ -79,8 +79,8 @@ def _Dump():
   Atta.logger.Log('*** Atta', level = LogLevel.DEBUG)
   Atta.logger.Log('Platform.platform = ' + platform.platform(), level = LogLevel.DEBUG)
   Atta.logger.Log('Platform.system = ' + platform.system(), level = LogLevel.DEBUG)
-  Atta.logger.Log('Python.versionName = ' + platform.python_version(), level = LogLevel.DEBUG)
-  Atta.logger.Log('Atta.versionName = ' + Atta.versionName, level = LogLevel.DEBUG)
+  Atta.logger.Log('Python.version = ' + platform.python_version(), level = LogLevel.DEBUG)
+  Atta.logger.Log('Atta.version = ' + Atta.version, level = LogLevel.DEBUG)
   Atta.logger.Log('Atta.version = ' + str(Atta.version), level = LogLevel.DEBUG)
   Atta.logger.Log('Atta.dirName = ' + Atta.dirName, level = LogLevel.DEBUG)
   Atta.logger.Log('***', level = LogLevel.DEBUG)

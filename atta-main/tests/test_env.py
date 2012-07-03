@@ -13,9 +13,8 @@ Echo('  name: ' + File.name)
 class test(Target):
   def Run(self):
     Echo('Atta:')
-    Echo('  versionName: ' + Atta.versionName)
-    Echo('      version: ' + str(Atta.version))
-    Echo('      dirName: ' + Atta.dirName)
+    Echo('   version: ' + Atta.version)
+    Echo('   dirName: ' + Atta.dirName)
 
     Echo()
     Echo('Project:')

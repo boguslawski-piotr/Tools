@@ -55,7 +55,7 @@ class Jar(Zip):
   def ManifestAsStr(self, manifest = {}, **tparams):
     '''TODO: description'''
     # TODO: obsluzyc gdy manifest: string (fileName), file-like object
-    manifestStr = 'Manifest-Version: 1.0\nAtta-Version: %s %s\n' % (Atta.name, Atta.versionName)
+    manifestStr = 'Manifest-Version: 1.0\nAtta-Version: %s %s\n' % (Atta.name, Atta.version)
     for name, value in manifest.items():
       manifestStr = manifestStr + '{0}: {1}\n'.format(name, value)
     return manifestStr

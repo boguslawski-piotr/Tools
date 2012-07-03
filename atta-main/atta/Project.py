@@ -13,7 +13,7 @@ from Env import *
 import Dependencies
 import Deploy
 import atta
-import Dictionary
+import Dict
 
 class Project:
   '''
@@ -138,7 +138,7 @@ class Project:
     
     return (moduleName, module)
 
-  def ResolveDependencies(self, data = None, scope = Dictionary.Scopes.compile, returnPackages = True):
+  def ResolveDependencies(self, data = None, scope = Dict.Scopes.compile, returnPackages = True):
     '''TODO: description'''
     resolver = Dependencies.Resolver()
     if resolver.Resolve(self.dependsOn if data is None else data, scope):

@@ -23,7 +23,7 @@ class help(Target):
   ''' Display help...
   '''
   def Run(self):
-    Echo(Atta.name + ' v' + Atta.versionName + \
+    Echo(Atta.name + ' v' + Atta.version + \
 '''
 Usage: atta [target]
 

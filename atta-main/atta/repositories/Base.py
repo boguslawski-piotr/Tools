@@ -1,6 +1,6 @@
 '''.. no-user-reference:'''
 from ..tools.internal.Misc import ObjectFromClass
-import atta.Dictionary as Dictionary
+import atta.Dict as Dict
 import Styles
 
 class ARepository:
@@ -8,7 +8,7 @@ class ARepository:
   def __init__(self, data):
     self.data = data
     if data is not None:
-      _styleClass = data.get(Dictionary.style, ARepository.GetDefaultStyleImpl())
+      _styleClass = data.get(Dict.style, ARepository.GetDefaultStyleImpl())
     else:
       _styleClass = ARepository.GetDefaultStyleImpl()
     self._styleImpl = ObjectFromClass(_styleClass)

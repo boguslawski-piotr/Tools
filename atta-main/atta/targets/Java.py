@@ -9,13 +9,13 @@ import stat
 import atta.tools.VariablesLikeAntExpander
 from atta.repositories.Package import PackageId
 from atta import *
-import atta.Dictionary as Dictionary
+import atta.Dict as Dict
 import atta.repositories.Styles as Styles
 
 class ProjectType:
   app = 'app'
-  jar = Dictionary.jar
-  war = Dictionary.war
+  jar = Dict.jar
+  war = Dict.war
   
 class Setup:
   '''TODO: description'''
@@ -78,7 +78,7 @@ class Setup:
     '''TODO: description'''
     
     if project.type_ == ProjectType.app:
-      project.packageExt = Dictionary.jar
+      project.packageExt = Dict.jar
     else:
       project.packageExt = project.type_
 
@@ -193,7 +193,7 @@ class compile(Target):
   def ResolveDependencies(self):
     '''TODO: description'''
     project = GetProject()
-    project.javacClassPath += ResolveDependencies(scope = Dictionary.Scopes.compile)
+    project.javacClassPath += ResolveDependencies(scope = Dict.Scopes.compile)
     
 #------------------------------------------------------------------------------ 
 
@@ -227,7 +227,7 @@ class package(Target):
     '''Creates package (base) file name.'''
     project = GetProject()
     if len(project.name) <= 0:
-      raise AttaError(self, Dictionary.errNotSpecified.format('Project.name'))
+      raise AttaError(self, Dict.errNotSpecified.format('Project.name'))
     packageId = PackageId(project.groupId, project.name, project.version, project.packageExt)
     return project.packageNameStyle().FileName(packageId)
    
@@ -269,7 +269,7 @@ class install(Target):
     project = GetProject()
     filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
     filesCopied += self.CopyDependenciesFiles(
-                        ResolveDependencies(scope = Dictionary.Scopes.install))
+                        ResolveDependencies(scope = Dict.Scopes.install))
     return filesCopied
   
   def CopyDependenciesFiles(self, files):
@@ -348,12 +348,12 @@ class install(Target):
     
     with open(self.GetPOMTmplFileName(), 'rb') as f:
       pomFileName = os.path.join(project.installBaseDir, 
-                                 OS.Path.JoinExt(OS.Path.RemoveExt(os.path.basename(project.packageName)), Dictionary.pom))
+                                 OS.Path.JoinExt(OS.Path.RemoveExt(os.path.basename(project.packageName)), Dict.pom))
       Echo(f, file = pomFileName, force = True,
            groupId = project.groupId,
            artifactId = project.name,
            type_ = project.packageExt,
-           versionName = project.version,
+           version = project.version,
            displayName = project.displayName if len(project.displayName) > 0 else project.name,
            description = project.description,
            url = project.url, 

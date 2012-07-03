@@ -1,7 +1,7 @@
 import sys
 from atta.repositories.Base import ARepository
 import tools.OS as OS
-import Dictionary
+import Dict
 
 class Deployer:
   '''TODO: description'''
@@ -10,7 +10,7 @@ class Deployer:
     files = OS.Path.AsList(files)
     result = []
     for e in data:
-      repositoryName = e.get(Dictionary.repository)
+      repositoryName = e.get(Dict.repository)
       if repositoryName is None:
         continue
       try:
