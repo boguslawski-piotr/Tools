@@ -7,6 +7,7 @@ from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
 from ..tasks.Base import Task
 import atta.tools.OS as OS
+import atta.Dict as Dict
 from atta import AttaError
   
 class Archive(Task):
@@ -29,7 +30,7 @@ class Archive(Task):
     try:
       archive = _impl.GetClass()(fileName, 'r')
       if not archive.CanWrite():
-        raise AttaError(self, 'TODO: ')
+        raise AttaError(self, Dict.errArchiveImplCantWrite)
     except:
       pass
     

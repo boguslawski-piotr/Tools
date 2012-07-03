@@ -29,7 +29,7 @@ class Repository(Local.Repository):
       raise AttaError(self, 'File: %s does not exists!' % projectName)
     
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
-    resultPropertyName = self.data.get(Dict.resultIn, 'packageName')
+    resultProperties = self.data.get(Dict.resultIn, ['packageName'])
     result = None
     
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
@@ -50,13 +50,17 @@ class Repository(Local.Repository):
         self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
         
         # Collect produced file(s).
-        result = getattr(project, resultPropertyName, None)
-        if result != None:
-          result = OS.Path.AsList(result)
-          for i in range(0, len(result)):
-            if not os.path.exists(result[i]):
-              result[i] = os.path.join(dirName, result[i])
-        
+        result = []
+        resultProperties = OS.Path.AsList(resultProperties)
+        for propertyName in resultProperties:
+          r = getattr(project, propertyName, None)
+          if r != None:
+            r = OS.Path.AsList(r)
+            for i in range(0, len(r)):
+              if not os.path.exists(r[i]):
+                r[i] = os.path.join(dirName, r[i])
+            result += r
+            
         # Prepare valid packageId if it's possible.
         packageId.groupId = getattr(project, Dict.groupId, None)
         packageId.artifactId = getattr(project, Dict.name, None)
@@ -78,7 +82,7 @@ class Repository(Local.Repository):
         OS.RemoveFile(projectTmpName + 'o')
     
     if result is None:
-      raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultPropertyName))
+      raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultProperties))
     
     self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
     return result

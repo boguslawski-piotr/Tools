@@ -47,6 +47,7 @@ user       = 'user'
 pasword    = 'password'
 passive    = 'passive'
 useCache   = 'useCache'
+maxRetries = 'maxRetries'
 
 #
 # POM releated
@@ -70,6 +71,7 @@ pom = 'pom'
 errNotImplemented = 'Not implemented: {0}'
 errNotSpecified = 'Not specified: {0}'
 errNotEnoughParams = 'Not enough parameters.'
+errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not support writing to archive files."
 
 #
 # Others

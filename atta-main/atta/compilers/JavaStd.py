@@ -48,13 +48,13 @@ class JavaStdCompiler(IJavaCompiler, Task):
         
     classPath = OS.Path.FromList(tparams.get('classPath', ''))
     if len(classPath) > 0:  
-      params.extend(['-classpath', classPath])
+      params.extend(['-classpath', os.path.normpath(classPath)])
 
     sourcePath = OS.Path.FromList(tparams.get('sourcePath', ''))
     if len(sourcePath) > 0: 
-      params.extend(['-sourcepath', sourcePath])
+      params.extend(['-sourcepath', os.path.normpath(sourcePath)])
     
-    params.extend(['-d', destDir])
+    params.extend(['-d', os.path.normpath(destDir)])
     
     params.extend(OS.Path.AsList(srcFiles))
 

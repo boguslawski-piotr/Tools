@@ -59,11 +59,12 @@ class compile(Java.compile):
 '''
 Deploy
 '''
-p = Properties.Open('password.properties')
+
+p = Properties.Open('deploy.properties')
 
 from atta.repositories.Styles import Flat
     
-class MyStylePackageId(Flat):
+class MyStyle(Flat):
   def DirName(self, packageId):
     return '%s' % (str(packageId.version))
 
@@ -71,9 +72,9 @@ Project.deployTo = [
 #                    {
 #                     # into ftp repository
 #                     'repository' : 'atta.repositories.Ftp',
-#                     'host'       : 'w2.automapa.pl',
-#                     'rootDir'    : 'Exchange/Piotrb',
-#                     'user'       : 'piotrb',
+#                     'host'       : p.Get('host'),
+#                     'rootDir'    : p.Get('rootDir'),
+#                     'user'       : p.Get('user'),
 #                     'password'   : p.Get('password'),
 #                     'useCache'   : False,
 #                    },
@@ -84,35 +85,23 @@ Project.deployTo = [
                     {
                      # into project subdirectory archive
                      'repository' : 'atta.repositories.Local',
-                     'style'      : MyStylePackageId,
-                     #'style'      : 'atta.repositories.Styles.Flat',
+                     'style'      : MyStyle,
                      'rootDir'    : 'archive',
                     },
-                    ]  
+                  ]  
       
 '''
 Dependencies
 ------------
-
-Przyklad jest troche wydumany, ale ma pokazac rozne mozliwosci...
-
-Result:
-
-~/.atta/.repository/javax/mail/mail/1.4.5/mail-1.4.5.jar
-./.repository/com/beust/jcommander/1.26/jcommander-1.26.jar
-~/.atta/.repository/commons-net/commons-net/3.1/commons-net-3.1.jar
-./../JavaBasic/build/HelloWorld-1.0.jar
-./.repository/javax/mail/mail/1.4.5/mail-1.4.5.jar
-
 '''
 
 #test = [
 #        {
 #         'repository' : 'atta.repositories.Ftp',
 #         'style'      : 'atta.repositories.Styles.Flat',
-#         'host'       : 'w2.automapa.pl',
-#         'rootDir'    : 'Exchange/Piotrb',
-#         'user'       : 'piotrb',
+#         'host'       : p.Get('host'),
+#         'rootDir'    : p.Get('rootDir'),
+#         'user'       : p.Get('user'),
 #         'password'   : p.Get('password'),
 #         'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
 #        },
@@ -132,14 +121,13 @@ Result:
 #test = [{
 #       'repository' : 'atta.repositories.Maven',
 #       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-##       'putIn' : 'atta.repositories.Local'
 #       'putIn' :
 #          {
 #           'repository' : 'atta.repositories.Ftp',
 #           'style'      : 'atta.repositories.Styles.Flat',
-#           'host'       : 'w2.automapa.pl',
-#           'rootDir'    : 'Exchange/Piotrb',
-#           'user'       : 'piotrb',
+#           'host'       : p.Get('host'),
+#           'rootDir'    : p.Get('rootDir'),
+#           'user'       : p.Get('user'),
 #           'password'   : p.Get('password'),
 #          },
 #        }] 
@@ -147,7 +135,9 @@ Result:
 #r = Project.ResolveDependencies(test)
 #print r
 
-# gets ...
+# Below dependencies are mostly not real. 
+# It's only example of power of Atta.
+
 Project.dependsOn += [{
                        'repository': 'atta.repositories.Maven',   # it can be any module with class Repository which inherits from ARepository
                        'groupId'   : 'com.beust',
@@ -162,7 +152,7 @@ Project.dependsOn += [{
                                      'package'    : 'commons-net.jar:3.1',
                                      'putIn'      : 'atta.repositories.Local',
                                     }],
-                                              # and we could continue long ...
+                                    # and we could continue long ...
                       }]
 
 Project.dependsOn += [{
@@ -170,15 +160,16 @@ Project.dependsOn += [{
                       'repository': 'atta.repositories.Project',
                       'groupId'   : '../JavaBasic',
                       
-                      # You can set the following items according to the commentary, or not set, and then Atta will use the default values.
+                      # You can set the following items according to the commentary, 
+                      # or not set, and then Atta will use the default values.
                       
                       # This must be the name or names of the targets separated by spaces.
-                      'target'             : 'package',    # default: package
+                      'target'    : 'package',                        # default: package
                       
-                      # This must be name of project property which may contains: 
+                      # This must be name (or list of names) of project property(ies) which may contains: 
                       # string, string path (entries separated by :) or list of strings.
                       # These values will be used in the parameter '-classpath' passed to javac compiler. 
-                      'resultIn'           : 'packageName' # default: packageName 
+                      'resultIn'  : ['packageName', 'javacClassPath'] # default: packageName 
                       }]
 
 Project.dependsOn += [{

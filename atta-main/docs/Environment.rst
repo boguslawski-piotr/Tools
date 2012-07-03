@@ -35,6 +35,6 @@ File
 Dictionary
 ----------
 
-.. automodule:: atta.Dictionary
+.. automodule:: atta.Dict
   :members:
   :undoc-members:

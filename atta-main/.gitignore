@@ -25,3 +25,4 @@ bin
 /tests/JavaMedium/archive
 
 /tests/JavaMedium/password.properties
+/tests/JavaMedium/deploy.properties

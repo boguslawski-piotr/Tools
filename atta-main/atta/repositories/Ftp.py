@@ -1,8 +1,9 @@
 '''.. Remote: TODO'''
-from ftplib import FTP, error_perm
+import ftplib
 import os
 import hashlib
 import tempfile
+from time import sleep
 
 import atta.tools.OS as OS
 from ..tasks.Base import Task
@@ -24,7 +25,7 @@ class Repository(Local.Repository):
     if self._RootDir() == None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDir))
 
-    self.ftp = FTP()
+    self.ftp = ftplib.FTP()
     self.ftp.set_debuglevel(0)
     
     self.port = data.get(Dict.port, 21)
@@ -60,7 +61,7 @@ class Repository(Local.Repository):
   def vMakeDirs(self, dirName):
     try:
       self.ftp.mkd(OS.Path.NormUnix(dirName))
-    except error_perm as E:
+    except ftplib.error_perm as E:
       if str(E).find('550') >= 0:
         pass
       else:
@@ -69,7 +70,7 @@ class Repository(Local.Repository):
   def vFileSize(self, fileName):
     try:
       fileSize = self.ftp.size(OS.Path.NormUnix(fileName))
-    except error_perm as E:
+    except ftplib.error_perm as E:
       if str(E).find('550') >= 0:
         return OS.INVALID_FILE_SIZE
       else:
@@ -94,7 +95,22 @@ class Repository(Local.Repository):
   def GetFileLike(self, fileName):
     #self.Log('GetFileLike ' + OS.Path.NormUnix(fileName))
     self.tempFile = tempfile.SpooledTemporaryFile()
-    self.ftp.retrbinary('RETR ' + OS.Path.NormUnix(fileName), self.GetFileLikeCallback)
+    
+    maxRetries = self.data.get(Dict.maxRetries, 3)
+    retries = 0
+    while retries < maxRetries:
+      try:
+        self.ftp.retrbinary('RETR ' + OS.Path.NormUnix(fileName), self.GetFileLikeCallback)
+        break
+      except ftplib.Error as E:
+        self.Log("Error '%s' while downloading file: %s" % (str(E), os.path.relpath(fileName, self._RootDir())), level = LogLevel.WARNING)
+        self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
+        self.tempFile.seek(0)
+        retries += 1
+        if retries >= maxRetries:
+          raise
+        sleep(1.00)
+        
     self.tempFile.seek(0)
     return self.tempFile
   
@@ -113,8 +129,28 @@ class Repository(Local.Repository):
       OS.MakeDirs(os.path.dirname(fileNameInCache))
       self.fileInCache = open(fileNameInCache, 'wb')
     
-    self.sha1 = hashlib.sha1()
-    self.ftp.storbinary('STOR ' + OS.Path.NormUnix(fileName), f, callback = self.VPutFileLikeCallback) #, blocksize, callback, rest
+    startPos = 0
+    if 'tell' in dir(f):
+      startPos = f.tell()
+      
+    maxRetries = self.data.get(Dict.maxRetries, 3)
+    retries = 0
+    while retries < maxRetries:
+      try:
+        self.sha1 = hashlib.sha1()
+        self.ftp.storbinary('STOR ' + OS.Path.NormUnix(fileName), f, callback = self.VPutFileLikeCallback) #, blocksize, callback, rest
+        break
+      except ftplib.Error as E:
+        self.Log("Error '%s' while sending file: %s" % (str(E), os.path.relpath(fileName, self._RootDir())), level = LogLevel.WARNING)
+        self.Log('Retry sending (%d).' % (retries + 1), level = LogLevel.WARNING)
+        f.seek(startPos) 
+        if self.fileInCache != None:
+          self.fileInCache.seek(0)
+        retries += 1
+        if retries >= maxRetries:
+          raise
+        sleep(1.00)
+        
     sha1 = self.sha1.hexdigest()
     self.sha1 = None
 

@@ -1,4 +1,4 @@
-'''.. Files, directories: Various other TODO'''
+'''.. Files, directories: Various other TODO: '''
 import sys
 import os
 import hashlib
