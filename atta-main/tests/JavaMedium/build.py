@@ -9,7 +9,7 @@ Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
 Project.versionName = '0.1'
 
-Java.Setup(Java.ProjectType.consoleApp)
+Java.Setup(Java.ProjectType.app)
 
 '''
 First we have to compile the library 'lib', because the application uses it.
@@ -38,7 +38,7 @@ Project.packageAdditionalFiles += ['*.java', '*.py', FileSet(includes = 'src/**/
 
 '''
 '''
-#Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
+Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
 Customizing Java targets that come with Atta. It's easy :)
@@ -60,6 +60,7 @@ class compile(Java.compile):
 '''
 Deploy
 '''
+p = Properties.Open('password.properties')
 
 from atta.repositories.Styles import Flat
     
@@ -74,21 +75,22 @@ Project.deployTo = [
                      'host'       : 'w2.automapa.pl',
                      'rootDir'    : 'Exchange/Piotrb',
                      'user'       : 'piotrb',
-                     'password'   : '***',
+                     'password'   : p.Get('password'),
                      'useCache'   : False,
                     },
-#                    {
-#                     # into subdirectory archive
-#                     'repository' : 'atta.repositories.Local',
-#                     'style'      : 'build.MyStylePackageId',
-#                     #'style'      : 'atta.repositories.Styles.Flat',
-#                     'rootDir'    : 'archive',
-#                    },
-#                    {
-#                     # into machine local repository
-#                     'repository' : 'atta.repositories.Local',
-#                    }
-                    ]        
+                    {
+                     # into machine local repository
+                     'repository' : 'atta.repositories.Local',
+                    },
+                    {
+                     # into project subdirectory archive
+                     'repository' : 'atta.repositories.Local',
+                     'style'      : 'build.MyStylePackageId',
+                     #'style'      : 'atta.repositories.Styles.Flat',
+                     'rootDir'    : 'archive',
+                    },
+                    ]  
+      
 '''
 Dependencies
 ------------
@@ -116,31 +118,39 @@ Ftp zwraca pliki, ale one sa nie do uzycia !
 #         'host'       : 'w2.automapa.pl',
 #         'rootDir'    : 'Exchange/Piotrb',
 #         'user'       : 'piotrb',
-#         'password'   : '***',
-#         'package'    : 'commons-net.jar:3.1',
-#         #'package'    : 'org.atta:JavaMedium.jar:0.1',
-#         #'putIn'      : 'atta.repositories.Project',
+#         'password'   : p.Get('password'),
+#         'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
 #        },
 #        ] 
 
 test = [{
        'repository' : 'atta.repositories.Maven',
-       'package'    : 'commons-net.jar:3.1',
-       'putIn' :
-          {
-           'repository' : 'atta.repositories.Ftp',
-           'style'      : 'atta.repositories.Styles.Flat',
-           'host'       : 'w2.automapa.pl',
-           'rootDir'    : 'Exchange/Piotrb',
-           'user'       : 'piotrb',
-           'password'   : '***',
-#           'package'    : 'org.atta:JavaMedium.jar:0.1',
-#           'putIn'      : 'atta.repositories.Project',
-          },
-        }] 
+       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+       'package'    : 'org.apache.velocity:velocity.jar:1.5'
+       }]
+
+#test = [{
+#       'repository' : 'atta.repositories.Local',
+#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       }]
+
+#test = [{
+#       'repository' : 'atta.repositories.Maven',
+#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+##       'putIn' : 'atta.repositories.Local'
+#       'putIn' :
+#          {
+#           'repository' : 'atta.repositories.Ftp',
+#           'style'      : 'atta.repositories.Styles.Flat',
+#           'host'       : 'w2.automapa.pl',
+#           'rootDir'    : 'Exchange/Piotrb',
+#           'user'       : 'piotrb',
+#           'password'   : p.Get('password'),
+#          },
+#        }] 
 
 r = Project.ResolveDependencies(test)
-print r
+#print r
 
 # gets ...
 Project.dependsOn += [{

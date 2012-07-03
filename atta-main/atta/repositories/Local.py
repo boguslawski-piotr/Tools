@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import NamedFileLike, LogLevel
-from ..tools.Properties import Properties
 from Base import ARepository
 from . import ArtifactNotFoundError
+import atta.Dictionary as Dictionary
+import Maven
 
 class Repository(ARepository, Task):
   '''TODO: description'''
@@ -108,10 +109,10 @@ class Repository(ARepository, Task):
   def PrepareFileName(self, packageId, rootDir = None): 
     '''TODO: description'''
     if rootDir is None:
-      fileName = os.path.join('.repository', self._styleImpl.GetObject().FileName(packageId))
+      fileName = os.path.join('.repository', self._styleImpl.GetObject().FullFileName(packageId))
       return self.vPrepareFileName(fileName) 
     else:
-      return os.path.join(rootDir, self._styleImpl.GetObject().FileName(packageId))
+      return os.path.join(rootDir, self._styleImpl.GetObject().FullFileName(packageId))
     
   def GetAll(self, fileName):
     infoFile = self.GetInfoFile(fileName)
@@ -123,19 +124,27 @@ class Repository(ARepository, Task):
       result = [fileName]
     return result
   
-  def Get(self, packageId, store = None):
+  def Get(self, packageId, scope, store = None):
     '''TODO: description'''
     '''returns: list of filesNames'''
+    # Get the dependencies.
+    additionalFiles = []
+    packages = self.GetDependenciesFromPOM(packageId, scope)
+    if packages != None:
+      for p in packages:
+        additionalFiles += self.Get(p, scope, store)
+    
+    # Check and prepare artifact files.
     fileName = self.PrepareFileName(packageId, self._RootDir())
     if not self.vFileExists(fileName):
       raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
-    
     dirName = os.path.dirname(fileName)
     result = self.GetAll(fileName)
       
     if store is not None:
+      # Put artifact files into store.
       packageId.timestamp, sha1 = self.GetFileMarker(fileName)
-      filesInStore = store.Check(packageId)
+      filesInStore = store.Check(packageId, scope)
       if filesInStore is None:
         self.Log('Uploading: %s to: %s' %(str(packageId), store._Name()), level = LogLevel.INFO)
         store.Put(result, dirName, packageId)
@@ -143,15 +152,27 @@ class Repository(ARepository, Task):
         if fileName in filesInStore:
           self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(packageId), level = LogLevel.WARNING)
 
+    result += additionalFiles
     self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
     return result
+  
+  def vGetPOMFileContents(self, pomFileName):
+    with open(pomFileName, 'rb') as f:
+      return f.read()
+
+  def GetDependenciesFromPOM(self, packageId, scope):
+    fileName = self.PrepareFileName(packageId, self._RootDir())
+    fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dictionary.pom)
+    if not self.vFileExists(fileName):
+      return None
+    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), scope)
   
   def _LifeTime(self):
     return timedelta(days = 14)
     #return timedelta(seconds = 5)
 
   # TODO: uzyc wzorca Strategy do implementacji Check
-  def Check(self, packageId):
+  def Check(self, packageId, scope):
     '''returns: None or list of filesNames'''
     self.Log('Checking: %s' % str(packageId), level = LogLevel.VERBOSE)
 
@@ -178,8 +199,18 @@ class Repository(ARepository, Task):
       fileTime = datetime.fromtimestamp(self.vFileTime(fileName))
       if datetime.now() - fileTime > self._LifeTime():
         return None
-     
-    return self.GetAll(fileName)
+    
+    # Check dependencies from POM file.
+    additionalFiles = []
+    packages = self.GetDependenciesFromPOM(packageId, scope)
+    if packages != None:
+      for dPackageId in packages:
+        r = self.Check(dPackageId, scope)
+        if r == None:
+          return None
+        additionalFiles += r
+        
+    return additionalFiles + self.GetAll(fileName)
   
   def Put(self, f, fBaseDirName, packageId):
     '''returns: list of filesNames'''
@@ -227,7 +258,7 @@ class Repository(ARepository, Task):
   def _RootDir(self):
     rootDir = None
     if self.data is not None:
-      rootDir = self.data.get(ARepository.Dictionary.rootDir, None)
+      rootDir = self.data.get(Dictionary.rootDir, None)
     return rootDir
    
   def _AttaDataExt(self):

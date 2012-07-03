@@ -44,6 +44,12 @@ class Path:
     return fileName if d <= 0 or d < s else fileName[0:d];
   
   @staticmethod
+  def JoinExt(fileName, ext):
+    if not ext.startswith('.'):
+      ext = '.' + ext
+    return fileName + ext
+  
+  @staticmethod
   def HasWildcards(fileName):
     '''TODO: description'''
     return re.search('(\?|\*)+', fileName) != None

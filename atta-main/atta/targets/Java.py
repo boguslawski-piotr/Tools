@@ -9,18 +9,18 @@ import stat
 import atta.tools.VariablesLikeAntExpander
 from atta.repositories.Package import PackageId
 from atta import *
+import atta.Dictionary as Dictionary
 
 class ProjectType:
-  consoleApp = 'capp'
-  # capp, jar, war, ...
+  app = 'app'
+  jar = Dictionary.jar
+  war = Dictionary.war
   
 class Setup:
   '''TODO: description'''
-  def __init__(self, type_ = ProjectType.consoleApp, **tparams):
+  def __init__(self, type_ = ProjectType.app, **tparams):
     '''TODO: description'''
     project = GetProject()
-    #print 'in Java.setup'
-    #print project
     
     if not hasattr(project, 'groupId'):
       project.groupId = project.name
@@ -36,7 +36,7 @@ class Setup:
     project.buildBaseDir = tparams.get('buildBaseDir', 'build')
     '''TODO: description'''
     
-    if project.type_ == ProjectType.consoleApp:
+    if project.type_ == ProjectType.app:
       defInstallBaseDir = 'bin'
     else:
       defInstallBaseDir = 'lib'
@@ -57,6 +57,9 @@ class Setup:
     '''TODO: description'''
     
     
+    project.javacClassPathAllowedExts = ['class', 'jar', 'war']
+    '''TODO: description'''
+    
     project.javacClassPath = []
     '''TODO: description'''
     
@@ -75,8 +78,8 @@ class Setup:
     {0} - project name
     {1} - project version name'''
     
-    if project.type_ == ProjectType.consoleApp:
-      project.packageExt = 'jar'
+    if project.type_ == ProjectType.app:
+      project.packageExt = Dictionary.jar
     else:
       project.packageExt = project.type_
 
@@ -140,8 +143,14 @@ class prepare(Target):
     project = GetProject()
     packages = project.ResolveDependencies()
     if packages is not None:
-      project.javacClassPath.extend(packages)
-
+      # Leave only the files that make sense for the Java compiler.
+      for p in packages:
+        append = os.path.isdir(p)
+        if not append:
+          append = OS.Path.Ext(p) in project.javacClassPathAllowedExts
+        if append:
+          project.javacClassPath.append(p)
+      
 #------------------------------------------------------------------------------ 
 
 class compile(Target):
@@ -223,7 +232,7 @@ class install(Target):
       OS.MakeDirs(project.installBaseDir)
     
     javaClassPath = self.CopyPackage()
-    if project.type_ == ProjectType.consoleApp:
+    if project.type_ == ProjectType.app:
       javaClassPath += self.CopyDependencies()
       self.CreateStartupScripts(javaClassPath)
 
@@ -234,7 +243,7 @@ class install(Target):
     '''Copy package. TODO: more... '''
     project = GetProject()
     destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageName))
-    if OS.CopyFileIfDiffrent(project.packageName, destFileName, useHash = True):
+    if OS.CopyFileIfDiffrent(project.packageName, destFileName, useHash = True, force = True):
       Echo('Installed: ' + destFileName)
     return [destFileName]
   
@@ -245,19 +254,23 @@ class install(Target):
     for packageName in project.javacClassPath:
       if os.path.exists(packageName) and not os.path.isdir(packageName):
         destFileName = os.path.join(project.installBaseDir, os.path.basename(packageName))
-        if OS.CopyFileIfDiffrent(packageName, destFileName, useHash = True):
+        if OS.CopyFileIfDiffrent(packageName, destFileName, useHash = True, force = True):
           Echo('Installed: ' + destFileName)
         filesCopied.append(destFileName)
+    
+    # TODO: resolve (and install/copy) dependencies declared for 'runtime' scope
+     
     return filesCopied
   
-  def CopyAdditionalFiles(self, ):
+  def CopyAdditionalFiles(self):
     project = GetProject()
     installedFiles = []
     for rootDirName, fileName in ExtendedFileSet(Project.installAdditionalFiles):
       srcFileName = os.path.join(rootDirName, fileName)
       destFileName = os.path.join(project.installBaseDir, fileName)
       OS.MakeDirs(os.path.dirname(destFileName))
-      OS.CopyFile(srcFileName, destFileName, force = True)
+      if OS.CopyFileIfDiffrent(srcFileName, destFileName, useHash = True, force = True):
+        Echo('Installed: ' + destFileName)
       installedFiles.append(destFileName)
     return installedFiles
   
@@ -307,25 +320,6 @@ class install(Target):
   
 #------------------------------------------------------------------------------ 
 
-import sys
-from atta.repositories.Base import ARepository
-
-def Deploy(packageId, files, baseDirName, data):
-  files = OS.Path.AsList(files)
-
-  for e in data:
-    repositoryName = e.get(ARepository.Dictionary.repository)
-    if repositoryName is None:
-      continue
-    
-    try:
-      __import__(repositoryName)
-      repository = sys.modules[repositoryName].Repository(e)
-      result = repository.Put(files, baseDirName, packageId)
-      #Atta.logger.LI('***', result, level = LogLevel.ERROR)
-    finally:
-      repository = None
-    
 class deploy(Target):
   '''TODO: Wysyla do roznych (konfiguracja) repozytoriow.
   Zwieksza numer builda.
@@ -337,7 +331,7 @@ class deploy(Target):
     project = GetProject()
     packageId = PackageId(project.groupId, project.name, project.versionName, project.packageExt, 
                           timestamp = os.path.getmtime(project.packageName))
-    Deploy(packageId, project.installedFiles, project.installBaseDir, project.deployTo) 
+    project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir) 
     
 #------------------------------------------------------------------------------ 
 

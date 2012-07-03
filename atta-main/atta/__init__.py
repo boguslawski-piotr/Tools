@@ -47,7 +47,7 @@ class AttaError(RuntimeError):
     self.msg = msg
     
   def __str__(self):
-    return '{0}:\n{1}'.format(self.caller.__class__, self.msg)
+    return '{0}:\n{1}'.format(self.caller.__class__ if self.caller else 'Atta', self.msg)
 
 class Atta:
   '''

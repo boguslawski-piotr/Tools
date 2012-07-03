@@ -3,7 +3,7 @@ import sys
 import os
 
 sys.path.insert(0, '../..')
-from atta.repositories.Interfaces import PackageId
+from atta.repositories.Package import PackageId
 
 class InterfacesTests(unittest.TestCase):
   def setUp(self):

@@ -15,7 +15,7 @@ class Repository(Local.Repository):
   def vPrepareFileName(self, fileName):
     return os.path.normpath(os.path.join(GetProject().dirName, fileName))
 
-  def Get(self, packageId, store = None):
+  def Get(self, packageId, scope, store = None):
     if packageId.groupId is None:
       raise AttaError(self, 'Not given name / directory of the project (grupId entry).')
     

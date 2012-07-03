@@ -1,35 +1,14 @@
 '''.. no-user-reference:'''
 from ..tools.internal.Misc import ObjectFromClass
+import atta.Dictionary as Dictionary
 import Styles
 
 class ARepository:
   '''TODO: description'''
-  class Dictionary:
-    '''TODO: description'''
-    dependsOn  = 'dependsOn'
-    repository = 'repository'
-    style      = 'style'
-    package    = 'package'
-    groupId    = 'groupId'
-    artifactId = 'artifactId'
-    version    = 'version'
-    type       = 'type'
-    putIn      = 'putIn'
-    ifNotExists= 'ifNotExists'
-    
-    rootDir    = 'rootDir'
-    
-    host       = 'host'
-    port       = 'port'
-    user       = 'user'
-    pasword    = 'password'
-    passive    = 'passive'
-    useCache   = 'useCache'
-    
   def __init__(self, data):
     self.data = data
     if data is not None:
-      _styleClass = data.get(ARepository.Dictionary.style, ARepository.GetDefaultStyleImpl())
+      _styleClass = data.get(Dictionary.style, ARepository.GetDefaultStyleImpl())
     else:
       _styleClass = ARepository.GetDefaultStyleImpl()
     self._styleImpl = ObjectFromClass(_styleClass)
@@ -44,11 +23,11 @@ class ARepository:
   def GetDefaultStyleImpl():  
     return ARepository._defaultStyleImpl.GetClass()
 
-  def Get(self, packageId, store = None):
+  def Get(self, packageId, scope, store = None):
     '''TODO: description'''
     pass
   
-  def Check(self, packageId):
+  def Check(self, packageId, scope):
     '''TODO: description'''
     pass
   

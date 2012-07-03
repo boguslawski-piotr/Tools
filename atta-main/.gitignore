@@ -23,3 +23,5 @@ bin
 
 /tests/test_Java
 /tests/JavaMedium/archive
+
+/tests/JavaMedium/password.properties

@@ -7,9 +7,10 @@ import tempfile
 import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import NamedFileLike, LogLevel
-from atta import Atta, AttaError, GetProject
+from atta import AttaError
 from Base import ARepository
 from . import ArtifactNotFoundError
+import atta.Dictionary as Dictionary
 import Local
 
 class Repository(Local.Repository):
@@ -17,34 +18,34 @@ class Repository(Local.Repository):
   def __init__(self, data):
     ARepository.__init__(self, data)
     
-    self.host = data.get(ARepository.Dictionary.host)
+    self.host = data.get(Dictionary.host)
     if self.host == None:
-      raise AttaError(self, 'Not specified: ' + ARepository.Dictionary.host)
+      raise AttaError(self, 'Not specified: ' + Dictionary.host)
     if self._RootDir() == None:
-      raise AttaError(self, 'Not specified: ' + ARepository.Dictionary.rootDir)
+      raise AttaError(self, 'Not specified: ' + Dictionary.rootDir)
 
     self.ftp = FTP()
     self.ftp.set_debuglevel(0)
     
-    self.port = data.get(ARepository.Dictionary.port, 21)
+    self.port = data.get(Dictionary.port, 21)
     self.ftp.connect(self.host, self.port)
     
     # TODO: anonymous login?
-    user = data.get(ARepository.Dictionary.user)
-    passwd = data.get(ARepository.Dictionary.pasword)
+    user = data.get(Dictionary.user)
+    passwd = data.get(Dictionary.pasword)
     self.ftp.login(user, passwd)
     
-    self.ftp.set_pasv(data.get(ARepository.Dictionary.passive, False))
+    self.ftp.set_pasv(data.get(Dictionary.passive, False))
     
     self.cache = None
-    if data.get(ARepository.Dictionary.useCache, True):
+    if data.get(Dictionary.useCache, True):
       # NOTE: Cache is on the local file system.
       # Any change of this assumption will result in the need 
       # to change the function: self.vPutFileLike(). 
       cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), '.ftpcache'))
       self.cache = Local.Repository({
-                                     ARepository.Dictionary.style   : data.get(ARepository.Dictionary.style, ARepository.GetDefaultStyleImpl()), 
-                                     ARepository.Dictionary.rootDir : cacheDirName
+                                     Dictionary.style   : data.get(Dictionary.style, ARepository.GetDefaultStyleImpl()), 
+                                     Dictionary.rootDir : cacheDirName
                                     })
   
   def __del__(self):
@@ -148,7 +149,7 @@ class Repository(Local.Repository):
   def vPrepareFileName(self, fileName):
     return fileName
 
-  def Get(self, packageId, store = None):
+  def Get(self, packageId, scope, store = None):
     '''TODO: description'''
     '''returns: list of filesNames'''
     self._DumpParams(locals())
@@ -158,26 +159,36 @@ class Repository(Local.Repository):
     if store is None:
       store = self.cache
     if store is None:
-      raise AttaError(self, 'Not specified: ' + ARepository.Dictionary.putIn)
+      raise AttaError(self, 'Not specified: ' + Dictionary.putIn)
       
-    filesInStore = store.Check(packageId)
+    filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
       self.Log('Fetching information for: ' + str(packageId), level = LogLevel.INFO)
       fileName = self.PrepareFileName(packageId, self._RootDir())
       if self.vFileExists(fileName):
         packageId.timestamp, sha1 = self.GetFileMarker(fileName)
         if packageId.timestamp is not None:
-          filesInStore = store.Check(packageId)
+          filesInStore = store.Check(packageId, scope)
             
         if filesInStore is None:
+          # Get the dependencies.
+          filesInStore = []
+          packages = self.GetDependenciesFromPOM(packageId, scope)
+          if packages != None:
+            for p in packages:
+              filesInStore += self.Get(p, scope, store)
+          
+          # Get artifact.
           self.Log('Downloading: %s to: %s' % (packageId, store._Name()), level = LogLevel.INFO)
-          downloadedFiles = []
+          filesToDownload = []
           for rFileName in self.GetAll(fileName):
-            downloadedFiles.append(NamedFileLike(rFileName, self.GetFileLike(rFileName)))
+            filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName)))
           dirName = os.path.dirname(fileName)
-          filesInStore = store.Put(downloadedFiles, dirName, packageId)
-          for i in range(len(downloadedFiles)):
-            downloadedFiles[i] = None 
+          try:
+            filesInStore += store.Put(filesToDownload, dirName, packageId)
+          finally:
+            for i in range(len(filesToDownload)):
+              filesToDownload[i] = None 
         else:
           self.Log('Up to date.', level = LogLevel.VERBOSE)
       
@@ -193,16 +204,19 @@ class Repository(Local.Repository):
         fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
     return fileNames
     
-  def Check(self, packageId):
+  def vGetPOMFileContents(self, pomFileName):
+    return self.vGetFileMarkerContents(pomFileName)
+
+  def Check(self, packageId, scope):
     cresult = None
     if self.cache != None:
       # First checks the local cache and if it does not have 
       # the correct files then forces a full refresh.
-      cresult = self.cache.Check(packageId)
+      cresult = self.cache.Check(packageId, scope)
       if cresult == None:
         return None
     # Then check the files on ftp.
-    result = Local.Repository.Check(self, packageId)
+    result = Local.Repository.Check(self, packageId, scope)
     if result == None:
       return None
     # Usually we give the file names from the local cache.
@@ -213,12 +227,12 @@ class Repository(Local.Repository):
     # Put the files on ftp at the same time (if the repository use cache) 
     # creating an exact copy in the local cache (see also: vPutFileLike method). 
     result = Local.Repository.Put(self, f, fBaseDirName, packageId)
-    if self.cache != None:
+    if result != None and self.cache != None:
       # Because the cache had just been updated, we give local file names.
-      cresult = self.cache.Check(packageId)
-      if cresult != None:
-        return cresult
-    # If the repository is set to not use cache or cache is broken we give the full urls.
+      for i in range(len(result)):
+        result[i] = os.path.join(self.cache._RootDir(), os.path.relpath(result[i], self._RootDir()))
+      return result
+    # If the repository is set to not use cache we give the full urls.
     return self._ChangeFileNamesToFtpUrls(result)
   
   def _Name(self):

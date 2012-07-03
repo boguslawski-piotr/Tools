@@ -22,7 +22,7 @@ class ZipFile(IArchiveFile):
     if isinstance(file_, basestring):
       return self.zip.write(file_, arcName)
     else:
-      raise AttaError(self, 'Not implemented.')
+      raise AttaError(self, 'TODO: Not implemented.')
     
   def writestr(self, data, arcName):
     return self.zip.writestr(data, arcName)

@@ -11,7 +11,9 @@ from tools.Misc import LogLevel
 import tools.OS as OS
 from Env import *
 import Dependencies
+import Deploy
 import atta
+import Dictionary
 
 class Project:
   '''
@@ -39,6 +41,9 @@ class Project:
     '''TODO: description'''
     
     self.dependsOn = []
+    '''TODO: description'''
+
+    self.deployTo = []
     '''TODO: description'''
     
     self.defaultTarget = ''
@@ -124,10 +129,10 @@ class Project:
     
     return (moduleName, module)
 
-  def ResolveDependencies(self, data = None):
+  def ResolveDependencies(self, data = None, scope = Dictionary.Scopes.compile):
     '''TODO: description'''
     resolver = Dependencies.Resolver()
-    if resolver.Resolve(self.dependsOn if data is None else data):
+    if resolver.Resolve(self.dependsOn if data is None else data, scope):
       return resolver.Result()
     return None
   
@@ -160,6 +165,10 @@ class Project:
     project._Run(environ, fileName, targets)
     return project
   
+  def Deploy(self, packageId, files, baseDirName, data = None):
+    deployer = Deploy.Deployer()
+    return deployer.Deploy(packageId, files, baseDirName, self.deployTo if data is None else data)
+
   '''private section'''
   
   def _Run(self, environ, fileName, targets = []):

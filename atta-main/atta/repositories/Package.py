@@ -3,7 +3,7 @@ import atta.tools.OS as OS
 
 class PackageId:
   '''TODO: description'''
-  def __init__(self, groupId, artifactId, version, type_, **tparams):
+  def __init__(self, groupId = None, artifactId = None, version = None, type_ = None, **tparams):
     self.groupId = groupId
     self.artifactId = artifactId
     if self.groupId is None:
@@ -48,3 +48,12 @@ class PackageId:
       pass
     return PackageId(groupId, artifactId, version, type_)
 
+  @staticmethod
+  def FromPackageId(packageId, groupId = None, artifactId = None, version = None, type_ = None, **tparams):
+    newPackageId = PackageId.FromStr(str(packageId))
+    if groupId != None: newPackageId.groupId = groupId
+    if artifactId != None: newPackageId.artifactId = artifactId
+    if version != None: newPackageId.version = version
+    if type_ != None: newPackageId.type_ = type_
+    return newPackageId
+    
