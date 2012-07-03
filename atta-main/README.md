@@ -55,6 +55,7 @@ and output will be:
   Buildfile: build.py
   
   prepare:
+      Echo: enter prepare
   
   precompile:
       Echo: enter precompile
