@@ -385,9 +385,9 @@ class clean(Target):
   '''TODO: description'''
   def Run(self):
     project = GetProject()
-    Echo('Deleting directory: ' + os.path.normpath(project.buildBaseDir))
+    Echo(Dict.msgDelDirectory % os.path.normpath(project.buildBaseDir))
     shutil.rmtree(project.buildBaseDir, True)
-    Echo('Deleting directory: ' + os.path.normpath(project.installBaseDir))
+    Echo(Dict.msgDelDirectory % os.path.normpath(project.installBaseDir))
     shutil.rmtree(project.installBaseDir, True)
 
 #------------------------------------------------------------------------------ 

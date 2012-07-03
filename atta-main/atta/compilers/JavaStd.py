@@ -4,8 +4,9 @@ from atta import Atta, GetProject
 from Interfaces import IJavaCompiler
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
-from ..tools.Misc import LogLevel, isiterable
+from ..tools.Misc import LogLevel
 import atta.tools.OS as OS
+import atta.Dict as Dict
 
 class JavaStdCompiler(IJavaCompiler, Task):
   '''TODO: description'''
@@ -46,11 +47,11 @@ class JavaStdCompiler(IJavaCompiler, Task):
       else:
         params.append('-g:' + debugLevel)
         
-    classPath = OS.Path.FromList(tparams.get('classPath', ''))
+    classPath = OS.Path.FromList(tparams.get(Dict.paramClassPath, ''))
     if len(classPath) > 0:  
       params.extend(['-classpath', os.path.normpath(classPath)])
 
-    sourcePath = OS.Path.FromList(tparams.get('sourcePath', ''))
+    sourcePath = OS.Path.FromList(tparams.get(Dict.paramSourcePath, ''))
     if len(sourcePath) > 0: 
       params.extend(['-sourcepath', os.path.normpath(sourcePath)])
     
@@ -59,7 +60,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     params.extend(OS.Path.AsList(srcFiles))
 
     if Atta.logger.GetLevel() == LogLevel.DEBUG:
-      self.LogIterable('\n*** Parameters:', params)
+      self.LogIterable(Dict.msgDumpParameters, params)
       self.Log('')
     
     # TODO: robic plik z params i przekazywac plik do javac (bo na linie komend to moze byc za duzo)
@@ -75,8 +76,8 @@ class JavaStdCompiler(IJavaCompiler, Task):
 
   def GetExecutable(self, **tparams):
     '''TODO: description'''
-    javaHome = GetProject().env.get('JAVA_HOME')
+    javaHome = GetProject().env.get(Dict.JAVA_HOME)
     if javaHome is not None:
-      return os.path.normpath(os.path.join(javaHome, 'bin/javac'))
-    return 'javac'
+      return os.path.normpath(os.path.join(javaHome, Dict.JAVAC_EXE_IN_JAVA_HOME))
+    return Dict.JAVAC_EXE
   

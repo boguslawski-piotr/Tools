@@ -4,6 +4,7 @@ import os
 from ..tools.ZipFile import ZipFile
 from ..tasks.Zip import Zip
 from ..tools.Misc import LogLevel
+import atta.Dict as Dict
 from atta import Atta
 
 class Jar(Zip):
@@ -29,7 +30,7 @@ class Jar(Zip):
   def __init__(self, fileName, srcs, manifest = {}, **tparams):
     self._DumpParams(locals())
     
-    manifestFileName = 'META-INF/MANIFEST.MF' 
+    manifestFileName = Dict.manifestFileName 
     manifestStr = self.ManifestAsStr(manifest, **tparams)
     fileName = os.path.normpath(fileName)
     
@@ -46,16 +47,16 @@ class Jar(Zip):
     
     if manifestChanged or self.sometingWasWritten:
       if not self.sometingWasWritten:
-        self.Log('Creating: ' + fileName, level = LogLevel.INFO)
+        self.Log(Dict.msgCreating.format(fileName), level = LogLevel.INFO)
       with ZipFile(fileName, 'a') as zipFile:
         # add manifest
-        self.LogIterable('with manifest:', manifestStr.rstrip().split('\n'), level = LogLevel.VERBOSE)
+        self.LogIterable(Dict.msgWithManifest, manifestStr.rstrip().split(Dict.newLine), level = LogLevel.VERBOSE)
         zipFile.writestr(manifestFileName, manifestStr)
          
   def ManifestAsStr(self, manifest = {}, **tparams):
     '''TODO: description'''
     # TODO: obsluzyc gdy manifest: string (fileName), file-like object
-    manifestStr = 'Manifest-Version: 1.0\nAtta-Version: %s %s\n' % (Atta.name, Atta.version)
+    manifestStr = Dict.basicManifest % (Atta.name, Atta.version)
     for name, value in manifest.items():
       manifestStr = manifestStr + '{0}: {1}\n'.format(name, value)
     return manifestStr

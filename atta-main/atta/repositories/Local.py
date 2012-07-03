@@ -174,7 +174,7 @@ class Repository(ARepository, Task):
   # TODO: uzyc wzorca Strategy do implementacji Check
   def Check(self, packageId, scope):
     '''returns: None or list of filesNames'''
-    self.Log('Checking: %s' % str(packageId), level = LogLevel.VERBOSE)
+    self.Log(Dict.msgChecking.format(str(packageId)), level = LogLevel.VERBOSE)
 
     fileName = self.PrepareFileName(packageId, self._RootDir())
     if not self.vFileExists(fileName):

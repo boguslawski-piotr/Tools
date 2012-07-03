@@ -76,7 +76,7 @@ class Project:
       moduleName  = os.path.basename(fileName)
       fileName    = fileName + '.py'
       if not os.path.exists(fileName):
-        raise IOError(os.errno.ENOENT, 'File: {0} does not exists!'.format(fileName))
+        raise IOError(os.errno.ENOENT, Dict.errFileNotExists % fileName)
       
       logLevel = LogLevel.DEBUG
       Atta.logger.Log('\n+++\nProject.Import(' + orgFileName + ')', level = logLevel)
@@ -196,7 +196,7 @@ class Project:
       self.env.chdir(self.dirName)
 
       if not os.path.exists(self.fileName):
-        raise IOError(os.errno.ENOENT, 'File: {0} does not exists!'.format(self.fileName))
+        raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
       
       if self._parent is None:
         Atta.logger.Log('Buildfile: ' + self.fileName)

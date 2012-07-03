@@ -26,7 +26,7 @@ class Repository(Local.Repository):
       projectName = packageId.groupId
       dirName = os.path.dirname(projectName)
     if not os.path.exists(projectName):
-      raise AttaError(self, 'File: %s does not exists!' % projectName)
+      raise AttaError(self, Dict.errFileNotExists % projectName)
     
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
     resultProperties = self.data.get(Dict.resultIn, ['packageName'])

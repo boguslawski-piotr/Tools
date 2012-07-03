@@ -1,5 +1,6 @@
 import atta
 from tools.Misc import LogLevel, isiterable
+import Dict
 
 class Activity:
   '''
@@ -31,7 +32,7 @@ class Activity:
 
   def _DumpParams(self, locals_):
     if atta.Atta.logger.GetLevel() == LogLevel.DEBUG:
-      self.Log('\n*** Parameters:')
+      self.Log(Dict.msgDumpParameters)
       for name, value in locals_.items():
         if name != 'self':
           if isiterable(value):

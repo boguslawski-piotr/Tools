@@ -11,6 +11,7 @@ import atta.Dict as Dict
 from atta import AttaError
   
 class Archive(Task):
+  '''TODO: description'''
   def __init__(self, _class, fileName, srcs, **tparams):
     self._DumpParams(locals())
     
@@ -25,7 +26,7 @@ class Archive(Task):
     allFiles = []
     
     # collecting files to add
-    self.Log('Checking: ' + fileName, level = LogLevel.VERBOSE)
+    self.Log(Dict.msgChecking.format(fileName), level = LogLevel.VERBOSE)
     archive = None
     try:
       archive = _impl.GetClass()(fileName, 'r')
@@ -77,14 +78,14 @@ class Archive(Task):
     # create archive file (if nedded)
     self.sometingWasWritten = False  
     if len(changedFiles) > 0 or recreate:
-      self.Log('Creating: ' + fileName, level = LogLevel.INFO)
+      self.Log(Dict.msgCreating.format(fileName), level = LogLevel.INFO)
       with _impl.GetClass()(fileName, 'w') as archive:
         # add files
-        self.Log('with files:', level = LogLevel.VERBOSE)
+        self.Log(Dict.msgWithFiles, level = LogLevel.VERBOSE)
         for fullName, name in allFiles:
           archive.write(fullName, name)
           self.sometingWasWritten = True
-          self.Log('  %s from: %s' % (name, fullName), level = LogLevel.VERBOSE)
+          self.Log(Dict.msgXfromY % (name, fullName), level = LogLevel.VERBOSE)
         
     if not self.sometingWasWritten and (len(changedFiles) > 0 or recreate):
-      self.Log('To: %s none have been added.' % fileName, level = LogLevel.WARNING)
+      self.Log(Dict.msgNoneHaveBeenAdded % fileName, level = LogLevel.WARNING)

@@ -11,6 +11,7 @@ from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
 import atta.tools.OS as OS
+import atta.Dict as Dict
   
 class Javac(Task):
   '''
@@ -52,8 +53,8 @@ class Javac(Task):
     self._compilerImpl = ObjectFromClass(tparams.get('compilerImpl', Javac.GetDefaultCompilerImpl()))
     
     srcs = OS.Path.AsList(srcs)
-    classPath = OS.Path.AsList(tparams.get('classPath', []))
-    sourcePath = OS.Path.AsList(tparams.get('sourcePath', []))
+    classPath = OS.Path.AsList(tparams.get(Dict.paramClassPath, []))
+    sourcePath = OS.Path.AsList(tparams.get(Dict.paramSourcePath, []))
     
     RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
     
@@ -94,15 +95,15 @@ class Javac(Task):
                 srcsSet += [src]
     
     if len(srcsSet) <= 0:
-      self.Log('Nothing to compile in: {0}'.format(' '.join(srcs)), level = LogLevel.VERBOSE)
+      self.Log(Dict.msgNothingToCompile.format(' '.join(srcs)), level = LogLevel.VERBOSE)
       self.returnCode = -1
       return None
     
-    self.Log('Compiling %d source file(s) to: %s' % (len(srcsSet), destDir))
+    self.Log(Dict.msgCompilingTo % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
     
-    tparams['sourcePath'] = list(set(sourcePath))
-    tparams['classPath'] = list(set(classPath))
+    tparams[Dict.paramSourcePath] = list(set(sourcePath))
+    tparams[Dict.paramClassPath] = list(set(classPath))
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
     self.output = self._compilerImpl.GetObject().GetOutput()
 
