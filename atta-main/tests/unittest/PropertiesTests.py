@@ -22,6 +22,8 @@ class PropertiesTests(unittest.TestCase):
     self.assertEqual(test, 'something')
     self.assertEqual(long(test2), 17)
     
+    os.remove('test.properties')
+    
 if __name__ == '__main__':
   unittest.main
     
