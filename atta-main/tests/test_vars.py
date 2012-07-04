@@ -1,17 +1,13 @@
 '''Variables in texts tests.'''  
-
-import os
-
-from atta.tools.Misc import VariablesExpander
 from atta import *
 
 Project.defaultTarget = 'test'
 
 localData = 'local data...'
 
-import atta.tools.VariablesLikeAntExpander
+import atta.tools.DefaultVarsExpander
 
-class VariablesLikeDOSExpander(atta.tools.VariablesLikeAntExpander.Expander):
+class VarsLikeDOSExpander(atta.tools.DefaultVarsExpander.Expander):
   def VariablePattern(self):
     return '\%([\w\.]+)\%'
     
@@ -33,7 +29,7 @@ Use of Ant style variables
     var1 = 'var 1 contents',
     var3 = '${var1}')
 
-    pc = Atta.variablesExpander.SetImpl(VariablesLikeDOSExpander)
+    pc = Atta.variablesExpander.SetImpl(VarsLikeDOSExpander)
 
     v1s  = 'test'
     v1t =  Atta.variablesExpander.Expand('%test_ref%', test_ref = v1s)

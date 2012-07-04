@@ -5,7 +5,7 @@ import os
 
 from atta import Atta
 from ..tools.internal.Misc import ObjectFromClass
-from ..Strategies import SrcNewerStrategy
+from ..tools.Strategies import SrcNewerStrategy
 from ..compilers.JavaStd import JavaStdCompiler
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel

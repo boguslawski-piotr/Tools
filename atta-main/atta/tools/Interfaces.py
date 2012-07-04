@@ -2,6 +2,14 @@
 import os
 import OS
 
+class ICompareStrategy:
+  '''TODO: description'''
+  def ActionNeeded(self, src, dest):
+    '''Should return True if "action" is nedded.'''
+    pass
+
+#------------------------------------------------------------------------------ 
+
 class IVariablesExpander:
   '''
   IVariablesExpander interface
@@ -10,13 +18,6 @@ class IVariablesExpander:
   '''
   def Expand(self, txt, **tparams): 
     pass  
-  
-#------------------------------------------------------------------------------ 
-
-class ICompareStrategy:
-  def ActionNeeded(self, src, dest):
-    '''Should return True if "action" is nedded.'''
-    pass
   
 #------------------------------------------------------------------------------ 
 
@@ -44,4 +45,53 @@ class IArchiveFile:
   def FileCRC(self, fileName):
     pass
 
+#------------------------------------------------------------------------------ 
+
+class IVersionStrategy:
+  '''TODO: description'''
+  def NextMajor(self, v):
+    '''TODO: description'''
+    pass
+  def NextMinor(self, v):
+    '''TODO: description'''
+    pass
+  def NextPath(self, v):
+    '''TODO: description'''
+    pass
+  def NextBuild(self, v):
+    '''TODO: description'''
+    pass
+
+class IVersionListener:
+  '''TODO: description'''
+  def AfterConfigure(self, v):
+    '''TODO: description'''
+    pass
+  def NextMajor(self, v):  
+    '''TODO: description'''
+    pass
+  def NextMinor(self, v):  
+    '''TODO: description'''
+    pass
+  def NextPatch(self, v):  
+    '''TODO: description'''
+    pass
+  def NextBuild(self, v):  
+    '''TODO: description'''
+    pass
+  def SetPrefix(self, v):  
+    '''TODO: description'''
+    pass
+  def SetPostfix(self, v):  
+    '''TODO: description'''
+    pass
+  def AfterRead(self, v):  
+    '''TODO: description'''
+    pass
+  def BeforeUpdate(self, v):  
+    '''TODO: description'''
+    pass
+  def AfterUpdate(self, v):  
+    '''TODO: description'''
+    pass
     

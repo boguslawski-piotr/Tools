@@ -1,3 +1,4 @@
+import os
 from atta import *
 from atta.targets import Java
 
@@ -8,17 +9,36 @@ Project setup.
 Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
 
-Project.version.Configure({
-                           'master' : 'v.i',
+from atta.tools.Strategies import SrcNewerStrategy, VersionResetBuildStrategy
+from atta.tools.Interfaces import IVersionListener
+
+class MyVersionListener(IVersionListener):
+  tmplFileName = 'version.java.tmpl'
+  javaFileName = 'version.java'
+  
+  def AfterConfigure(self, v):
+    if SrcNewerStrategy().ActionNeeded(MyVersionListener.tmplFileName, MyVersionListener.javaFileName):
+      self.AfterUpdate(v)
+  
+  def SetPostfix(self, v):  
+    self.AfterUpdate(v)
+    
+  def AfterUpdate(self, v):  
+    Version.FileFilter(MyVersionListener.tmplFileName, MyVersionListener.javaFileName)(v)
+    
+Project.version.Configure( impl     = VersionResetBuildStrategy,
+                           listeners= MyVersionListener,
+                           fileName = 'v.i',
                            # In this project we don't use ${patch} and ${build} version element.
-                           'format' : '${major}.${minor}${postfix}', 
-                           'prefix' : '',
+                           format   = '${major}.${minor}${postfix}', 
                            # More about postfixs you can find in deploy_rc, deploy_release targets below.
-                           'postfix': '-SNAPSHOT', 
-                          })
+                           postfix  = '-SNAPSHOT' 
+                           
+                           # TODO: more formats for file: ini, prop, py, etc.
+                          )
 
-#Project.version.
-
+'''
+'''
 Java.Setup(Java.ProjectType.app)
 
 '''
@@ -57,15 +77,15 @@ Just define a class that inherits from the class of the Java module.
 No matter on which it will be call level, this class will be used.
 '''
 
-class prepare(Java.prepare):
-  def ResolveDependencies(self):
-    Echo('My ResolveDependencies')
+Project.targetsMap['compile'] = 'build.compile'               # for build2.py
 
 class compile(Java.compile):
   def Run(self):
     Echo('My compile')
     Java.compile.Run(self)
 
+Project.targetsMap['deploy_rc'] = 'build.deploy_rc'           # for build2.py
+ 
 class deploy_rc(Java.deploy):
   def Prepare(self):
     rcN = Project.env.get('N', None)
@@ -73,17 +93,23 @@ class deploy_rc(Java.deploy):
       raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
     Project.version.SetPostfix('-rc%d' % int(rcN))
     Echo('Deploying %s %s' % (Project.name, str(Project.version)))
+    Project.RunTarget(Java.clean)
     return True
+
+Project.targetsMap['deploy_release'] = 'build.deploy_release' # for build2.py
 
 class deploy_release(Java.deploy):
   def Prepare(self):
-    Project.version.UsePostfix(False)
+    Project.version.SetPostfix('')
     Echo('Deploying %s %s' % (Project.name, str(Project.version)))
     Project.RunTarget(Java.clean)
     return True
   
-  def NextBuild(self):
+  def NextVersion(self):
     Project.version.NextMinor()
+    
+  def Finalize(self):
+    Project.RunTarget(Java.clean, force = True)
     
 '''
 Deploy

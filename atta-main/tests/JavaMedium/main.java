@@ -40,9 +40,8 @@ public class main {
     }
     if (args.length == 0) {
       loadConfig();
-      jc.setProgramName("main ${version} (build: ${build})");
+      jc.setProgramName( "main " + version.name + " (" + version.build + ")");
       jc.usage();
-      System.out.println("From v.i:\n  build: " + config.getProperty("build"));
       return;
     }
     

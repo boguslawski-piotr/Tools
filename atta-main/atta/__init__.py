@@ -19,6 +19,7 @@ __all__ = [
            'DirSet',
            'ExtendedFileSet',
            'OS',
+           'Version',
 
            # Tasks
            'Echo',
@@ -37,7 +38,7 @@ __all__ = [
 
 from tools.Misc import LogLevel, Logger, VariablesExpander
 import loggers.Std
-import tools.VariablesLikeAntExpander
+import tools.DefaultVarsExpander
 from version import AttaVersion
   
 class AttaError(RuntimeError): 
@@ -69,7 +70,7 @@ class Atta:
   logger = Logger(loggers.Std.Logger)
   '''TODO: description'''
   
-  variablesExpander = VariablesExpander(tools.VariablesLikeAntExpander.Expander) 
+  variablesExpander = VariablesExpander(tools.DefaultVarsExpander.Expander) 
   '''TODO: description'''
   
   props = None
@@ -119,6 +120,7 @@ class File:
 from tools.Sets import FileSet, DirSet, ExtendedFileSet
 from tools.Properties import Properties
 from tools import OS as OS
+from tools.Ver import Version
 
 # Base classes
 

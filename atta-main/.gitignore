@@ -28,3 +28,6 @@ bin
 /tests/JavaMedium/deploy.properties
 /tests/JavaBasic/version.info
 /tests/JavaMedium/v.i
+/tests/version.info
+/tests/JavaMedium/version.java
+/version.info

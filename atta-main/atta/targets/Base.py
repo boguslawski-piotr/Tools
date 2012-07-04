@@ -33,7 +33,7 @@ class Target(Activity):
     return canRun
   
   '''
-  Method 'Prepare' must be defined in a class that inherits from the Target. Then will start.
+  Method 'Prepare' maybe be defined in a class that inherits from the Target. Then will start.
   When it returns False, project will not run any targets from 
   the section 'dependsOn' as well as the Run method.
   '''
@@ -43,6 +43,12 @@ class Target(Activity):
   def Run(self):
     '''TODO: description'''
     pass
+  
+  '''
+  Method 'Finalize' maybe be defined in a class that inherits from the Target. Then will start.
+  '''
+  #def Finalize(self):
+  #  pass
   
   '''private section'''
       
@@ -62,6 +68,9 @@ class Target(Activity):
     if not hasattr(self, 'wasExecuted') or not self.wasExecuted:
       self._Log(start = True)
       self.Run()
+      if 'Finalize' in dir(self):
+        self._Log(finalize = True)
+        self.Finalize()
       self._Log(end = True)
     self.wasExecuted = True
     

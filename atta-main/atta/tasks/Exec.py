@@ -6,7 +6,7 @@ import subprocess
 import threading
 
 import atta 
-import atta.tools.VariablesLikeAntExpander
+import atta.tools.DefaultVarsExpander
 import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
@@ -62,7 +62,7 @@ class Exec(Task):
     batExt = '.bat' if OS.IsWindows() else ''
     cmdExt = '.cmd' if OS.IsWindows() else ''
     exeExt = '.exe' if OS.IsWindows() else ''
-    executable = atta.tools.VariablesLikeAntExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
+    executable = atta.tools.DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
     
     _params = [executable]
     _params.extend(params)

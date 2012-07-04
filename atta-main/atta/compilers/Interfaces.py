@@ -1,5 +1,10 @@
 '''.. no-user-reference:'''
 
+# TODO: dodac jakis mechanizm pozwalajacy na filtrowanie plikow zrodlowych w locie,
+# przed przekazaniem ich do kompilacji
+# przemyslec!
+# musi byc uniwersalne
+
 class ICompiler:
   '''TODO: description'''
   def SourceExts(self, **tparams):

@@ -5,7 +5,7 @@ import os
 sys.path.insert(0, '../..')
 from atta.repositories.Package import PackageId
 
-class InterfacesTests(unittest.TestCase):
+class RepositoriesTests(unittest.TestCase):
   def setUp(self):
     pass
 

@@ -6,7 +6,7 @@ import shutil
 import os
 import stat
 
-import atta.tools.VariablesLikeAntExpander
+import atta.tools.DefaultVarsExpander
 from atta.repositories.Package import PackageId
 from atta import *
 import atta.Dict as Dict
@@ -305,7 +305,7 @@ class install(Target):
     javaClassPathStr = os.path.normpath(javaClassPathStr)
     projectNameInScript = project.name.upper().replace(' ', '_')
     
-    ove = Atta.variablesExpander.SetImpl(atta.tools.VariablesLikeAntExpander.Expander)
+    ove = Atta.variablesExpander.SetImpl(atta.tools.DefaultVarsExpander.Expander)
     
     # windows
     with open(self.GetWinStartupScriptTmplFileName(), 'rb') as f:
@@ -379,10 +379,10 @@ class deploy(Target):
                           timestamp = os.path.getmtime(project.packageName))
     project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir) 
     
-    self.NextBuild()
+    self.NextVersion()
     self.CommitChanges()
     
-  def NextBuild(self):  
+  def NextVersion(self):  
     GetProject().version.NextBuild()
     
   def CommitChanges(self):

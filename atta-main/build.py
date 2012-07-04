@@ -40,7 +40,7 @@ class cleanDocsDistBuild(Target):
   '''
   def Run(self):
     Echo('Removing directories...')
-    for dirName in DirSet(includes = ['**/*build', '**/dist', '**/bin', 'docs/html', 'docs/modules*']):
+    for dirName in DirSet(includes = ['**/*build', '**/dist', '**/bin', 'docs/html', 'docs/modules*', 'tests/**/archive']):
       Echo('  %s' % dirName)
       shutil.rmtree(dirName, True)
     Echo('Removing files...')

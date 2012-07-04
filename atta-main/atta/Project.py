@@ -153,10 +153,10 @@ class Project:
     target = targetClass()
     return target
   
-  def RunTarget(self, targetClass):
+  def RunTarget(self, targetClass, force = False):
     '''TODO: description'''
     targetClass = self._GetTargetClass(targetClass)
-    if not self._executedTargets.has_key(targetClass):
+    if force or not self._executedTargets.has_key(targetClass):
       target = targetClass()
       if target.CanRun():
         prepareOK = True
@@ -200,7 +200,7 @@ class Project:
       self.fileName = os.path.join(self.dirName, OS.Path.RemoveExt(os.path.basename(fileName)) + '.py')
       self.env = Env(environ)
       self.env.chdir(self.dirName)
-      self.version = V.Version()
+      self.version = V.Version(createIfNotExists = False)
       
       if not os.path.exists(self.fileName):
         raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
@@ -226,6 +226,8 @@ class Project:
             project = self.fileName,
             start = True,
             at = self.startTime)
+      
+      self.version._CreateIfNotExists()
       
       for targetName in targets:
         self._executedTargets.clear() # Behavior compatible with Ant.

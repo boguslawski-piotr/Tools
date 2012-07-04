@@ -8,7 +8,7 @@ class Expander:
     Expand Ant like variables in given text.
     
     TODO: description
-    If you use \${var} then result will be ${var}.
+    If you use \\${var} then result will be ${var}.
     Trying expanding 'var' will not be made. 
     
     Example:

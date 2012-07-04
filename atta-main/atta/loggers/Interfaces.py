@@ -20,6 +20,7 @@ class ILogger:
   target
     prepare
     start
+    finalize
     end
     msg
     

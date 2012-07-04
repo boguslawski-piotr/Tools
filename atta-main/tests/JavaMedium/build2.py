@@ -2,7 +2,7 @@ import shutil
 
 from atta import *
 from atta.targets import Java
-from atta.Strategies import SrcHashStrategy
+from atta.tools.Strategies import SrcHashStrategy
 
 Project.Import('build')
 
