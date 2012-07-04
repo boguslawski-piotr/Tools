@@ -87,29 +87,31 @@ class compile(Java.compile):
 Project.targetsMap['deploy_rc'] = 'build.deploy_rc'           # for build2.py
  
 class deploy_rc(Java.deploy):
-  def Prepare(self):
+  def PreparePostfix(self):
     rcN = Project.env.get('N', None)
     if rcN == None or rcN == '':
       raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
-    Project.version.SetPostfix('-rc%d' % int(rcN))
-    Echo('Deploying %s %s' % (Project.name, str(Project.version)))
-    Project.RunTarget(Java.clean)
-    return True
+    self.oldPostfix = Project.version.SetPostfix('-rc%d' % int(rcN))
 
-Project.targetsMap['deploy_release'] = 'build.deploy_release' # for build2.py
-
-class deploy_release(Java.deploy):
   def Prepare(self):
-    Project.version.SetPostfix('')
+    Java.deploy.Prepare(self)
+    self.PreparePostfix()
     Echo('Deploying %s %s' % (Project.name, str(Project.version)))
-    Project.RunTarget(Java.clean)
     return True
   
   def NextVersion(self):
+    Project.version.SetPostfix(self.oldPostfix)
+    Java.deploy.NextVersion(self)
+
+Project.targetsMap['deploy_release'] = 'build.deploy_release' # for build2.py
+
+class deploy_release(deploy_rc):
+  def PreparePostfix(self):
+    self.oldPostfix = Project.version.SetPostfix('')
+  
+  def NextVersion(self):
+    Project.version.SetPostfix(self.oldPostfix)
     Project.version.NextMinor()
-    
-  def Finalize(self):
-    Project.RunTarget(Java.clean, force = True)
     
 '''
 Deploy

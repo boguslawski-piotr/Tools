@@ -85,14 +85,18 @@ class Version:
 
   def SetPrefix(self, prefix):
     '''TODO: description'''
+    old = self.prefix
     self.prefix = prefix
     self._RunListeners('SetPrefix')
-    
+    return old
+  
   def SetPostfix(self, postfix):
     '''TODO: description'''
+    old = self.postfix
     self.postfix = postfix
     self._RunListeners('SetPostfix')
-    
+    return old
+  
   def RegisterListener(self, _class):
     '''TODO: description'''
     listener = ObjectFromClass(_class)

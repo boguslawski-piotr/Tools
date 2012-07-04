@@ -4,7 +4,7 @@ from atta import *
 from atta.targets import Java
 from atta.tools.Strategies import SrcHashStrategy
 
-Project.Import('build')
+import build
 
 Javac.SetDefaultRequiresCompileImpl(SrcHashStrategy)
 

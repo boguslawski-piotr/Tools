@@ -268,11 +268,11 @@ class install(Target):
     '''Copy dependencies. TODO: more...'''
     project = GetProject()
     filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
-    filesCopied += self.CopyDependenciesFiles(
-                        ResolveDependencies(scope = Dict.Scopes.install))
+    filesCopied += self.CopyDependenciesFiles(self.ResolveDependencies())
     return filesCopied
   
   def CopyDependenciesFiles(self, files):
+    '''TODO: description'''
     project = GetProject()
     filesCopied = []
     for name in files:
@@ -283,7 +283,12 @@ class install(Target):
         filesCopied.append(destFileName)
     return filesCopied
   
+  def ResolveDependencies(self):
+    '''TODO: description'''
+    return ResolveDependencies(scope = Dict.Scopes.install)
+
   def CopyAdditionalFiles(self):
+    '''TODO: description'''
     project = GetProject()
     installedFiles = []
     for rootDirName, fileName in ExtendedFileSet(Project.installAdditionalFiles):
@@ -372,6 +377,10 @@ class deploy(Target):
   '''
   dependsOn = ['install']
 
+  def Prepare(self):
+    Project.RunTarget('clean')
+    return True
+  
   def Run(self):
     '''TODO: description'''
     project = GetProject()
@@ -381,7 +390,7 @@ class deploy(Target):
     
     self.NextVersion()
     self.CommitChanges()
-    
+
   def NextVersion(self):  
     GetProject().version.NextBuild()
     
@@ -389,6 +398,9 @@ class deploy(Target):
     # commit
     # push
     pass  
+
+  def Finalize(self):
+    Project.RunTarget('clean', force = True)
     
 #------------------------------------------------------------------------------ 
 
