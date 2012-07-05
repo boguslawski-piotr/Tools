@@ -24,6 +24,11 @@ true = 'true'
 false = 'false'
 
 #
+#
+
+defaultBuildFileName = 'build.py'
+
+#
 # Repositories related
 
 repository = 'repository'

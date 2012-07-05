@@ -20,7 +20,7 @@ class Repository(Local.Repository):
       raise AttaError(self, 'Not given name / directory of the project (grupId entry).')
     
     if os.path.isdir(packageId.groupId):
-      projectName = packageId.groupId + '/build.py'
+      projectName = packageId.groupId + '/' + Dict.defaultBuildFileName
       dirName = packageId.groupId
     else:
       projectName = packageId.groupId

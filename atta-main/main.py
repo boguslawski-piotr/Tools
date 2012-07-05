@@ -8,6 +8,7 @@ import os
 
 from atta import *
 import atta.Project 
+import atta.Dict
 
 def _ParseArgv(argv):
   import argparse
@@ -28,7 +29,7 @@ def _ParseArgv(argv):
     help = ''
   )
   buildGroup.add_argument(
-    '-f', nargs = 1, default = ['build.py'], metavar = 'file',
+    '-f', nargs = 1, default = [atta.Dict.defaultBuildFileName], metavar = 'file',
     help = 'use given buildfile'
   )
   

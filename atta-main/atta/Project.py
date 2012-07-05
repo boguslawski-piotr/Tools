@@ -196,6 +196,8 @@ class Project:
       
       atta.Project = self
       
+      if os.path.isdir(fileName):
+        fileName = os.path.join(fileName, Dict.defaultBuildFileName)
       self.dirName = os.path.normpath(os.path.realpath(os.path.dirname(fileName)))
       self.fileName = os.path.join(self.dirName, OS.Path.RemoveExt(os.path.basename(fileName)) + '.py')
       self.env = Env(environ)
