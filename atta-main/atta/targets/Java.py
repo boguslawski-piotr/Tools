@@ -102,6 +102,7 @@ class Setup:
     project.neededPackages = []
     '''TODO: description'''
     
+    
     project.deployedFiles = []
     '''TODO: description'''
     
@@ -264,6 +265,10 @@ class install(Target):
       Echo('Installed: ' + destFileName)
     return [destFileName]
   
+  def ResolveDependencies(self):
+    '''TODO: description'''
+    return ResolveDependencies(scope = Dict.Scopes.install)
+
   def CopyDependencies(self):
     '''Copy dependencies. TODO: more...'''
     project = GetProject()
@@ -283,10 +288,6 @@ class install(Target):
         filesCopied.append(destFileName)
     return filesCopied
   
-  def ResolveDependencies(self):
-    '''TODO: description'''
-    return ResolveDependencies(scope = Dict.Scopes.install)
-
   def CopyAdditionalFiles(self):
     '''TODO: description'''
     project = GetProject()
@@ -372,32 +373,82 @@ class install(Target):
 #------------------------------------------------------------------------------ 
 
 class deploy(Target):
-  '''TODO: Wysyla do roznych (konfiguracja) repozytoriow.
-  Zwieksza numer builda.
+  '''Workflow:
+     clean
+     full build
+     install
+     deploy
+     tag code
+     increase build number
+     publish changes made by previous steps
+     clean
   '''
   dependsOn = ['install']
 
   def Prepare(self):
+    '''TODO: description'''
+    self.UpdateSources()
     GetProject().RunTarget('clean')
     return True
+  
+  def UpdateSources(self):
+    '''Updates working directory from DVCS'''
+    project = GetProject()
+    if project.dvcs == None:
+      return
+    self.CheckWorkingDirectory()
+    revision = self.GetRevision()
+    project.dvcs.UpdateWorkingDirectory(revision)
+    if revision != None:
+      self.CheckWorkingDirectory()
+      
+  def CheckWorkingDirectory(self):
+    project = GetProject()
+    if not project.dvcs.IsWorkingDirectoryClean():
+      Echo(Dict.msgDvcsOutputTitle, level = LogLevel.VERBOSE)
+      Echo(project.dvcs.output, level = LogLevel.VERBOSE)
+      raise AttaError(self, Dict.errDvcsWorkingDirectoryNotClean)
+
+  def GetRevision(self):
+    '''We assume that the builds are run on a adequate revision.'''
+    return None
   
   def Run(self):
     '''TODO: description'''
     project = GetProject()
+    
     packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt, 
                           timestamp = os.path.getmtime(project.packageName))
     project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir) 
     
+    self.TagBuild(self.GetBuildTag())
     self.NextVersion()
-    self.CommitChanges()
-
+    self.Commit(self.GetCommitMessage(), self.GetCommitAuthor())
+    
+  def GetBuildTag(self):
+    return str(GetProject().version)
+  
+  def TagBuild(self, tag):
+    ''''''
+    if len(tag) > 0:
+      project = GetProject()
+      if project.dvcs != None:
+        project.dvcs.SetTag(tag)
+    
   def NextVersion(self):  
     GetProject().version.NextBuild()
-    
-  def CommitChanges(self):
-    # commit
-    # push
-    pass  
+  
+  def GetCommitMessage(self):  
+    return Dict.msgDvcsNextBuildNumber
+  
+  def GetCommitAuthor(self):  
+    return None
+  
+  def Commit(self, msg, author):
+    if len(msg) > 0:
+      project = GetProject()
+      if project.dvcs != None:
+        project.dvcs.CommitAndPublishAllChanges(msg, author)
 
   def Finalize(self):
     GetProject().RunTarget('clean', force = True)

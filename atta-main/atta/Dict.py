@@ -80,6 +80,8 @@ pom = 'pom'
 #
 # Common tasks (and others activites) parameters
 
+paramLogOutput = 'logOutput'
+
 paramClassPath = 'classPath'
 paramSourcePath = 'sourcePath'
 
@@ -89,8 +91,11 @@ paramSourcePath = 'sourcePath'
 errNotImplemented = 'Not implemented: {0}'
 errNotSpecified = 'Not specified: {0}'
 errNotEnoughParams = 'Not enough parameters.'
+errFileNotExists = 'File: %s does not exists.'
+
 errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not support writing to archive files."
-errFileNotExists = 'File: %s does not exists!'
+
+errDvcsWorkingDirectoryNotClean = 'Working directory is not clean.'
 
 #
 # Others
@@ -108,3 +113,5 @@ msgNoneHaveBeenAdded = 'To: %s none have been added.'
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
+msgDvcsOutputTitle = 'Output from DVCS:'
+msgDvcsNextBuildNumber = 'Next build number'

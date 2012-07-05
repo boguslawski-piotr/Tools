@@ -8,6 +8,7 @@ Project setup.
 
 Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
+#Project.dvcs = Git()
 
 from atta.tools.Strategies import SrcNewerStrategy, VersionResetBuildStrategy
 from atta.tools.Interfaces import IVersionListener
@@ -40,7 +41,7 @@ Project.version.Configure( impl     = VersionResetBuildStrategy,
 
 '''
 '''
-Java.Setup(Java.ProjectType.app)
+Java.Setup(Java.ProjectType.app, mainClass = 'main')
 
 '''
 First we have to compile the library 'lib', because the application uses it.
@@ -61,10 +62,6 @@ Project.debugLevel = 'vars,lines'
 
 '''
 '''
-Project.javaMainClass = 'main'
-
-'''
-'''
 Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
@@ -76,18 +73,14 @@ Customizing Java targets that come with Atta. It's easy :)
 
 Just define a class that inherits from the class of the Java module.
 No matter on which it will be call level, this class will be used.
+See also example in build2.py.
 '''
 
-Project.targetsMap['compile'] = 'build.compile'               # for build2.py
-
-class compile(Java.compile):
-  def Run(self):
-    Echo('My compile')
-    Java.compile.Run(self)
-
-Project.targetsMap['deploy_rc'] = 'build.deploy_rc'           # for build2.py
+class deploy(Java.deploy):
+  def TagBuild(self, tag):
+    Project.dvcs.SetTag(tag, replace = True)
  
-class deploy_rc(Java.deploy):
+class deploy_rc(deploy):
   def PreparePostfix(self):
     rcN = Project.env.get('N', None)
     if rcN == None or rcN == '':
@@ -97,14 +90,11 @@ class deploy_rc(Java.deploy):
   def Prepare(self):
     Java.deploy.Prepare(self)
     self.PreparePostfix()
-    Echo('Deploying %s %s' % (Project.name, str(Project.version)))
     return True
   
   def NextVersion(self):
     Project.version.SetPostfix(self.oldPostfix)
     Java.deploy.NextVersion(self)
-
-Project.targetsMap['deploy_release'] = 'build.deploy_release' # for build2.py
 
 class deploy_release(deploy_rc):
   def PreparePostfix(self):
@@ -113,7 +103,18 @@ class deploy_release(deploy_rc):
   def NextVersion(self):
     Project.version.SetPostfix(self.oldPostfix)
     Project.version.NextMinor()
+
+  def GetCommitMessage(self):  
+    return 'Next minor version number'
     
+'''
+# for build2.py
+'''
+
+Project.targetsMap['deploy'] = 'build.deploy'
+Project.targetsMap['deploy_rc'] = 'build.deploy_rc'
+Project.targetsMap['deploy_release'] = 'build.deploy_release'
+
 '''
 Deploy
 '''

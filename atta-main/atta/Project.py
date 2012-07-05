@@ -50,6 +50,9 @@ class Project:
     self.env = None
     '''TODO: description'''
     
+    self.dvcs = None
+    '''object from class implements dvcs.IDvcs TODO: description'''
+    
     self.dependsOn = []
     '''TODO: description'''
 
@@ -59,6 +62,10 @@ class Project:
     self.defaultTarget = ''
     '''TODO: description'''
 
+    self.targets = []
+    '''List of targets passed to Atta in the command line or 
+       in the parameters of the method :py:meth:`.Project.RunProject`.'''
+    
     self.targetsMap = {}
     '''TODO: description'''
     
@@ -200,12 +207,13 @@ class Project:
         fileName = os.path.join(fileName, Dict.defaultBuildFileName)
       self.dirName = os.path.normpath(os.path.realpath(os.path.dirname(fileName)))
       self.fileName = os.path.join(self.dirName, OS.Path.RemoveExt(os.path.basename(fileName)) + '.py')
+      if not os.path.exists(self.fileName):
+        raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
+      
       self.env = Env(environ)
       self.env.chdir(self.dirName)
       self.version = V.Version(createIfNotExists = False)
-      
-      if not os.path.exists(self.fileName):
-        raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
+      self.targets = targets
       
       if self._parent is None:
         Atta.logger.Log('Buildfile: ' + self.fileName)

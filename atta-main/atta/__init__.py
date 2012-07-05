@@ -32,6 +32,8 @@ __all__ = [
            
            'Javac',
            'Jar',
+           
+           'Git',
           ]
 
 # Atta
@@ -141,4 +143,5 @@ from tasks.Zip import Zip
 from tasks.Javac import Javac
 from tasks.Jar import Jar
 
+from dvcs.Git import Git
   
