@@ -378,7 +378,7 @@ class deploy(Target):
   dependsOn = ['install']
 
   def Prepare(self):
-    Project.RunTarget('clean')
+    GetProject().RunTarget('clean')
     return True
   
   def Run(self):
@@ -400,7 +400,7 @@ class deploy(Target):
     pass  
 
   def Finalize(self):
-    Project.RunTarget('clean', force = True)
+    GetProject().RunTarget('clean', force = True)
     
 #------------------------------------------------------------------------------ 
 

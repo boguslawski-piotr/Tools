@@ -25,6 +25,7 @@ class MyVersionListener(IVersionListener):
     
   def AfterUpdate(self, v):  
     Version.FileFilter(MyVersionListener.tmplFileName, MyVersionListener.javaFileName)(v)
+    OS.Touch('main.java')
     
 Project.version.Configure( impl     = VersionResetBuildStrategy,
                            listeners= MyVersionListener,
