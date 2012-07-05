@@ -133,7 +133,15 @@ def MakeDirs(paths):
 '''
 File tools
 '''
-    
+
+def Touch(fileName, createIfNotExists = True):
+  '''Equivalent `touch` utility.'''
+  if os.path.exists(fileName):
+    os.utime(fileName, None)
+  elif createIfNotExists:
+    with open(fileName, 'wb') as f:
+      pass
+      
 def RemoveFile(fileName):
   '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
   try:
