@@ -142,10 +142,9 @@ class makedocs(Target):
     
     Echo('Generating user automodules...')
     self.UserDocs()
-    Echo()
     Echo('Generating developer automodules...')
     self.DevDocs()
-    Echo()
+    Echo('Running Sphinx...')
     self.Sphinx()
     
   def DevDocs(self):
@@ -162,7 +161,7 @@ class makedocs(Target):
       groupDirName = os.path.join('modules', dirName).replace('\\', '/')
       m[groupFileName] = groupDirName
       
-      Echo('  ' + fileName)
+      Echo('  ' + fileName, level = LogLevel.VERBOSE)
       Echo(''':mod:`${name}`
 -------------------------------------------------------------------------------
 
@@ -178,7 +177,6 @@ class makedocs(Target):
       file = os.path.join('docs/modules', fileName) + '.rst',
       )
       
-    devRefData1 = ''
     devRefData2 = '''
 .. toctree::
   :maxdepth: 1
@@ -197,15 +195,13 @@ class makedocs(Target):
   ''' + m[group] + '/*'
       groupFileName = group.replace('\\', '/').replace('/', '_') + '_dev.rst'
       Echo(groupData, file = os.path.join('docs', groupFileName))
-      #devRefData1 = devRefData1 + '- :doc:`' + groupName + ' <' + OS.Path.RemoveExt(groupFileName) + '>`\n'
       devRefData2 = devRefData2 + '  ' + OS.Path.RemoveExt(groupFileName) + '\n'
-    Echo(devRefData1 + devRefData2, file = 'docs/index_dev.rst')
+    Echo(devRefData2, file = 'docs/index_dev.rst')
 
-    #return
-  
   def UserDocs(self):
     m = {}
-    for fileName in FileSet('atta', includes = ['targets/**/*.py', 'tasks/**/*.py', 'tools/**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
+    ms = {}
+    for fileName in FileSet('atta', includes = ['targets/**/*.py', 'tasks/**/*.py', 'tools/**/*.py', 'dvcs/**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
       group = fileName.split(os.path.sep)[0]
       subgroup = 'TODO'
       desc = ''
@@ -237,37 +233,26 @@ class makedocs(Target):
       else:
         m[group] = { subgroup : [[desc, fileName, usecase]] }
     
-#    prevGroup = nextGroup = ''
     for i, group in enumerate(sorted(m.keys())):
       groupFileName = os.path.join('docs', group + '_user.rst')
-      groupData = '''${groupName}
-===============================================================================
-
-'''
-      Echo(groupFileName)
+      groupData = '''${groupName}\n===============================================================================\n'''
+      Echo(groupFileName, level = LogLevel.VERBOSE)
       for subgroup in sorted(m[group]):
         outputFile = os.path.join('docs/modules_user/', group, subgroup)
         OS.MakeDirs(outputFile)
-        groupData = groupData + subgroup + '''
--------------------------------------------------------------------------------        
-
-.. toctree::
-  :glob:
-
-  modules_user/${group}/''' + subgroup + '/*\n\n'
+        groupData = (groupData + subgroup + '\n-------------------------------------------------------------------------------\n\n' +        
+                                            '.. toctree::\n  :glob:\n\n' +
+                                            '  modules_user/${group}/' + subgroup + '/*\n\n'
+                    )
         for doc in sorted(m[group][subgroup]):
           #print doc
           fileName = OS.Path.RemoveExt(doc[1])
           desc = doc[0]
           usecase = doc[2]
           if len(usecase) > 0:
-            usecase = '''
-            
-**Use cases:**
-
-  .. literalinclude:: ../../../../tests/test_''' + usecase + '.py\n\n'
+            usecase = '\n\n**Use cases:**\n\n  .. literalinclude:: ../../../../tests/test_''' + usecase + '.py\n\n'
           moduleName = OS.Path.Ext(fileName.replace(os.path.sep, '.'), False)
-          Echo('  ' + fileName)
+          Echo('  ' + fileName, level = LogLevel.VERBOSE)
           Echo('''${moduleName} - ${desc}
 -------------------------------------------------------------------------------
 
@@ -283,47 +268,26 @@ class makedocs(Target):
           file = os.path.join(outputFile, moduleName) + '.rst',
           )
           
-#      nextGroup = sorted(m.keys())[i + 1] if i < len(sorted(m.keys())) - 1 else ''
-      
-      groupName = group[0].upper() + group[1:]
-#      if len(prevGroup) > 0:
-#        prevGroupName = prevGroup[0].upper() + prevGroup[1:]
-#        groupData = groupData + ':doc:`' + prevGroupName + ' <' + prevGroup + '_user>`'
-#      else:        
-#        groupData = groupData   + ':doc:`Environment <Environment>`'
-#      groupData = groupData + '''
-#===============================================================================
-#
-#'''
-#      if len(nextGroup) > 0:
-#        nextGroupName = nextGroup[0].upper() + nextGroup[1:]
-#        groupData = groupData + ':doc:`' + nextGroupName + ' <' + nextGroup + '_user>`'
-#        groupData = groupData + '''
-#===============================================================================
-#
-#'''
+      mapGroupNames = { 'dvcs' : 'Version Control'}
+      if group in mapGroupNames:
+        groupName = mapGroupNames[group]
+      else:
+        groupName = group.capitalize()
+      ms[groupName] = group
       Echo(groupData, 
             group = group, 
             groupName = groupName, 
             file = groupFileName)
-      prevGroup = group
-
-    userRefData1 = ''
-    userRefData2 = '''
-.. toctree::
-  :maxdepth: 1
-  
-  Environment
-'''  
-    for i, group in enumerate(sorted(m.keys())):
-      groupName = group[0].upper() + group[1:]
-      userRefData2 = userRefData2 + '  ' + group + '_user\n'
-    Echo(userRefData1 + userRefData2, file = 'docs/index_user.rst')
+    
+    userRefData2 = '\n.. toctree::\n  :maxdepth: 1\n\n  Environment\n'
+    for i, group in enumerate(sorted(ms.keys())):
+      userRefData2 = userRefData2 + '  ' + ms[group] + '_user\n'
+    Echo(userRefData2, file = 'docs/index_user.rst')
     
   def Sphinx(self):
     Project.env.chdir('docs')
     Exec('make', ['clean'], logOutput = False)
-    Exec('make', ['html'], logOutput = True)
+    Exec('make', ['html'], logOutput = (self.LogLevel() <= LogLevel.VERBOSE))
     
     # Show documentation
     #Exec(os.path.join('html', 'index.html'))
