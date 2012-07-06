@@ -69,7 +69,8 @@ class Project:
     self.targetsMap = {}
     '''TODO: description'''
     
-    self._executedTargets = collections.OrderedDict()
+    self._executedTargets = {} #collections.OrderedDict()
+    self._executedTargetsList = []
     self._targetsLevel = 0
     self._parent = parent
     
@@ -166,17 +167,15 @@ class Project:
     if force or not self._executedTargets.has_key(targetClass):
       target = targetClass()
       if target.CanRun():
-        prepareOK = True
-        if 'Prepare' in dir(target):
-          target._Log(prepare = True)
-          prepareOK = target.Prepare()
-        if prepareOK:
-          self._targetsLevel += 1
-          self._executedTargets[targetClass] = [target, self._targetsLevel]
+        self._executedTargetsList.append([target, self._targetsLevel])
+        self._targetsLevel += 1
+        if target._RunPrepare():
+          self._executedTargets[targetClass] = target
           for dependClass in target.dependsOn:
             self.RunTarget(dependClass)
           target._Run()
-          self._targetsLevel -= 1
+          target._RunFinalize()
+        self._targetsLevel -= 1
       return target
     return None
   
@@ -306,15 +305,19 @@ class Project:
     return targetClass
     
   def _Dump(self):
-    Atta.logger.Log('*** Project', level = LogLevel.DEBUG)
-    Atta.logger.Log('Project.dirName = ' + self.dirName, level = LogLevel.DEBUG)
-    Atta.logger.Log('Project.fileName = ' + self.fileName, level = LogLevel.DEBUG)
-    Atta.logger.Log('Project.defaultTarget = ' + self.defaultTarget, level = LogLevel.DEBUG)
-    Atta.logger.Log('***', level = LogLevel.DEBUG)
+    if Atta.logger.GetLevel() == LogLevel.DEBUG:
+      Atta.logger.Log('*** Project')
+      Atta.logger.Log('Project.dirName = ' + self.dirName)
+      Atta.logger.Log('Project.fileName = ' + self.fileName)
+      Atta.logger.Log('Project.defaultTarget = ' + self.defaultTarget)
+      Atta.logger.Log('***')
 
   def _DumpExecutedTargets(self):
-    Atta.logger.Log('\n*** Project {0}'.format(self.fileName), level = LogLevel.DEBUG)
-    Atta.logger.Log('Project._executedTargets:', level = LogLevel.DEBUG)
-    for i in self._executedTargets.values():
-      Atta.logger.Log(('{0:>%d}{1}' % (i[1]*2)).format(' ', i[0].__class__), level = LogLevel.DEBUG)
-    Atta.logger.Log('***', level = LogLevel.DEBUG)
+    if Atta.logger.GetLevel() == LogLevel.DEBUG:
+      Atta.logger.Log('\n*** Project: {0}'.format(self.fileName))
+      Atta.logger.Log('executed targets:')
+      et = self._executedTargetsList
+      et.reverse()
+      for i in et:
+        Atta.logger.Log('  ' + ' ' * i[1]*2 + '{0}'.format(i[0].__class__))
+      Atta.logger.Log('***')

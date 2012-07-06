@@ -59,7 +59,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     
     params.extend(OS.Path.AsList(srcFiles))
 
-    if Atta.logger.GetLevel() == LogLevel.DEBUG:
+    if self.LogLevel() == LogLevel.DEBUG:
       self.LogIterable(Dict.msgDumpParameters, params)
       self.Log('')
     

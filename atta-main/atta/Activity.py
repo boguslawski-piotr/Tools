@@ -8,6 +8,9 @@ class Activity:
      
   TODO: description
   '''
+  def LogLevel(self):
+    return atta.Atta.logger.GetLevel()
+  
   def Log(self, msg = '', **args):
     self._Log(msg, **args)
 

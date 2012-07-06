@@ -64,14 +64,21 @@ class Target(Activity):
         self.name = self.name.replace(Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
     return self.name
   
+  def _RunPrepare(self):
+    if 'Prepare' in dir(self):
+      self._Log(prepare = True)
+      return self.Prepare()
+    return True
+  
   def _Run(self):
     if not hasattr(self, 'wasExecuted') or not self.wasExecuted:
       self._Log(start = True)
       self.Run()
-      if 'Finalize' in dir(self):
-        self._Log(finalize = True)
-        self.Finalize()
       self._Log(end = True)
     self.wasExecuted = True
     
-    
+  def _RunFinalize(self):
+    if 'Finalize' in dir(self):
+      self._Log(finalize = True)
+      self.Finalize()
+      

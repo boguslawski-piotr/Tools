@@ -78,7 +78,8 @@ See also example in build2.py.
 
 class deploy(Java.deploy):
   def TagBuild(self, tag):
-    Project.dvcs.SetTag(tag, replace = True)
+    if Project.dvcs != None:
+      Project.dvcs.SetTag(tag, replace = True)
  
 class deploy_rc(deploy):
   def PreparePostfix(self):

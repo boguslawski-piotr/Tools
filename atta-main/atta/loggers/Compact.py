@@ -16,15 +16,13 @@ class Logger(Std.Logger):
       if 'target' in args: 
         if 'start' in args or 'prepare' in args: 
           self.targetName = self._HandleTarget(msg, **args)
-        if 'end' in args: 
-          self.targetName = ''
-          
+    
+    if 'project' in args:
+      self.targetName = ''
+            
     if _msg is None:
       _msg = '{0}'.format(msg)
-      
     if _msg and len(self.targetName) > 0:
       self._PhysicalLog(self.targetName)
       self.targetName = ''
-      
     self._PhysicalLog(_msg)
-    return

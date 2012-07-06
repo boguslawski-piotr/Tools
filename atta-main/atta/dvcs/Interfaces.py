@@ -10,7 +10,9 @@ class IDvcs:
     pass
   
   def UpdateWorkingDirectory(self, revision = None, remote = None, **tparams):
-    '''TODO: description'''
+    '''TODO: description
+    Sets self.someChangesWereTaken to 0 if WD is up-to-date, 1 if some changes were pulled, -1 we do not known
+    '''
     pass
   
   def SetTag(self, tagName, msg = None, replace = False, **tparams):

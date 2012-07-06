@@ -6,6 +6,7 @@ import subprocess
 import threading
 
 import atta 
+import atta.Dict as Dict
 import atta.tools.DefaultVarsExpander
 import atta.tools.OS as OS
 from ..tasks.Base import Task
@@ -126,5 +127,5 @@ class Exec(Task):
   
   def _LogReturnCode(self, _rc, **args):
     if _rc > 0:
-      self.Log('exit code: {0}'.format(_rc), **args)
+      self.Log(Dict.msgExitCode.format(_rc), **args)
 

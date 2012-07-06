@@ -1,13 +1,16 @@
-'''.. Miscellaneous: Version management'''
+'''.. Miscellaneous: Project version management'''
 import os
 
+import atta.Dict as Dict
+from atta import Atta, LogLevel, GetProject
+from ..tasks.Base import Task
 from internal.Misc import ObjectFromClass
 from DefaultVarsExpander import Expander
 from Properties import Properties
 from Misc import isiterable
 from Strategies import VersionDefaultStrategy
 
-class Version:
+class Version(Task):
   '''TODO: description'''
   def __init__(self, **conf):
     self.Configure(**conf)
@@ -61,27 +64,31 @@ class Version:
   
   def NextMajor(self, update = True):
     '''TODO: description'''
+    old = self._AsStr()
     self._impl.GetObject().NextMajor(self)
     self._RunListeners('NextMajor')
-    self._Changed(update)
+    self._Changed(update, old)
     
   def NextMinor(self, update = True):
     '''TODO: description'''
+    old = self._AsStr()
     self._impl.GetObject().NextMinor(self)
     self._RunListeners('NextMinor')
-    self._Changed(update)
+    self._Changed(update, old)
 
   def NextPatch(self, update = True):
     '''TODO: description'''
+    old = self._AsStr()
     self._impl.GetObject().NextPatch(self)
     self._RunListeners('NextPatch')
-    self._Changed(update)
+    self._Changed(update, old)
     
   def NextBuild(self, update = True):
     '''TODO: description'''
+    old = self._AsStr()
     self._impl.GetObject().NextBuild(self)
     self._RunListeners('NextBuild')
-    self._Changed(update)
+    self._Changed(update, old)
 
   def SetPrefix(self, prefix):
     '''TODO: description'''
@@ -148,9 +155,18 @@ class Version:
     '''TODO: description'''
     return Version._defaultImpl.GetClass()
 
-  def _Changed(self, forceUpdate):
-    if forceUpdate: self._ForceUpdate()
-    else: self.changed = True
+  '''private section'''
+
+  def _Changed(self, forceUpdate, old = None):
+    if forceUpdate: 
+      self._ForceUpdate()
+      if old:
+        self.Log(Dict.msgChangedFromXToYInZ % (old, self._AsStr(), self.fileName), level = LogLevel.INFO)
+    else: 
+      self.changed = True
+  
+  # TODO: odczyt i zapis w taki sposob aby w tym pliku mozna bylo umieszczac inne rzeczy
+  # np. z oznaczeniem bloku: #!version: ... #:version!
   
   def _Read(self):
     if not os.path.exists(self.fileName):
@@ -190,3 +206,8 @@ class Version:
     if not os.path.exists(self.fileName):
       self._ForceUpdate()
       
+  def _AsStr(self):
+    return '%d.%d.%d.%d' % (self.major, self.minor, self.patch, self.build)
+  
+  def _FromStr(self, v):
+    self.major, self.minor, self.patch, self.build = v.split('.')

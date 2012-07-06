@@ -1,8 +1,10 @@
-'''.. Version Control: Git'''
+'''.. Distributed Version Control: Git'''
+import os
+
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
 import atta.Dict as Dict
-from atta import GetProject
+from atta import Atta, LogLevel, GetProject
 import atta.tools.OS as OS
 import Interfaces
 
@@ -11,7 +13,8 @@ class Git(Interfaces.IDvcs, Task):
     self._lastRevision = None
     self._lastRemote = None 
     self._tagWasSet = False
-
+    self.someChangesWereTaken = -1
+    
     self.dir = dir if len(dir) > 0 else '.'
     if params != None:
       self.Cmd(params, **tparams)
@@ -30,8 +33,9 @@ class Git(Interfaces.IDvcs, Task):
       checkoutOutput = self.output
       self._lastRevision = revision
       
-    self.Cmd(['pull', remote if remote != None else ''], **tparams)
-    self._lastRemote = remote
+    if self.Cmd(['pull', remote if remote != None else ''], **tparams) == 0:
+      self._lastRemote = remote
+      self.someChangesWereTaken = int(self.output.find('up-to-date') < 0)
     
     self.output = checkoutOutput + Dict.newLine + self.output
     return self.returnCode
@@ -72,32 +76,46 @@ class Git(Interfaces.IDvcs, Task):
       params = ['push', '--tags' if self._tagWasSet else '', remote, revision]
       if self.Cmd(params, **tparams) != 0:
         return self.returnCode
-      pushOutput = pushOutput + self.output
+      pushOutput = pushOutput + Dict.newLine + self.output
       
     self._tagWasSet = False
+    self.someChangesWereTaken = int(False)
+    
     self.output = addOutput + Dict.newLine + commitOutput + Dict.newLine + pushOutput
     return self.returnCode
   
   def Cmd(self, params, **tparams):
     '''TODO: description'''
     params = OS.Path.AsList(params, ' ')
-    self._DumpParams(locals())
+    params = [p for p in params if len(p) > 0]
+    
+    if self.LogLevel() <= LogLevel.INFO:
+      self.Log(Dict.msgDvcsRepository % os.path.realpath(self.dir), level = LogLevel.VERBOSE)
+      self.Log(' '.join(params))
     
     ocwd = GetProject().env.chdir(self.dir)
     try:
-      e = Exec(self.GetExecutable(**tparams), [p for p in params if len(p) > 0], **tparams)
+      e = Exec(self.GetExecutable(**tparams), params, **tparams)
     finally:
       GetProject().env.chdir(ocwd)
-      
     self.returnCode = e.returnCode
-    self.output = e.output
+    self.output = self._NormalizeGitOutput(e.output)
+
+    if self.LogLevel() <= LogLevel.VERBOSE:
+      if len(self.output) > 0:
+        self.Log(self.output)
+      self.Log(Dict.msgExitCode.format(self.returnCode))
+        
     return self.returnCode
   
   def GetExecutable(self, **tparams):
     return 'git'
     
+  '''private section'''
+
   def _SetLogOutput(self, tparams):
     if not Dict.paramLogOutput in tparams:
       tparams[Dict.paramLogOutput] = False
       
-    
+  def _NormalizeGitOutput(self, output):
+    return output.replace(chr(0x1B) + '[K', '\n')

@@ -104,14 +104,17 @@ msgDumpParameters = '\n*** Parameters:'
 msgChecking = 'Checking: {0}'
 msgCreating = 'Creating: {0}'
 msgDelDirectory = 'Deleting directory: %s'
+msgExitCode = 'exit code: {0}'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'
 msgXfromY = '  %s from: %s'
+msgChangedFromXToYInZ = 'Changed from: %s to: %s in: %s'
 msgNoneHaveBeenAdded = 'To: %s none have been added.'
 
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
+msgDvcsRepository = 'Repository: %s'
 msgDvcsOutputTitle = 'Output from DVCS:'
 msgDvcsNextBuildNumber = 'Next build number'

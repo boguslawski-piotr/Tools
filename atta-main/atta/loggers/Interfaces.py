@@ -10,7 +10,7 @@ class ILogger:
   project
     start
     end
-    msg
+    log
     
     status
     at
@@ -20,9 +20,9 @@ class ILogger:
   target
     prepare
     start
-    finalize
     end
-    msg
+    finalize
+    log
     
   task
   ''' 
