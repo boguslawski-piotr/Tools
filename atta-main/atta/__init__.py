@@ -23,6 +23,7 @@ __all__ = [
 
            # Tasks
            'Echo',
+           'Delete',
            
            'Exec',
            'PyExec',
@@ -133,6 +134,7 @@ from tasks.Base import Task
 # All available tasks.
 
 from tasks.Echo import Echo
+from tasks.Delete import Delete
 
 from tasks.Exec import Exec
 from tasks.PyExec import PyExec

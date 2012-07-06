@@ -20,14 +20,14 @@ class Exec(Task):
     
   Parameters:
   
-  * **executable** - The command to execute without any command line arguments. |str|
+  * **executable** - The command to execute without any command line arguments.
   * **params** -     Command line arguments. (string or list of strings) |None| 
     
   General parameters available in many tasks that use internally ``Exec`` task:
   
-  * **failOnError** - Stop the buildprocess if the command exits with a return code signaling failure. |bool| |True|
+  * **failOnError** - Stop the buildprocess if the command exits with a return code signaling failure. |True|
   * **logOutput** -   TODO: Przesyla stdout and stderr do logu Atta. |True| 
-  * **useSheel** -    Command will be executed through the shell. 
+  * **useSheel** -    Command will be executed through the shell. |True|
     More information can be found in :py:class:`subprocess.Popen` documentation. |True|
   * **env** -         Environment variables. Completely replace the variables from the project |None|.
                         

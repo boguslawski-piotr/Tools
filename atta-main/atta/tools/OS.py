@@ -130,32 +130,77 @@ def MakeDirs(paths):
       if e.errno != os.errno.EEXIST:
         raise
 
+def RemoveDir(path, failOnError = True):
+  '''Removes the directory `path`. Works like :py:func:`os.rmdir`. 
+     When `failOnError` is set to `True` is not throwing an exception if the directory not exists.
+     When `failOnError` is set to `False` returns `0` when the directory has been removed/not exists
+     or :py:data:`os.errno` when an error has occurred.'''
+  try:
+    os.rmdir(path)
+  except os.error as e:
+    if e.errno != os.errno.ENOENT:
+      if failOnError: raise
+      return e.errno
+  return 0
+
+def RemoveDirs(paths, failOnError = True):
+  '''Removes directories recursively. The parameter `paths` can be a string 
+     or a list (or any iterable object type) whose individual elements are strings.
+     For each item works like :py:func:`os.removedirs`.
+     When `failOnError` is set to `True` is not throwing an exception if the directory not exists.
+     When `failOnError` is set to `False` returns `0` when the directory has been removed/not exists
+     or :py:data:`os.errno` when an error has occurred.'''
+  for dir_ in Path.AsList(paths):  
+    try:
+      os.removedirs(dir_)
+    except os.error as e:
+      if e.errno != os.errno.ENOENT:
+        if failOnError: raise
+        return e.errno
+  return 0
+
 '''
 File tools
 '''
 
 def Touch(fileName, createIfNotExists = True):
-  '''Equivalent `touch` utility.'''
+  '''Changes the time of the file `fileName` to 'now'. 
+     If the file does not exists and `createIfNotExists` is set to `True` then creates an empty file.'''
   if os.path.exists(fileName):
     os.utime(fileName, None)
   elif createIfNotExists:
     with open(fileName, 'wb') as f:
       pass
       
-def RemoveFile(fileName):
-  '''Remove (delete) the file. Works like :py:func:`os.remove` but not throwing an exception if file not exists.'''
+def SetReadOnly(fileName, v):
+  '''Sets (if `v` is True) or unsets (if `v` is False) read-only flag for file `fileName`.
+     Not throwing an exception if the file not exists.'''
+  if os.path.exists(fileName):
+    st = os.stat(fileName)
+    os.chmod(fileName, stat.S_IMODE(st.st_mode) | (stat.S_IWRITE if not v else stat.S_IREAD))
+        
+def RemoveFile(fileName, force = False, failOnError = True):
+  '''Removes the file `fileName`. 
+     When `force` is set to `True` then the file is removed, even when it is read-only.
+     When `failOnError` is set to `True` is not throwing an exception if the file not exists.
+     When `failOnError` is set to `False` returns `0` when the file has been removed/not exists
+     or :py:data:`os.errno` when an error has occurred.'''
   try:
+    if force:
+      SetReadOnly(fileName, False)
     os.remove(fileName)
   except os.error as e:
     if e.errno != os.errno.ENOENT:
-      raise
-
+      if failOnError: raise
+      return e.errno
+  return 0
+  
 global INAVLID_FILE_SIZE
 INVALID_FILE_SIZE = -1
 '''Constant meaning incorrect file size (usually this means an error while attempting to read file size).'''
 
 def FileSize(fileName):
-  '''Returns the file size or INAVLID_FILE_SIZE on any error.'''
+  '''Returns the file `fileName` size or INAVLID_FILE_SIZE on any error.'''
   try:
     info = os.stat(fileName)
   except:
@@ -163,16 +208,13 @@ def FileSize(fileName):
   return info.st_size
 
 def CopyFile(fileName, destName, force = False):
-  '''
-  Copies the file `fileName` to the file or directory `destName`.
-  If `destName` is a directory, a file with the same basename as 
-  `fileName` is created (or overwritten) in the directory specified.
-  The parameter `force` allows overwrite files with read-only attribute.
-  Uses :py:func:`shutil.copy2`.
-  '''
-  if force and os.path.exists(destName) and not os.path.isdir(destName):
-    st = os.stat(destName)
-    os.chmod(destName, stat.S_IMODE(st.st_mode) | stat.S_IWRITE)
+  '''Copies the file `fileName` to the file or directory `destName`.
+     If `destName` is a directory, a file with the same basename as 
+     `fileName` is created (or overwritten) in the directory specified.
+     The parameter `force` allows overwrite files with read-only attribute.
+     Uses :py:func:`shutil.copy2`.'''
+  if force and not os.path.isdir(destName):
+    SetReadOnly(destName, False)
   shutil.copy2(fileName, destName)
   
 def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False):

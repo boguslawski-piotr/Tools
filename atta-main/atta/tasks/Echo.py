@@ -6,6 +6,7 @@ import re
 
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel, isiterable
+import atta.tools.OS as OS
 import atta
 
 class Echo(Task):
@@ -48,9 +49,8 @@ class Echo(Task):
       force = tparams.get('force', False)
       
       if isinstance(_file, basestring):
-        if os.path.exists(_file) and force:
-          st = os.stat(_file)
-          os.chmod(_file, stat.S_IMODE(st.st_mode) | stat.S_IWRITE)
+        if force:
+          OS.SetReadOnly(_file, False)
         if append: mode = 'a+b'
         else: mode = 'w+b'
         _f = open(_file, mode)

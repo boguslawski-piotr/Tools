@@ -92,6 +92,7 @@ errNotImplemented = 'Not implemented: {0}'
 errNotSpecified = 'Not specified: {0}'
 errNotEnoughParams = 'Not enough parameters.'
 errFileNotExists = 'File: %s does not exists.'
+errOSErrorForX = "OS error: %d, '%s' for: %s"
 
 errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not support writing to archive files."
 
@@ -105,6 +106,8 @@ msgChecking = 'Checking: {0}'
 msgCreating = 'Creating: {0}'
 msgDelDirectory = 'Deleting directory: %s'
 msgExitCode = 'exit code: {0}'
+msgFile = 'File: %s'
+msgDirectory = 'Directory: %s'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'

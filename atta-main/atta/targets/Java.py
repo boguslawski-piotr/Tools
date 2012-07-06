@@ -459,11 +459,7 @@ class clean(Target):
   '''TODO: description'''
   def Run(self):
     project = GetProject()
-    Echo(Dict.msgDelDirectory % os.path.normpath(project.buildBaseDir))
-    # TODO: zrobic wersje w OS, ktora radzi sobie z plikami read-only!
-    shutil.rmtree(project.buildBaseDir, True)
-    Echo(Dict.msgDelDirectory % os.path.normpath(project.installBaseDir))
-    shutil.rmtree(project.installBaseDir, True)
+    Delete([project.buildBaseDir, project.installBaseDir], force = True)
 
 #------------------------------------------------------------------------------ 
 

@@ -153,7 +153,7 @@ class ExtendedFileSet(list):
   
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-      if list: each item may be: file/dir/wildcard name or FileSet
+      if list: each item may be: file/dir/wildcard name or FileSet or DirSet
   
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
   ''' 
@@ -165,7 +165,12 @@ class ExtendedFileSet(list):
     for src in srcs:
       if len(src) <= 0:
         continue
-      if isinstance(src, FileSet):
+      if isinstance(src, DirSet):
+        for fname in src:
+          src = FileSet(fname, '**/*')
+          for fname in src:
+            self.append((src.rootDir, os.path.relpath(fname, src.rootDir)))
+      elif isinstance(src, FileSet):
         for fname in src:
           self.append((src.rootDir, os.path.relpath(fname, src.rootDir)))
       else:
@@ -180,5 +185,5 @@ class ExtendedFileSet(list):
           else:
             src = os.path.normpath(src)
             if os.path.exists(src):
-              self.append(os.path.dirname(src), os.path.basename(src))
+              self.append((os.path.dirname(src), os.path.basename(src)))
     
