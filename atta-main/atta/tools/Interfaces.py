@@ -1,6 +1,4 @@
 '''.. no-user-reference:'''
-import os
-import OS
 
 class ICompareStrategy:
   '''TODO: description'''

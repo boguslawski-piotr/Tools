@@ -1,6 +1,6 @@
 '''.. no-user-reference:'''
-import atta.tools.OS as OS
-from atta import Dict
+from ..tools import OS
+from .. import Dict
 
 class PackageId:
   '''TODO: description'''

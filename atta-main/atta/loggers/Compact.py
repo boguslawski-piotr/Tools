@@ -1,4 +1,4 @@
-import Std
+from . import Std
 
 class Logger(Std.Logger):
   '''

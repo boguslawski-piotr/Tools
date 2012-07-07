@@ -3,15 +3,14 @@ import sys
 import stat
 import os
 
-from atta import Atta
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Strategies import SrcNewerStrategy
 from ..compilers.JavaStd import JavaStdCompiler
-from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
-import atta.tools.OS as OS
-import atta.Dict as Dict
+from ..tools import OS
+from .. import Dict
+from .Base import Task
   
 class Javac(Task):
   '''

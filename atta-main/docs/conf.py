@@ -97,10 +97,11 @@ autodoc_member_order = "bysource"
 
 rst_prolog = '''
 .. |private| replace:: (private)
-.. |True| replace:: (`default: True`)
-.. |False| replace:: (`default: False`)
-.. |None| replace:: (`default: None`)
-.. |Empty| replace:: (`default: Empty`)
+.. |def| replace:: `Default:`
+.. |True| replace:: `Default: True`
+.. |False| replace:: `Default: False`
+.. |None| replace:: `Default: None`
+.. |Empty| replace:: `Default: Empty`
 .. |Ant| replace:: :sub:`(from Ant documentation)`
 '''
 

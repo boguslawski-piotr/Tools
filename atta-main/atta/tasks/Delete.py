@@ -1,13 +1,11 @@
 '''.. Files, directories: Deletes files or/and directories'''
 import os
 
-from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
-from ..tools.Sets import DirSet, ExtendedFileSet
-import atta.Dict as Dict 
-import atta.tools.OS as OS
-
-import atta
+from ..tools.Sets import FileSet, DirSet, ExtendedFileSet
+from ..tools import OS
+from .. import Dict 
+from .Base import Task
 
 class Delete(Task):
   '''
@@ -39,8 +37,8 @@ class Delete(Task):
       
     filesSet = OS.Path.AsList(srcs)
     dirsSet  = filter((lambda src: 
-                        isinstance(src, atta.tools.Sets.DirSet) 
-                        or (not isinstance(src, atta.tools.Sets.FileSet) and os.path.isdir(src))), 
+                        isinstance(src, DirSet) 
+                        or (not isinstance(src, FileSet) and os.path.isdir(src))), 
                       filesSet)
     dirsSet  = list(set(dirsSet))
     dirsSet.sort()

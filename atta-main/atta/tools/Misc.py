@@ -1,11 +1,12 @@
 '''.. Miscellaneous: Various functions and classes'''
-from internal.Misc import ObjectFromClass
+
+from .internal.Misc import ObjectFromClass
 
 #------------------------------------------------------------------------------ 
 
-isiterable = lambda obj: \
-              not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
-'''TODO: description'''
+def isiterable(obj):
+  '''TODO: description'''
+  return not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
 
 #------------------------------------------------------------------------------ 
 

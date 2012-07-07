@@ -1,16 +1,14 @@
 '''.. Execution: Executes a system command: exec'''
-import io
-import sys
 import os
 import subprocess
 import threading
 
-import atta 
-import atta.Dict as Dict
-import atta.tools.DefaultVarsExpander
-import atta.tools.OS as OS
-from ..tasks.Base import Task
+from ..tools import DefaultVarsExpander
 from ..tools.Misc import LogLevel
+from ..tools import OS
+from .. import Dict
+from .. import GetProject
+from .Base import Task
 
 class Exec(Task):
   '''
@@ -27,7 +25,7 @@ class Exec(Task):
   
   * **failOnError** - Stop the buildprocess if the command exits with a return code signaling failure. |True|
   * **logOutput** -   TODO: Przesyla stdout and stderr do logu Atta. |True| 
-  * **useSheel** -    Command will be executed through the shell. |True|
+  * **useSheel** -    Command will be executed through the shell.
     More information can be found in :py:class:`subprocess.Popen` documentation. |True|
   * **env** -         Environment variables. Completely replace the variables from the project |None|.
                         
@@ -36,7 +34,7 @@ class Exec(Task):
   * **returnCode** - Exit code returned by executed command.
   * **output** -     Captured contents of stdout and stderr.
  
-  In ``executable`` parameter you can use special macros: 
+  In **executable** parameter you can use special macros: 
   
     ``${bat}, ${cmd} or ${exe}`` on Windows will add ``.bat/.cmd/.exe`` to the `executable`, 
     on other systems will not add anything 
@@ -63,15 +61,15 @@ class Exec(Task):
     batExt = '.bat' if OS.IsWindows() else ''
     cmdExt = '.cmd' if OS.IsWindows() else ''
     exeExt = '.exe' if OS.IsWindows() else ''
-    executable = atta.tools.DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
+    executable = DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
     
     _params = [executable]
     _params.extend(params)
     if env is None:
-      if atta.Project is None:
+      if GetProject() is None:
         env = os.environ
       else:
-        env = atta.GetProject().env
+        env = GetProject().env
     
     process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, 
                                bufsize = 1, env = env, shell = useShell)

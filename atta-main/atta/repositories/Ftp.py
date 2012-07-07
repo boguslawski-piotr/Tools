@@ -5,14 +5,14 @@ import hashlib
 import tempfile
 from time import sleep
 
-import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import NamedFileLike, LogLevel
-from atta import AttaError
-from Base import ARepository
+from ..tools import OS
+from .. import AttaError
+from .. import Dict
+from .Base import ARepository
 from . import ArtifactNotFoundError
-import atta.Dict as Dict
-import Local
+from . import Local
 
 class Repository(Local.Repository):
   '''TODO: description'''

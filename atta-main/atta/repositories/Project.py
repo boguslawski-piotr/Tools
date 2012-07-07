@@ -2,12 +2,12 @@
 import os
 import shutil
 
-import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import LogLevel
+from ..tools import OS
 from ..loggers import Compact
-from atta import Atta, AttaError, GetProject, Dict
-import Local
+from .. import Atta, AttaError, GetProject, Dict
+from . import Local
 
 class Repository(Local.Repository):
   '''TODO: description'''
@@ -38,15 +38,15 @@ class Repository(Local.Repository):
     except:
       pass
     else:
-      prevLoggerClass = Atta.logger.SetImpl(Compact.Logger)
+      prevLoggerClass = Atta.Logger().SetImpl(Compact.Logger)
       try:
         # Invoke Atta project.
-        Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
+        Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
         
         project = GetProject().RunProject(GetProject().env, projectTmpName, targetNames)
         
-        Atta.logger.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
+        Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
         
         # Collect produced file(s).
@@ -76,7 +76,7 @@ class Repository(Local.Repository):
       except:
         raise
       finally:
-        Atta.logger.SetImpl(prevLoggerClass)
+        Atta.Logger().SetImpl(prevLoggerClass)
         OS.RemoveFile(projectTmpName)
         OS.RemoveFile(projectTmpName + 'c')
         OS.RemoveFile(projectTmpName + 'o')

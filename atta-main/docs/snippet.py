@@ -10,7 +10,7 @@ from docutils import nodes
 
 from sphinx.util.nodes import set_source_info
 from sphinx.util.compat import Directive
-from sphinx.locale import l_, _
+from sphinx.locale import l_
 
 """
   Code from `sphinx.util.docfields` with minimal modifications.

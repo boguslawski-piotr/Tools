@@ -1,6 +1,6 @@
 '''.. no-user-reference:'''
 from ..Activity import Activity
-from atta import Atta
+from .. import Atta
 
 class Task(Activity):
   '''
@@ -9,7 +9,7 @@ class Task(Activity):
   TODO: description
   '''
   def ExpandVariables(self, txt, **tparams):
-    return Atta.variablesExpander.Expand(txt, **tparams)
+    return Atta.VarsExpander().Expand(txt, **tparams)
     
   '''private section'''
     

@@ -2,8 +2,8 @@
 import os
 import re
 
-from Misc import Logger, LogLevel
-import OS
+#from .Misc import Logger, LogLevel
+from . import OS
 
 class FileSet(list):
   '''       

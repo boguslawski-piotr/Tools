@@ -1,13 +1,9 @@
 '''.. Miscellaneous: Echoes a message: echo'''
-import sys
 import os
-import stat
-import re
 
-from ..tasks.Base import Task
 from ..tools.Misc import LogLevel, isiterable
-import atta.tools.OS as OS
-import atta
+from ..tools import OS
+from .Base import Task
 
 class Echo(Task):
   '''
@@ -20,10 +16,10 @@ class Echo(Task):
   Parameters:
   
   * **msg** -    The message to echo. 
-    It can be any object that can be converted to string, a iterable or a file-like object. (default: blank line)
+    It can be any object that can be converted to string, a iterable or a file-like object. |def| `blank line`
   
   * **level** -  Control the log level at which this message is reported. 
-    (default: :py:attr:`.LogLevel.WARNING`)
+    |def| :py:attr:`.LogLevel.INFO`
   
   * **file** -   The file name or a file-like object to write the message to. |None|
   * **append** - Append to an existing file? |False|
@@ -31,7 +27,7 @@ class Echo(Task):
 
   '''
   def __init__(self, msg = '', **tparams):
-    level = tparams.get('level', LogLevel.WARNING)
+    level = tparams.get('level', LogLevel.INFO)
     _file = tparams.get('file', None)
     if isinstance(msg, basestring):
       msg = self.ExpandVariables(msg, **tparams)

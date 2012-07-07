@@ -1,8 +1,8 @@
+'''TODO: description'''
 import sys
 import os
 
-from tools.Misc import LogLevel, Logger
-from atta import *
+from . import Atta, LogLevel
 
 class Env(dict):
   '''
@@ -24,7 +24,7 @@ class Env(dict):
   '''private section'''
   
   def _Dump(self):
-    Atta.logger.Log('*** Env', level = LogLevel.DEBUG)
+    Atta.Log('*** Env', level = LogLevel.DEBUG)
     for key, value in self.iteritems():
-      Atta.logger.Log('Env.' + key + ' = ' + value, level = LogLevel.DEBUG)
-    Atta.logger.Log('***', level = LogLevel.DEBUG)
+      Atta.Log('Env.' + key + ' = ' + value, level = LogLevel.DEBUG)
+    Atta.Log('***', level = LogLevel.DEBUG)

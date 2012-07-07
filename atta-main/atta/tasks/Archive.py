@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Misc import LogLevel
 from ..tools.Sets import FileSet
-from ..tasks.Base import Task
-import atta.tools.OS as OS
-import atta.Dict as Dict
-from atta import AttaError
+from ..tools import OS
+from .. import Dict
+from .. import AttaError
+from .Base import Task
   
 class Archive(Task):
   '''TODO: description'''

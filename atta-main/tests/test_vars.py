@@ -14,7 +14,7 @@ class VarsLikeDOSExpander(atta.tools.DefaultVarsExpander.Expander):
 class test(Target):
   def Run(self):
     v1s  = 'test'
-    v1t =  Atta.variablesExpander.Expand('${test_ref}', test_ref = v1s)
+    v1t =  Atta.VarsExpander().Expand('${test_ref}', test_ref = v1s)
     assert v1s == v1t
 
     Echo('''
@@ -29,10 +29,10 @@ Use of Ant style variables
     var1 = 'var 1 contents',
     var3 = '${var1}')
 
-    pc = Atta.variablesExpander.SetImpl(VarsLikeDOSExpander)
+    pc = Atta.VarsExpander().SetImpl(VarsLikeDOSExpander)
 
     v1s  = 'test'
-    v1t =  Atta.variablesExpander.Expand('%test_ref%', test_ref = v1s)
+    v1t =  Atta.VarsExpander().Expand('%test_ref%', test_ref = v1s)
     assert v1s == v1t
     
     Echo('''
@@ -47,5 +47,5 @@ And now DOS, Windows style variables
     var1 = 'var 1 contents',
     var3 = '%var1%')
 
-    Atta.variablesExpander.SetImpl(pc)
+    Atta.VarsExpander().SetImpl(pc)
     

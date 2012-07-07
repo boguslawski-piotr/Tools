@@ -1,5 +1,5 @@
-from atta.tasks.Base import Task
-from atta.tools.Misc import LogLevel
+from ..tools.Misc import LogLevel
+from .Base import Task
 
 class _Task_(Task):
   '''

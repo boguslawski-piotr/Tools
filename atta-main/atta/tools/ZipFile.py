@@ -3,8 +3,8 @@ import os
 import zipfile
 from datetime import datetime
 
-from Interfaces import IArchiveFile
-from atta import AttaError
+from .Interfaces import IArchiveFile
+from .. import AttaError
 
 class ZipFile(IArchiveFile):
   def __init__(self, fileName, mode, password = None, **tparams): 

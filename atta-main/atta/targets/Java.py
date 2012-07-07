@@ -2,15 +2,14 @@
 
 TODO: description
 '''
-import shutil
 import os
 import stat
 
-import atta.tools.DefaultVarsExpander
-from atta.repositories.Package import PackageId
+from ..repositories.Package import PackageId
+from ..repositories import Styles
+from .. import Dict
+
 from atta import *
-import atta.Dict as Dict
-import atta.repositories.Styles as Styles
 
 class ProjectType:
   app = 'app'
@@ -292,7 +291,7 @@ class install(Target):
     '''TODO: description'''
     project = GetProject()
     installedFiles = []
-    for rootDirName, fileName in ExtendedFileSet(Project.installAdditionalFiles):
+    for rootDirName, fileName in ExtendedFileSet(project.installAdditionalFiles):
       srcFileName = os.path.join(rootDirName, fileName)
       destFileName = os.path.join(project.installBaseDir, fileName)
       OS.MakeDirs(os.path.dirname(destFileName))
@@ -311,7 +310,8 @@ class install(Target):
     javaClassPathStr = os.path.normpath(javaClassPathStr)
     projectNameInScript = project.name.upper().replace(' ', '_')
     
-    ove = Atta.variablesExpander.SetImpl(atta.tools.DefaultVarsExpander.Expander)
+    from atta.tools import DefaultVarsExpander
+    ove = Atta.VarsExpander().SetImpl(DefaultVarsExpander.Expander)
     
     # windows
     with open(self.GetWinStartupScriptTmplFileName(), 'rb') as f:
@@ -335,7 +335,7 @@ class install(Target):
         os.chmod(scriptName, stat.S_IEXEC)
       project.installedFiles.append(scriptName)
     
-    Atta.variablesExpander.SetImpl(ove)
+    Atta.VarsExpander().SetImpl(ove)
   
   def GetWinStartupScriptTmplFileName(self):
     '''TODO: description'''

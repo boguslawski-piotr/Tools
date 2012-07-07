@@ -5,15 +5,15 @@ import re
 import xml.etree.ElementTree
 import cStringIO
 
-from atta import AttaError, LogLevel, Task
-import atta.tools.OS as OS
-import atta.Dict as Dict
-from ..tools.Misc import NamedFileLike
-from Base import ARepository
+from ..tasks.Base import Task
+from ..tools.Misc import NamedFileLike, LogLevel
+from ..tools import OS
+from .. import AttaError
+from .. import Dict
+from .Base import ARepository
+from .Package import PackageId
 from . import ArtifactNotFoundError
-from Package import PackageId
-import Styles
-import Local
+from . import Styles
   
 class Repository(ARepository, Task):
   '''TODO: description
@@ -26,6 +26,7 @@ class Repository(ARepository, Task):
       raise AttaError(self, Dict.errNotEnoughParams)
     
     if store is None:
+      from . import Local
       store = Local.Repository({Dict.style : Styles.Maven}) 
     if store is None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))

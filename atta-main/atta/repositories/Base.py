@@ -1,7 +1,7 @@
 '''.. no-user-reference:'''
 from ..tools.internal.Misc import ObjectFromClass
-import atta.Dict as Dict
-import Styles
+from .. import Dict
+from . import Styles
 
 class ARepository:
   '''TODO: description'''

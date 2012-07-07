@@ -1,8 +1,9 @@
+'''TODO: description'''
 import sys
 
-from repositories.Package import PackageId
-from repositories import ArtifactNotFoundError
-import Dict
+from .repositories.Package import PackageId
+from .repositories import ArtifactNotFoundError
+from . import Dict
 
 class Resolver:
   '''TODO: description'''

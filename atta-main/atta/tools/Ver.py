@@ -1,14 +1,14 @@
 '''.. Miscellaneous: Project version management'''
 import os
 
-import atta.Dict as Dict
-from atta import Atta, LogLevel, GetProject
 from ..tasks.Base import Task
-from internal.Misc import ObjectFromClass
-from DefaultVarsExpander import Expander
-from Properties import Properties
-from Misc import isiterable
-from Strategies import VersionDefaultStrategy
+from .. import Dict
+from .. import LogLevel
+from .internal.Misc import ObjectFromClass
+from .DefaultVarsExpander import Expander
+from .Properties import Properties
+from .Misc import isiterable
+from .Strategies import VersionDefaultStrategy
 
 class Version(Task):
   '''TODO: description'''

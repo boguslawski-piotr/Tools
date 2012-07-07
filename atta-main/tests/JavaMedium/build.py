@@ -1,4 +1,4 @@
-import os
+
 from atta import *
 from atta.targets import Java
 

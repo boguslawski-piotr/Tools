@@ -1,12 +1,13 @@
 '''.. Java related: TODO'''
 import os
-from atta import Atta, GetProject
-from Interfaces import IJavaCompiler
+
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
 from ..tools.Misc import LogLevel
-import atta.tools.OS as OS
-import atta.Dict as Dict
+from ..tools import OS
+from .. import Dict
+from .. import GetProject
+from .Interfaces import IJavaCompiler
 
 class JavaStdCompiler(IJavaCompiler, Task):
   '''TODO: description'''

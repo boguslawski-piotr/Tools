@@ -1,5 +1,3 @@
-import shutil
-
 from atta import *
 from atta.targets import Java
 from atta.tools.Strategies import SrcHashStrategy

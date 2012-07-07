@@ -77,14 +77,14 @@ def _ParseArgv(argv):
   return args
   
 def _Dump():
-  Atta.logger.Log('*** Atta', level = LogLevel.DEBUG)
-  Atta.logger.Log('Platform.platform = ' + platform.platform(), level = LogLevel.DEBUG)
-  Atta.logger.Log('Platform.system = ' + platform.system(), level = LogLevel.DEBUG)
-  Atta.logger.Log('Python.version = ' + platform.python_version(), level = LogLevel.DEBUG)
-  Atta.logger.Log('Atta.version = ' + Atta.version, level = LogLevel.DEBUG)
-  Atta.logger.Log('Atta.version = ' + str(Atta.version), level = LogLevel.DEBUG)
-  Atta.logger.Log('Atta.dirName = ' + Atta.dirName, level = LogLevel.DEBUG)
-  Atta.logger.Log('***', level = LogLevel.DEBUG)
+  Atta.Log('*** Atta', level = LogLevel.DEBUG)
+  Atta.Log('Platform.platform = ' + platform.platform(), level = LogLevel.DEBUG)
+  Atta.Log('Platform.system = ' + platform.system(), level = LogLevel.DEBUG)
+  Atta.Log('Python.version = ' + platform.python_version(), level = LogLevel.DEBUG)
+  Atta.Log('Atta.version = ' + Atta.version, level = LogLevel.DEBUG)
+  Atta.Log('Atta.version = ' + str(Atta.version), level = LogLevel.DEBUG)
+  Atta.Log('Atta.dirName = ' + Atta.dirName, level = LogLevel.DEBUG)
+  Atta.Log('***', level = LogLevel.DEBUG)
 
 def Main():
   # Setup environment
@@ -101,9 +101,10 @@ def Main():
   # Load settings
   
   try:
-    Atta.props = Properties.Open(os.path.join(Atta.dirName, 'atta.properties'))
+    # TODO: szukac atta.properties w: Atta dir, user dir and project dir (nowe zastepuja stare)
+    Atta._SetProps(Properties.Open(os.path.join(Atta.dirName, 'atta.properties')))
     
-    args = Atta.props.Get('args', None)
+    args = Atta.Props().Get('args', None)
     if args is not None:
       argv += args.split(' ')
       
@@ -129,22 +130,22 @@ def Main():
     Javac.SetDefaultRequiresCompileImpl(args.javarc[0])
     
   if args.ll:
-    Atta.logger.SetLevel(args.ll[0])
+    Atta.Logger().SetLevel(args.ll[0])
   if args.d:
-    Atta.logger.SetLevel(LogLevel.DEBUG)
+    Atta.Logger().SetLevel(LogLevel.DEBUG)
   if args.q:
-    Atta.logger.SetLevel(LogLevel.WARNING)
+    Atta.Logger().SetLevel(LogLevel.WARNING)
   if args.lm:
     __import__(args.lm[0])
-    Atta.logger.SetImpl(args.lm[0] + '.Logger')
+    Atta.Logger().SetImpl(args.lm[0] + '.Logger')
   if args.llc:
     for llc in args.llc:
       __import__(OS.Path.RemoveExt(llc))
-      Atta.logger.RegisterListener(llc)
+      Atta.Logger().RegisterListener(llc)
       
   _Dump()
-  Atta.logger.Log("args = {0}".format(args), level = LogLevel.DEBUG)
-  Atta.logger.Log('***', level = LogLevel.DEBUG)
+  Atta.Log("args = {0}".format(args), level = LogLevel.DEBUG)
+  Atta.Log('***', level = LogLevel.DEBUG)
   
   # Run project
   
@@ -152,8 +153,8 @@ def Main():
     atta.Project.Project()._Run(environ, args.f[0], args.target)
     return 0
   
-  except Exception, e:
-    if args.scs or Atta.logger.GetLevel() <= LogLevel.VERBOSE:
+  except Exception as e:
+    if args.scs or Atta.LogLevel() <= LogLevel.VERBOSE:
       import traceback
       exc_type, exc_value, exc_traceback = sys.exc_info()
       lines = traceback.extract_tb(exc_traceback)
@@ -165,7 +166,7 @@ def Main():
       for line in traceback.format_exception_only(exc_type, exc_value):
         print(line)
     else:
-      Atta.logger.Log(e, level = LogLevel.ERROR)
+      Atta.Log(e, level = LogLevel.ERROR)
     return 1
   
   finally:

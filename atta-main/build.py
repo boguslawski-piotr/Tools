@@ -5,13 +5,8 @@ TODO: description
 '''
 import sys
 import os
-import glob
-import shutil
 import re
 
-from atta.tools.Properties import Properties
-from atta.tools.Misc import Logger
-import atta.tools.OS as OS
 from atta import *
 
 if Project is not None:
@@ -66,11 +61,11 @@ class tests(Target):
   ''' Run Atta tasks and targets tests.
   '''
   def Run(self):
-    listener = Atta.logger.RegisterListener(TestsLogger)
+    listener = Atta.Logger().RegisterListener(TestsLogger)
     for fileName in FileSet(includes = 'tests/test_*.py', excludes="**/test_exec_output.py"):
       self.Log('\nRunning project: ' + fileName)
       Project.RunProject(None, fileName, '')
-    Atta.logger.UnRegisterListener(listener)
+    Atta.Logger().UnRegisterListener(listener)
 
 #------------------------------------------------------------------------------ 
 

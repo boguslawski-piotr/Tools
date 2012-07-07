@@ -6,10 +6,8 @@ import re
 import shutil
 import platform
 import stat
-
 from datetime import datetime, timedelta
 from time import sleep
-import Misc
 
 '''
 Common Tools
@@ -90,14 +88,10 @@ class Path:
   @staticmethod
   def FromList(paths):
     '''TODO: description'''
-    if not Misc.isiterable(paths):
+    from .Misc import isiterable
+    if not isiterable(paths):
       return paths
     return os.pathsep.join(paths)
-#    path = ''
-#    for item in paths:
-#      if len(item) > 0:
-#        path = path + os.path.normpath(item) + os.pathsep
-#    return path
 
   @staticmethod
   def TempName(dir_, ext):

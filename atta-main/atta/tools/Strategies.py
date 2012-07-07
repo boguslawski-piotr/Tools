@@ -3,7 +3,7 @@ import os
 import hashlib
 import OS
 
-from Interfaces import ICompareStrategy
+from .Interfaces import ICompareStrategy
 
 class SrcNewerStrategy(ICompareStrategy):
   '''TODO: description'''

@@ -39,10 +39,10 @@ __all__ = [
 
 # Atta
 
-from tools.Misc import LogLevel, Logger, VariablesExpander
-import loggers.Std
-import tools.DefaultVarsExpander
-from version import AttaVersion
+from .tools.Misc import LogLevel, Logger, VariablesExpander
+from .loggers import Std
+from .tools import DefaultVarsExpander
+from .version import AttaVersion
   
 class AttaError(RuntimeError): 
   '''Base class for all exceptions thrown by Atta.'''
@@ -70,15 +70,46 @@ class Atta:
   dirName = None
   '''TODO: description'''
   
-  logger = Logger(loggers.Std.Logger)
-  '''TODO: description'''
+  _logger = Logger(Std.Logger)
   
-  variablesExpander = VariablesExpander(tools.DefaultVarsExpander.Expander) 
-  '''TODO: description'''
+  @staticmethod
+  def Logger():
+    '''TODO: description'''
+    return Atta._logger
   
-  props = None
-  '''TODO: description'''
+  @staticmethod
+  def LogLevel():
+    '''TODO: description'''
+    return Atta._logger.GetLevel()
 
+  @staticmethod
+  def Log(msg = '', **tparams):
+    '''TODO: description'''
+    Atta._logger.Log(msg, **tparams)
+  
+  @staticmethod
+  def LogIterable(msg = '', iterable = [], **tparams):
+    '''TODO: description'''
+    Atta._logger.LogIterable(msg, iterable, **tparams)  
+    
+  _varsExpander = VariablesExpander(DefaultVarsExpander.Expander) 
+  
+  @staticmethod
+  def VarsExpander():
+    '''TODO: description'''
+    return Atta._varsExpander
+  
+  _props = None
+  
+  @staticmethod
+  def Props():
+    '''TODO: description'''
+    return Atta._props
+  
+  @staticmethod
+  def _SetProps(props):
+    Atta._props = props
+    
 # Project property 
 
 Project = None
@@ -91,6 +122,10 @@ def GetProject():
      Returns an instance of the class :py:class:`atta.Project`.'''
   return Project
 
+def _SetProject(project):
+  global Project
+  Project = project
+  
 # File property 
 
 class File:
@@ -102,7 +137,7 @@ class File:
   
   Property File.name is available only during 
   the phase of interpreting the build script. 
-  NOT when Atta performing tasks.
+  NOT when Atta performing targets & tasks.
   '''
   
   '''private section'''
@@ -120,30 +155,30 @@ class File:
     
 # Tools
 
-from tools.Sets import FileSet, DirSet, ExtendedFileSet
-from tools.Properties import Properties
-from tools import OS as OS
-from tools.Ver import Version
+from .tools.Sets import FileSet, DirSet, ExtendedFileSet
+from .tools.Properties import Properties
+from .tools import OS as OS
+from .tools.Ver import Version
 
 # Base classes
 
-from targets.Base import Target
-from tasks.Base import Task
+from .targets.Base import Target
+from .tasks.Base import Task
 
 # Tasks
 # All available tasks.
 
-from tasks.Echo import Echo
-from tasks.Delete import Delete
+from .tasks.Echo import Echo
+from .tasks.Delete import Delete
 
-from tasks.Exec import Exec
-from tasks.PyExec import PyExec
+from .tasks.Exec import Exec
+from .tasks.PyExec import PyExec
 
-from tasks.Archive import Archive
-from tasks.Zip import Zip
+from .tasks.Archive import Archive
+from .tasks.Zip import Zip
 
-from tasks.Javac import Javac
-from tasks.Jar import Jar
+from .tasks.Javac import Javac
+from .tasks.Jar import Jar
 
-from dvcs.Git import Git
+from .dvcs.Git import Git
   

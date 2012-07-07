@@ -1,7 +1,8 @@
+'''TODO: description'''
 import sys
-from atta.repositories.Base import ARepository
-import tools.OS as OS
-import Dict
+
+from .tools import OS
+from . import Dict
 
 class Deployer:
   '''TODO: description'''
@@ -17,7 +18,6 @@ class Deployer:
         __import__(repositoryName)
         repository = sys.modules[repositoryName].Repository(e)
         result += repository.Put(files, baseDirName, packageId)
-        #Atta.logger.LI('***', result, level = LogLevel.ERROR)
       finally:
         repository = None
     

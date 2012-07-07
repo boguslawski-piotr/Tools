@@ -1,5 +1,6 @@
 '''.. no-user-reference:'''
-from Interfaces import IRepositoryStyle
+
+from .Interfaces import IRepositoryStyle
 
 class Maven(IRepositoryStyle):
   def DirName(self, packageId):

@@ -4,7 +4,7 @@ import platform
 
 from ..tools.OS import Path
 from ..Activity import Activity
-from atta import Atta, GetProject
+from .. import GetProject
 
 class Target(Activity):
   '''

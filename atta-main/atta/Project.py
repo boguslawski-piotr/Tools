@@ -1,20 +1,18 @@
+'''TODO: description'''
 import sys
 import os
-import platform
-import collections
-from datetime import datetime, timedelta
+import types
+from datetime import datetime
 
 # Python 2.7+
 #import importlib
 
-from tools.Misc import LogLevel
-import tools.OS as OS
-import tools.Ver as V
-from Env import *
-import Dependencies
-import Deploy
-import atta
-import Dict
+from .tools.Misc import LogLevel
+from .tools import OS
+from .tools import Ver
+from .Env import Env
+from . import Dependencies, Deploy, Dict
+from . import AttaError, Atta, File, GetProject, _SetProject
 
 class Project:
   '''
@@ -78,7 +76,7 @@ class Project:
     '''TODO: description'''
     moduleName = None
     module = None
-    try: #{
+    try:
       orgFileName = fileName
       fileName    = OS.Path.RemoveExt(os.path.normpath(os.path.realpath(fileName)))
       dirName     = os.path.dirname(fileName)
@@ -88,9 +86,9 @@ class Project:
         raise IOError(os.errno.ENOENT, Dict.errFileNotExists % fileName)
       
       logLevel = LogLevel.DEBUG
-      Atta.logger.Log('\n+++\nProject.Import(' + orgFileName + ')', level = logLevel)
-      Atta.logger.Log('  dirName = ' + dirName, level = logLevel)
-      Atta.logger.Log('  fileName = ' + fileName, level = logLevel)
+      Atta.Log('\n+++\nProject.Import(' + orgFileName + ')', level = logLevel)
+      Atta.Log('  dirName = ' + dirName, level = logLevel)
+      Atta.Log('  fileName = ' + fileName, level = logLevel)
       
       fullModuleName = moduleName
       if fileName[0:len(self.dirName)] == self.dirName:
@@ -113,11 +111,11 @@ class Project:
           packageFileName = None
               
       prevDir = self.env.chdir(dirName)
-      atta.File._Set(fileName)
-      try: #{
-        Atta.logger.Log('  fullModuleName = ' + fullModuleName, level = logLevel)
-        Atta.logger.Log('  moduleName = ' + moduleName, level = logLevel)
-        Atta.logger.Log('---\n', level = logLevel)
+      File._Set(fileName)
+      try:
+        Atta.Log('  fullModuleName = ' + fullModuleName, level = logLevel)
+        Atta.Log('  moduleName = ' + moduleName, level = logLevel)
+        Atta.Log('---\n', level = logLevel)
         
         sys.path.insert(0, dirName)
         # Python 2.7+
@@ -134,14 +132,14 @@ class Project:
           OS.RemoveFile(packageFileName)
           OS.RemoveFile(packageFileName + 'c')
           OS.RemoveFile(packageFileName + 'o')
-      #}    
+    
       except:
         raise
       finally:
-        atta.File._Unset()
+        File._Unset()
         if prevDir is not None:
           self.env.chdir(prevDir)
-    #}  
+
     except:
       raise
     
@@ -158,6 +156,8 @@ class Project:
   def GetTarget(self, targetClass):
     '''TODO: description'''
     targetClass = self._GetTargetClass(targetClass)
+    if types.FunctionType == type(targetClass):
+      return targetClass
     target = targetClass()
     return target
   
@@ -165,18 +165,32 @@ class Project:
     '''TODO: description'''
     targetClass = self._GetTargetClass(targetClass)
     if force or not self._executedTargets.has_key(targetClass):
-      target = targetClass()
-      if target.CanRun():
-        self._executedTargetsList.append([target, self._targetsLevel])
+      if types.FunctionType == type(targetClass): 
+        # Target is a normal function.
+        self._executedTargetsList.append([targetClass, self._targetsLevel])
         self._targetsLevel += 1
-        if target._RunPrepare():
-          self._executedTargets[targetClass] = target
-          for dependClass in target.dependsOn:
+        self._executedTargets[targetClass] = targetClass
+        if Dict.dependsOn in dir(targetClass):
+          for dependClass in targetClass.dependsOn:
             self.RunTarget(dependClass)
-          target._Run()
-          target._RunFinalize()
+        Atta.Log(start = True, target = targetClass.__name__)
+        targetClass()
+        Atta.Log(end = True, target = targetClass.__name__)
         self._targetsLevel -= 1
-      return target
+      else:
+        # Target is a class (and we assume that iherits from atta.targets.Base.Target)
+        target = targetClass()
+        if target.CanRun():
+          self._executedTargetsList.append([target, self._targetsLevel])
+          self._targetsLevel += 1
+          if target._RunPrepare():
+            self._executedTargets[targetClass] = target
+            for dependClass in target.dependsOn:
+              self.RunTarget(dependClass)
+            target._Run()
+            target._RunFinalize()
+          self._targetsLevel -= 1
+        return target
     return None
   
   def RunProject(self, environ, fileName, targets = []):
@@ -196,11 +210,12 @@ class Project:
   
   def _Run(self, environ, fileName, targets = []):
     prevDir = os.getcwd()
-    prevAttaProject = atta.Project
+    prevAttaProject = GetProject()
     try:
       self.startTime = datetime.now()
       
-      atta.Project = self
+      #atta.Project = self
+      _SetProject(self)
       
       if os.path.isdir(fileName):
         fileName = os.path.join(fileName, Dict.defaultBuildFileName)
@@ -211,18 +226,18 @@ class Project:
       
       self.env = Env(environ)
       self.env.chdir(self.dirName)
-      self.version = V.Version(createIfNotExists = False)
+      self.version = Ver.Version(createIfNotExists = False)
       self.targets = targets
       
       if self._parent is None:
-        Atta.logger.Log('Buildfile: ' + self.fileName)
+        Atta.Log('Buildfile: ' + self.fileName)
       
       moduleName, module = self.Import(self.fileName)
       
       if len(targets) <= 0 or len(targets[0]) <= 0:
         targets = [self.defaultTarget]
         if len(targets[0]) <= 0:
-          Atta.logger.Log('You did not specify any target.',
+          Atta.Log('You did not specify any target.',
                 project = self.fileName,
                 log = True)
           self._End(Project.SUCCESSFUL);
@@ -231,7 +246,7 @@ class Project:
       self.env._Dump()
       self._Dump()
       
-      Atta.logger.Log(
+      Atta.Log(
             project = self.fileName,
             start = True,
             at = self.startTime)
@@ -251,20 +266,21 @@ class Project:
       raise
 
     finally:
-      atta.Project = prevAttaProject
+      #atta.Project = prevAttaProject
+      _SetProject(prevAttaProject)
       self.env.chdir(prevDir)
       
   def _End(self, status, exception = None):
     self.endTime = datetime.now();
     if self._parent is None:
-      Atta.logger.Log(
+      Atta.Log(
             project = self.fileName,
             end = True,
             status = ('SUCCESSFUL' if status == Project.SUCCESSFUL else 'FAILED!'),
             at = self.endTime,
             time = self.endTime - self.startTime,
             exception = exception,
-            level = LogLevel.ERROR)
+            level = LogLevel.ERROR if status == Project.FAILED else LogLevel.INFO)
     return
   
   def _GetTargetClass(self, targetClass):
@@ -277,7 +293,7 @@ class Project:
         try:
           targetPackage, targetClassName = _SplitClass(targetClass)
           targetClass = sys.modules[targetPackage].__dict__[targetClassName]
-        except Exception, e:
+        except Exception as e:
           firstDot = targetPackage.find('.')
           if firstDot >= 0:
             targetPackage = targetPackage[firstDot + 1:]
@@ -305,19 +321,19 @@ class Project:
     return targetClass
     
   def _Dump(self):
-    if Atta.logger.GetLevel() == LogLevel.DEBUG:
-      Atta.logger.Log('*** Project')
-      Atta.logger.Log('Project.dirName = ' + self.dirName)
-      Atta.logger.Log('Project.fileName = ' + self.fileName)
-      Atta.logger.Log('Project.defaultTarget = ' + self.defaultTarget)
-      Atta.logger.Log('***')
+    if Atta.LogLevel() == LogLevel.DEBUG:
+      Atta.Log('*** Project')
+      Atta.Log('Project.dirName = ' + self.dirName)
+      Atta.Log('Project.fileName = ' + self.fileName)
+      Atta.Log('Project.defaultTarget = ' + self.defaultTarget)
+      Atta.Log('***')
 
   def _DumpExecutedTargets(self):
-    if Atta.logger.GetLevel() == LogLevel.DEBUG:
-      Atta.logger.Log('\n*** Project: {0}'.format(self.fileName))
-      Atta.logger.Log('executed targets:')
+    if Atta.LogLevel() == LogLevel.DEBUG:
+      Atta.Log('\n*** Project: {0}'.format(self.fileName))
+      Atta.Log('executed targets:')
       et = self._executedTargetsList
       et.reverse()
       for i in et:
-        Atta.logger.Log('  ' + ' ' * i[1]*2 + '{0}'.format(i[0].__class__))
-      Atta.logger.Log('***')
+        Atta.Log('  ' + ' ' * i[1]*2 + '{0}'.format(i[0].__class__))
+      Atta.Log('***')

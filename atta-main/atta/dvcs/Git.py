@@ -3,10 +3,10 @@ import os
 
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
-import atta.Dict as Dict
-from atta import Atta, LogLevel, GetProject
-import atta.tools.OS as OS
-import Interfaces
+from ..tools import OS
+from .. import Dict
+from .. import LogLevel, GetProject
+from . import Interfaces
 
 class Git(Interfaces.IDvcs, Task):
   def __init__(self, dir = '.', params = None, **tparams):

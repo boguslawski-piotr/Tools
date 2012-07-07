@@ -3,13 +3,13 @@ import os
 import hashlib
 from datetime import datetime, timedelta
 
-import atta.tools.OS as OS
 from ..tasks.Base import Task
 from ..tools.Misc import NamedFileLike, LogLevel
-from Base import ARepository
+from ..tools import OS
+from .. import AttaError
+from .. import Dict
+from .Base import ARepository
 from . import ArtifactNotFoundError
-import atta.Dict as Dict
-import Maven
 
 class Repository(ARepository, Task):
   '''TODO: description'''
@@ -161,6 +161,7 @@ class Repository(ARepository, Task):
       return f.read()
 
   def GetDependenciesFromPOM(self, packageId, scope):
+    from . import Maven
     fileName = self.PrepareFileName(packageId, self._RootDir())
     fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dict.pom)
     if not self.vFileExists(fileName):

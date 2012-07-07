@@ -2,9 +2,9 @@
 import sys
 import os
 
-from Exec import Exec
 from ..tools.Misc import LogLevel
-import atta.tools.OS as OS
+from ..tools import OS
+from .Exec import Exec
 
 class PyExec(Exec):
   '''

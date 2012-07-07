@@ -4,8 +4,8 @@ import os
 from ..tools.ZipFile import ZipFile
 from ..tasks.Zip import Zip
 from ..tools.Misc import LogLevel
-import atta.Dict as Dict
-from atta import Atta
+from .. import Dict
+from .. import Atta
 
 class Jar(Zip):
   '''

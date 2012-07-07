@@ -1,6 +1,8 @@
-import atta
-from tools.Misc import LogLevel, isiterable
-import Dict
+'''TODO: description'''
+
+from .tools.Misc import LogLevel, isiterable
+from . import Dict
+from . import Atta
 
 class Activity:
   '''
@@ -9,7 +11,7 @@ class Activity:
   TODO: description
   '''
   def LogLevel(self):
-    return atta.Atta.logger.GetLevel()
+    return Atta.LogLevel()
   
   def Log(self, msg = '', **args):
     self._Log(msg, **args)
@@ -27,14 +29,14 @@ class Activity:
   
   def _Log(self, msg = '', **args):
     args[self._Type()] = self._Name()
-    atta.Atta.logger.Log(msg, **args)
+    Atta.Log(msg, **args)
 
   def _LogIterable(self, msg = '', iterable = [], **args):
     args[self._Type()] = self._Name()
-    atta.Atta.logger.LogIterable(msg, iterable, **args)
+    Atta.LogIterable(msg, iterable, **args)
 
   def _DumpParams(self, locals_):
-    if atta.Atta.logger.GetLevel() == LogLevel.DEBUG:
+    if Atta.LogLevel() == LogLevel.DEBUG:
       self.Log(Dict.msgDumpParameters)
       for name, value in locals_.items():
         if name != 'self':
