@@ -7,7 +7,7 @@ class Maven(IRepositoryStyle):
     return '%s/%s/%s' % (str(packageId.groupId).replace('.', '/'), str(packageId.artifactId), str(packageId.version))
   
   def FileName(self, packageId):
-    return '%s-%s.%s' % (str(packageId.artifactId), str(packageId.version), str(packageId.type_))
+    return '%s-%s.%s' % (str(packageId.artifactId), str(packageId.version), str(packageId.type))
 
   def FullFileName(self, packageId):
     return '%s/%s' % (self.DirName(packageId), self.FileName(packageId))
@@ -20,7 +20,7 @@ class Flat(IRepositoryStyle):
       return '%s.%s-%s' % (str(packageId.groupId), str(packageId.artifactId), str(packageId.version))
   
   def FileName(self, packageId):
-    return '%s-%s.%s' % (str(packageId.artifactId), str(packageId.version), str(packageId.type_))
+    return '%s-%s.%s' % (str(packageId.artifactId), str(packageId.version), str(packageId.type))
 
   def FullFileName(self, packageId):
     return '%s/%s' % (self.DirName(packageId), self.FileName(packageId))

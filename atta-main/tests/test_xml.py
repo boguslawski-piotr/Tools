@@ -1,144 +1,115 @@
-'''Xml task tests.'''
+'''Xml tool tests.'''
 
 from atta import *
 
 Project.defaultTarget = 'test'
 
-import re
-import xml.etree.cElementTree
-
-class Xml:
-  '''Extension for xml.etree.ElementTree/xml.etree.cElementTree'''
-  def __init__(self, src):
-    if isinstance(src, basestring) and src.lstrip().startswith('<'):
-      self._root = xml.etree.cElementTree.fromstring(src)
-    else:
-      self._root = xml.etree.cElementTree.parse(src).getroot()
-    
-#    for x in self.root.iter():
-#      print x
-    #print self.root.find('distributionManagement/site/url').text
-    
-  def root(self):
-    '''Returns xml.etree.ElementTree.Element'''
-    return self._root
-  
-  def rootNS(self):
-    try:
-      m = re.search('({.*})', self._root.tag)
-      if m != None:
-        return m.group(1)
-    except: 
-      pass
-    return ''
-  
-  def values(self, match, caseSensitive = True):
-    '''Returns values for tag or path as list with dicts inside
-    TODO: more description
-    '''
-    values = []
-    if len(match) <= 0:
-      return values
-    
-    def _GetValues(e, d):
-      c = list(e)
-      if len(c) <= 0:
-        tag = re.sub('{.*}', '', e.tag) # remove namespace, TODO: add support for namespaces
-        d[tag] = e.text.strip()
-      else:
-        text = e.text.strip()
-        if text:
-          tag = re.sub('{.*}', '', e.tag) # remove namespace, TODO: add support for namespaces
-          d[tag] = text 
-        
-        lastFlatLevel = len(list(c[0])) == 0
-        if lastFlatLevel:
-          tag = c[0].tag 
-          for z in c[1:]:
-            if z.tag != tag or len(list(z)) > 0: 
-              lastFlatLevel = False
-              break
-            
-        d = {}
-        for e in c:
-          _GetValues(e, d)
-          if lastFlatLevel:
-            values.append(d)
-            d = {}
-        if not lastFlatLevel:
-          values.append(d)
-    
-    match = OS.Path.AsList(match, '/')
-    root = self._root
-    i = 0
-    while True:
-      for e in list(root):
-        tag = re.sub('{.*}', '', e.tag) # remove namespace, TODO: add support for namespaces
-        name = match[i]
-        if not caseSensitive:
-          tag = tag.lower()
-          name = name.lower()
-        if tag == name:
-          if i < len(match) - 1:
-            root = e
-            break
-          else:
-            d = {}
-            _GetValues(e, d)
-            values.append(d)
-      else:
-        break
-      i += 1
-      if i >= len(match):
-        break
-      
-    # Remove empty 'lines'.
-    values = filter((lambda e: len(e)), values)
-    return values
-  
 def printv(xml, name):
   values = xml.values(name, False)
-  print 'In: %s found %d value(s):' % (name, len(values))  
+  i = 0
   for v in values:
-    print ' ', v
-  
+    i += len(v.keys())
+  Echo('In: %s found %d value(s):' % (name, i))  
+  for v in values:
+    Echo('  ' + str(v))
+
+def printxml(xml, ident = 0):  
+  for e in list(xml):
+    Echo('.' * ident + e.tag + str(e.attrib) + '\n', file = 'test_xml.log', append = True)
+    printxml(e, ident + 2)
+
 def test():
-  Echo('Xml test')
-  xml = Xml('test_xml.xml')
-  printv( xml, 'properties' )
-  printv( xml, 'distributionmanagement' )
-  printv( xml, 'distributionmanagement/site/url' )
-  printv( xml, 'distributionManagement/downloadUrl' )
-#  d = xml.GetValues('modules/module')
-#  d = xml.GetValues('modules')
-#  d = xml.GetValues('parent')
-  printv( xml, 'dependencies' )
-#  d = xml.GetValues('dependencies/dependency')
-#  d = xml.GetValues('dependencies/dependency/groupId')
-#  d = xml.GetValues('dependencyManagement/dependencies/dependency')
-#  d = xml.GetValues('dependencyManagement/dependencies')
-  printv( xml, 'dependencyManagement' )
+#  Echo('Big xml data test (result in test_xml.log):')
+#  Echo()
+#  xml = Xml('test_xml.vcproj')
+#  Echo(xml.tag + str(xml.attrib) + '\n', file = 'test_xml.log')
+#  #printxml(xml, 2)
+#    
+#  Echo('POM data test:')
+#  Echo()
+#  xml = Xml('test_xml.xml')
+#  printv( xml, 'properties' )
+#  printv( xml, 'distributionmanagement' )
+#  printv( xml, 'distributionmanagement/site/url' )
+#  printv( xml, 'distributionManagement/downloadUrl' )
+#
+#  printv( xml, 'modules/module' )
+#  printv( xml, 'modules' )
+#  
+#  printv( xml, 'dependencies' )
+#  printv( xml, 'dependency' )
+#  printv( xml, 'dependencies/dependency' )
+#  printv( xml, 'dependencies/dependency/groupId')
+#
+#  printv( xml, 'dependencyManagement/dependencies/dependency')
+#  printv( xml, 'dependencyManagement/dependencies')
+#  printv( xml, 'dependencyManagement' )
+#  
+#  Echo()
+#  Echo('Simple data test:')
+#  Echo()
+#  xmldata = '''
+#<xml xmlns:ns2="ns2_name">
+#  <node>
+#  n1
+#    <subnode>
+#    sn1
+#      <ns2:subsubnode>
+#      ssn1
+#      </ns2:subsubnode>
+#    </subnode>
+#  </node>  
+#</xml>  
+#'''
+#  xml = Xml(xmldata)
+#  printv(xml, 'node')  
+#  printv(xml, 'node/subnode')  
+#  printv(xml, 'node/subnode/subsubnode')
+#  Echo(xml.findtext('node/subnode/subsubnode'))
+#  
+#  elem = XmlElement('new_node', {'attr' : 'value'}, ns='ns_new_node')
+#  elem.text = 'some text'
+#  elem2 = XmlElement('new_node2', {'attr' : 'value 2'})
+#  elem2.text = 'some text 2'
+#  xml.extend([elem, elem2])
+#  printv( xml, 'new_node')  
+#  printv(xml, '')  
+#  e = xml.find('node/subnode/subsubnode')
+#  Echo(e)
+#  
+#  Echo()
+#  
+#  Echo( 'makeelement:')
+#  Echo( xml.makeelement('cos', {}) )
+#  
+#  Echo()
+#  Echo('nodes count: %d' % len(xml) )
+#  Echo( xml[0] )
+#  Echo( xml[1] )
+#  xml[1] = XmlElement('new_node3', {'attr' : 'value 3'}, ns='ns_new_node_3')
+#  Echo( xml[1] )
+#  del xml[1]
+#  Echo( xml[1] )
+#  xml.remove(elem2)
+#  Echo( 'nodes count: %d' % len(xml) )
   
-  with open('test_xml.xml', 'r') as f:
-    xml = Xml(f.read())
-    printv( xml, 'properties' )
-    
-  xmldata = '''
-<xml>
-  <node>
-  n1
-    <subnode>
-    sn1
-      <subsubnode>
-      ssn1
-      </subsubnode>
-    </subnode>
-  </node>  
-</xml>  
-'''
-  xml = Xml(xmldata)
-  printv( xml, 'node')  
-  printv( xml, 'node/subnode')  
-  printv( xml, 'node/subnode/subsubnode')
+  from atta.repositories.Maven import Repository
+  from atta.repositories.Package import PackageId
   
-  return
+  Echo()  
+  Echo('POM data test 2:')
+#  with open('test_xml.pom', 'r') as f:
+#    pom = f.read()
+#  Echo(Repository.GetDependenciesFromPOM(pom, ['compile'], True, Atta.Log))
+  
+  packageId = PackageId.FromStr('org.powermock:powermock-core.jar:1.4.10')
+  r = Repository(None)
+  r.Get(packageId, 'compile')
+  
+#  f = Repository.GetArtifactPOMFile(packageId, Atta.Log)
+#  Echo(Repository.GetDependenciesFromPOM(f, ['compile'], True, Atta.Log))
+
+#  packageId = PackageId.FromStr('org.springframework:spring-jdbc.pom:1.2.9')
+#  f = Repository.GetArtifactPOMFile(packageId, Atta.Log)
+#  Echo(Repository.GetDependenciesFromPOM(f, ['compile'], True, Atta.Log))
+  

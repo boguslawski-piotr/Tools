@@ -251,7 +251,8 @@ class Project:
             start = True,
             at = self.startTime)
       
-      self.version._CreateIfNotExists()
+      if self.version != None:
+        self.version._CreateIfNotExists()
       
       for targetName in targets:
         self._executedTargets.clear() # Behavior compatible with Ant.

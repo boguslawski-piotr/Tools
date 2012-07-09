@@ -8,6 +8,18 @@ def isiterable(obj):
   '''TODO: description'''
   return not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
 
+def strip(str):
+  '''TODO: description'''
+  return str.strip()
+
+def lstrip(str):
+  '''TODO: description'''
+  return str.lstrip()
+
+def rstrip(str):
+  '''TODO: description'''
+  return str.rstrip()
+
 #------------------------------------------------------------------------------ 
 
 class NamedFileLike:

@@ -72,5 +72,5 @@ class Expander:
     return txt
 
   def VariablePattern(self):
-    return '\$\{([\w\.]+)\}'
+    return '\$\{([\w\-\.]+)\}'
   

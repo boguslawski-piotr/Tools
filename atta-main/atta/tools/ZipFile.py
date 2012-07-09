@@ -49,6 +49,6 @@ class ZipFile(IArchiveFile):
   def __enter__(self):
     return self
 
-  def __exit__(self, type_, value, traceback):
+  def __exit__(self, type, value, traceback):
     self.zip.close()
     

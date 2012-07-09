@@ -18,14 +18,14 @@ class ProjectType:
   
 class Setup:
   '''TODO: description'''
-  def __init__(self, type_ = ProjectType.app, **tparams):
+  def __init__(self, type = ProjectType.app, **tparams):
     '''TODO: description'''
     project = GetProject()
     
     if not hasattr(project, 'groupId'):
       project.groupId = project.name
       
-    project.type_ = type_
+    project.type = type
     '''TODO: description
     available values: see ProjectType
     '''
@@ -36,7 +36,7 @@ class Setup:
     project.buildBaseDir = tparams.get('buildBaseDir', 'build')
     '''TODO: description'''
     
-    if project.type_ == ProjectType.app:
+    if project.type == ProjectType.app:
       defInstallBaseDir = 'bin'
     else:
       defInstallBaseDir = 'lib'
@@ -76,10 +76,10 @@ class Setup:
     project.packageNameStyle = Styles.Maven
     '''TODO: description'''
     
-    if project.type_ == ProjectType.app:
+    if project.type == ProjectType.app:
       project.packageExt = Dict.jar
     else:
-      project.packageExt = project.type_
+      project.packageExt = project.type
 
     project.packageName = ''
     '''result package file name set in package target TODO: description'''
@@ -247,7 +247,7 @@ class install(Target):
     
     javaClassPath = self.CopyPackage()
     
-    if project.type_ == ProjectType.app:
+    if project.type == ProjectType.app:
       javaClassPath += self.CopyDependencies()
       self.CreateStartupScripts(javaClassPath)
 
@@ -358,7 +358,7 @@ class install(Target):
       Echo(f, file = pomFileName, force = True,
            groupId = project.groupId,
            artifactId = project.name,
-           type_ = project.packageExt,
+           type = project.packageExt,
            version = str(project.version),
            displayName = project.displayName if len(project.displayName) > 0 else project.name,
            description = project.description,

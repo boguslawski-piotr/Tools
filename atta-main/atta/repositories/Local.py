@@ -11,6 +11,9 @@ from .. import Dict
 from .Base import ARepository
 from . import ArtifactNotFoundError
 
+def GetPOMFileContents(packageId):
+  pass
+
 class Repository(ARepository, Task):
   '''TODO: description'''
 
@@ -160,13 +163,16 @@ class Repository(ARepository, Task):
     with open(pomFileName, 'rb') as f:
       return f.read()
 
-  def GetDependenciesFromPOM(self, packageId, scope):
-    from . import Maven
+  def GetPOMFileContents(self, packageId):
     fileName = self.PrepareFileName(packageId, self._RootDir())
     fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dict.pom)
     if not self.vFileExists(fileName):
       return None
-    return Maven.Repository.GetDependenciesFromPOM(self.vGetPOMFileContents(fileName), Dict.Scopes.map2POM.get(scope, []))
+    return self.vGetPOMFileContents(fileName)
+  
+  def GetDependenciesFromPOM(self, packageId, scope):
+    from . import Maven
+    return Maven.Repository.GetDependenciesFromPOM(packageId, self.GetPOMFileContents, Dict.Scopes.map2POM.get(scope, []))
   
   def _LifeTime(self):
     return timedelta(days = 14)

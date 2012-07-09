@@ -65,13 +65,13 @@ class Repository(Local.Repository):
         packageId.groupId = getattr(project, Dict.groupId, None)
         packageId.artifactId = getattr(project, Dict.name, None)
         packageId.version = str(getattr(project, Dict.version, None))
-        packageId.type_ = None
+        packageId.type = None
         if result != None and len(result) > 0:
           packageId.systemPath = '\\${pathTo' + (packageId.artifactId if packageId.artifactId != None else '') + '}'
           packageId.scope = Dict.system
           # We assume that the main file of the project is always the first on the list.
 #          packageId.systemPath = OS.Path.NormUnix(os.path.realpath(result[0]))
-#          packageId.type_ = OS.Path.Ext(packageId.systemPath)
+#          packageId.type = OS.Path.Ext(packageId.systemPath)
         
       except:
         raise

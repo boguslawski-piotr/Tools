@@ -20,6 +20,8 @@ __all__ = [
            'ExtendedFileSet',
            'OS',
            'Version',
+           'Xml',
+           'XmlElement',
 
            # Tasks
            'Echo',
@@ -159,6 +161,7 @@ from .tools.Sets import FileSet, DirSet, ExtendedFileSet
 from .tools.Properties import Properties
 from .tools import OS as OS
 from .tools.Ver import Version
+from .tools.Xml import Xml, XmlElement
 
 # Base classes
 

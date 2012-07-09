@@ -62,6 +62,11 @@ dependencyStartTag = '<dependency>'
 dependencyEndTag   = '</dependency>'
 exclusions = 'exclusions'
 optional = 'optional'
+relativePath = 'relativePath'
+parent = 'parent'
+packaging = 'packaging'
+properties = 'properties'
+project = 'project'
 
 #
 # Java related
@@ -117,6 +122,8 @@ msgNoneHaveBeenAdded = 'To: %s none have been added.'
 
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
+
+msgGettingProperties = 'Getting %s properties.'
 
 msgDvcsRepository = 'Repository: %s'
 msgDvcsOutputTitle = 'Output from DVCS:'
