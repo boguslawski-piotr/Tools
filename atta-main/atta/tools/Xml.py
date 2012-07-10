@@ -72,11 +72,13 @@ class XmlElement(ET.Element):
     def _GetValues(e, d):
       c = list(e)
       if len(c) <= 0:
-        d[e.tag] = stripfn(e.text)
+        if e.text:
+          d[e.tag] = stripfn(e.text)
       else:
-        text = stripfn(e.text)
-        if text:
-          d[e.tag] = text 
+        if e.text:
+          text = stripfn(e.text)
+          if text:
+            d[e.tag] = text 
         
         lastFlatLevel = len(list(c[0])) == 0
         if lastFlatLevel:

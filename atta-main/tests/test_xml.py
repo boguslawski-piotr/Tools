@@ -102,14 +102,9 @@ def test():
 #    pom = f.read()
 #  Echo(Repository.GetDependenciesFromPOM(pom, ['compile'], True, Atta.Log))
   
-  packageId = PackageId.FromStr('org.powermock:powermock-core.jar:1.4.10')
-  r = Repository(None)
+  #packageId = PackageId.FromStr('asm:asm-util.jar:2.2.3')
+  packageId = PackageId.FromStr('com.thoughtworks.xstream:xstream.jar:1.3.1')
+  #packageId = PackageId.FromStr('ant.jar:1.6.2')
+  r = Repository({'getOptional' : True})
   r.Get(packageId, 'compile')
-  
-#  f = Repository.GetArtifactPOMFile(packageId, Atta.Log)
-#  Echo(Repository.GetDependenciesFromPOM(f, ['compile'], True, Atta.Log))
-
-#  packageId = PackageId.FromStr('org.springframework:spring-jdbc.pom:1.2.9')
-#  f = Repository.GetArtifactPOMFile(packageId, Atta.Log)
-#  Echo(Repository.GetDependenciesFromPOM(f, ['compile'], True, Atta.Log))
   

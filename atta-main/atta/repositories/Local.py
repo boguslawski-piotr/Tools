@@ -4,11 +4,12 @@ import hashlib
 from datetime import datetime, timedelta
 
 from ..tasks.Base import Task
-from ..tools.Misc import NamedFileLike, LogLevel
+from ..tools.Misc import RemoveDuplicates, NamedFileLike, LogLevel
 from ..tools import OS
 from .. import AttaError
 from .. import Dict
 from .Base import ARepository
+from .Package import PackageId
 from . import ArtifactNotFoundError
 
 def GetPOMFileContents(packageId):
@@ -33,9 +34,12 @@ class Repository(ARepository, Task):
     os.utime(fileName, None) # equivalent: touch
     
   def vPutFileLike(self, f, fileName):
-    with open(fileName, 'wb') as lf:
+    lf = open(fileName, 'wb')
+    try:
       for chunk in iter(lambda: f.read(32768), b''): 
         lf.write(chunk)
+    finally:
+      lf.close()
     return OS.FileHash(fileName, hashlib.sha1())
   
   def vPutFile(self, fFileName, fileName):
@@ -48,15 +52,19 @@ class Repository(ARepository, Task):
     dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
     return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
   
-  def vGetFileMarkerContents(self, markerFileName):
-    with open(markerFileName, 'rb') as f:
-      return f.read()
+  def vGetMarkerFileContents(self, markerFileName):
+    f = open(markerFileName, 'rb')
+    try:
+      rc = f.read()
+    finally:
+      f.close()
+    return rc
     
   def GetFileMarker(self, fileName):
     '''TODO: description'''
     try:
       markerFileName = self.PrepareMarkerFileName(fileName)
-      contents = self.vGetFileMarkerContents(markerFileName)
+      contents = self.vGetMarkerFileContents(markerFileName)
       contents = contents.split('\n')
       timestamp, sha1 = (None, None)
       if len(contents) > 0:
@@ -69,9 +77,12 @@ class Repository(ARepository, Task):
       return (timestamp, sha1)
     
   def vPutMarkerFileContents(self, markerFileName, contents):
-    with open(markerFileName, 'wb') as f:
+    f = open(markerFileName, 'wb')
+    try:
       f.write(contents)
-  
+    finally:
+      f.close()
+      
   def PutMarkerFile(self, fileName, fileSha1, packageId):
     '''TODO: description'''
     markerFileName = self.PrepareMarkerFileName(fileName)
@@ -86,9 +97,13 @@ class Repository(ARepository, Task):
     return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
 
   def vGetInfoFileContents(self, infoFileName):
-    with open(infoFileName, 'rb') as f:
-      return f.read()
-
+    f = open(infoFileName, 'rb')
+    try:
+      rc = f.read()
+    finally:
+      f.close()
+    return rc
+  
   def GetInfoFile(self, fileName):  
     infoFileName = self.PrepareInfoFileName(fileName)
     if self.vFileExists(infoFileName):
@@ -99,9 +114,12 @@ class Repository(ARepository, Task):
     return infoFile.split('\n')
   
   def vPutInfoFileContents(self, infoFileName, contents):
-    with open(infoFileName, 'wb') as f:
+    f = open(infoFileName, 'wb')
+    try:
       f.write(contents)
-      
+    finally:
+      f.close()
+        
   def PutInfoFile(self, fileName, storedFileNames):
     self.vPutInfoFileContents(self.PrepareInfoFileName(fileName), '\n'.join(storedFileNames))
 
@@ -127,7 +145,7 @@ class Repository(ARepository, Task):
       result = [fileName]
     return result
   
-  def Get(self, packageId, scope, store = None):
+  def _Get(self, packageId, scope, store):
     '''TODO: description'''
     '''returns: list of filesNames'''
     # Get the dependencies.
@@ -135,12 +153,13 @@ class Repository(ARepository, Task):
     packages = self.GetDependenciesFromPOM(packageId, scope)
     if packages != None:
       for p in packages:
-        additionalFiles += self.Get(p, scope, store)
+        additionalFiles += self._Get(p, scope, store)
     
     # Check and prepare artifact files.
     fileName = self.PrepareFileName(packageId, self._RootDir())
     if not self.vFileExists(fileName):
       raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+    
     dirName = os.path.dirname(fileName)
     result = self.GetAll(fileName)
       
@@ -149,40 +168,60 @@ class Repository(ARepository, Task):
       packageId.timestamp, sha1 = self.GetFileMarker(fileName)
       filesInStore = store.Check(packageId, scope)
       if filesInStore is None:
-        self.Log('Uploading: %s to: %s' %(str(packageId), store._Name()), level = LogLevel.INFO)
+        self.Log('Uploading: %s' % str(packageId), level = LogLevel.INFO)
         store.Put(result, dirName, packageId)
       else:
         if fileName in filesInStore:
           self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(packageId), level = LogLevel.WARNING)
 
     result += additionalFiles
+    result = RemoveDuplicates(result)
     self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
     return result
   
+  def Get(self, packageId, scope, store = None):
+    return self._Get(packageId, scope, store)
+  
   def vGetPOMFileContents(self, pomFileName):
-    with open(pomFileName, 'rb') as f:
-      return f.read()
+    f = open(pomFileName, 'rb')
+    try:  
+      rc = f.read()
+    finally:
+      f.close()
+    return rc
 
-  def GetPOMFileContents(self, packageId):
+  def GetPOMFileContents(self, packageId, **tparams):
+    from . import Maven
+    packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
+    pom = Maven.Repository.GetPOMFromCache(packageId, self.Log)
+    if pom != None:
+      return pom
+    
     fileName = self.PrepareFileName(packageId, self._RootDir())
-    fileName = OS.Path.JoinExt(OS.Path.RemoveExt(fileName), Dict.pom)
     if not self.vFileExists(fileName):
       return None
-    return self.vGetPOMFileContents(fileName)
+    
+    pom = self.vGetPOMFileContents(fileName)
+    Maven.Repository.PutPOMIntoCache(packageId, pom, self.Log)
+    return pom
   
   def GetDependenciesFromPOM(self, packageId, scope):
     from . import Maven
-    return Maven.Repository.GetDependenciesFromPOM(packageId, self.GetPOMFileContents, Dict.Scopes.map2POM.get(scope, []))
+    return Maven.Repository.GetDependenciesFromPOM(packageId, 
+                                                   self.GetPOMFileContents, 
+                                                   Dict.Scopes.map2POM.get(scope, []), 
+                                                   self.OptionalAllowed(),
+                                                   logFn = self.Log)
   
   def _LifeTime(self):
     return timedelta(days = 14)
     #return timedelta(seconds = 5)
 
   # TODO: uzyc wzorca Strategy do implementacji Check
-  def Check(self, packageId, scope):
+  def _Check(self, packageId, scope, checkedPackages):
     '''returns: None or list of filesNames'''
-    self.Log(Dict.msgChecking.format(str(packageId)), level = LogLevel.VERBOSE)
-
+    self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.DEBUG)
+    
     fileName = self.PrepareFileName(packageId, self._RootDir())
     if not self.vFileExists(fileName):
       return None
@@ -208,16 +247,25 @@ class Repository(ARepository, Task):
         return None
     
     # Check dependencies from POM file.
+    # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
+    # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
     additionalFiles = []
     packages = self.GetDependenciesFromPOM(packageId, scope)
     if packages != None:
-      for dPackageId in packages:
-        r = self.Check(dPackageId, scope)
-        if r == None:
-          return None
-        additionalFiles += r
+      for p in packages:
+        if not packageId.Excludes(p):
+          if p not in checkedPackages:
+            checkedPackages.append(p)
+            pfiles = self._Check(p, scope, checkedPackages)
+            if self.OptionalAllowed() or not p.IsOptional():
+              if pfiles is None:
+                return None
+            if pfiles: additionalFiles += pfiles
         
     return additionalFiles + self.GetAll(fileName)
+  
+  def Check(self, packageId, scope):
+    return self._Check(packageId, scope, [])
   
   def Put(self, f, fBaseDirName, packageId):
     '''returns: list of filesNames'''
@@ -227,7 +275,7 @@ class Repository(ARepository, Task):
     dirName = os.path.normpath(os.path.dirname(fileName))
     self.vMakeDirs(dirName)
     
-    self.Log('to: %s' % dirName, level = LogLevel.INFO)
+    self.Log('to: %s' % dirName, level = LogLevel.DEBUG)
     
     if 'read' in dir(f):
       sha1 = self.vPutFileLike(f, fileName)

@@ -61,6 +61,28 @@ class PackageId:
     xml = xml + Dict.dependencyEndTag + Dict.newLine
     return xml
   
+  def IsOptional(self):
+    optional = getattr(self, Dict.optional, False)
+    if not optional:
+      return False
+    if isinstance(optional, basestring):
+      optional = optional.lower().strip()
+      if optional == Dict.true or optional == Dict.yes:
+        return True
+      return False
+    else:
+      return bool(optional)
+    
+  def Excludes(self, packageId):
+    '''Checks if `packageId` is on the `exclusions` list
+       that is created when you download the dependencies
+       from POM files.''' 
+    excludedPackages = getattr(self, Dict.exclusions, [])
+    for e in excludedPackages:
+      if packageId.groupId == e.groupId and packageId.artifactId == e.artifactId:
+        return True
+    return False
+     
   @staticmethod
   def FromStr(packageStrId):
     '''TODO: description'''
@@ -79,10 +101,12 @@ class PackageId:
 
   @staticmethod
   def __Override(packageId, **tparams):
-    if tparams.get(Dict.groupId, None) != None: packageId.groupId = tparams.get(Dict.groupId)
-    if tparams.get(Dict.artifactId, None) != None: packageId.artifactId = tparams.get(Dict.artifactId)
-    if tparams.get(Dict.version, None) != None: packageId.version = tparams.get(Dict.version)
-    if tparams.get(Dict.type, None) != None: packageId.type = tparams.get(Dict.type)
+    if Dict.groupId in tparams: packageId.groupId = tparams.get(Dict.groupId)
+    if Dict.artifactId in tparams: packageId.artifactId = tparams.get(Dict.artifactId)
+    if Dict.version in tparams: packageId.version = tparams.get(Dict.version)
+    if Dict.type in tparams: packageId.type = tparams.get(Dict.type)
+    if packageId.groupId is None:
+      packageId.groupId = packageId.artifactId
     return packageId
 
   @staticmethod

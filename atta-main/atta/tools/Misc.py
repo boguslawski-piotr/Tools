@@ -8,17 +8,26 @@ def isiterable(obj):
   '''TODO: description'''
   return not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
 
+def RemoveDuplicates(obj, preserveOrder = True):
+  obj = list(set(obj)) 
+  return obj
+
+#------------------------------------------------------------------------------ 
+
 def strip(str):
   '''TODO: description'''
-  return str.strip()
+  if str != None: return str.strip()
+  return None
 
 def lstrip(str):
   '''TODO: description'''
-  return str.lstrip()
+  if str != None: return str.lstrip()
+  return None
 
 def rstrip(str):
   '''TODO: description'''
-  return str.rstrip()
+  if str != None: return str.rstrip()
+  return None
 
 #------------------------------------------------------------------------------ 
 

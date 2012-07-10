@@ -9,6 +9,7 @@ Project setup.
 Project.groupId = 'org.atta'
 Project.name = 'JavaMedium'
 #Project.dvcs = Git()
+p = Properties.Open('deploy.properties')
 
 from atta.tools.Strategies import SrcNewerStrategy, VersionResetBuildStrategy
 from atta.tools.Interfaces import IVersionListener
@@ -69,88 +70,6 @@ Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*
 #Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
 
 '''
-Customizing Java targets that come with Atta. It's easy :)
-
-Just define a class that inherits from the class of the Java module.
-No matter on which it will be call level, this class will be used.
-See also example in build2.py.
-'''
-
-class deploy(Java.deploy):
-  def TagBuild(self, tag):
-    if Project.dvcs != None:
-      Project.dvcs.SetTag(tag, replace = True)
- 
-class deploy_rc(deploy):
-  def PreparePostfix(self):
-    rcN = Project.env.get('N', None)
-    if rcN == None or rcN == '':
-      raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
-    self.oldPostfix = Project.version.SetPostfix('-rc%d' % int(rcN))
-
-  def Prepare(self):
-    Java.deploy.Prepare(self)
-    self.PreparePostfix()
-    return True
-  
-  def NextVersion(self):
-    Project.version.SetPostfix(self.oldPostfix)
-    Java.deploy.NextVersion(self)
-
-class deploy_release(deploy_rc):
-  def PreparePostfix(self):
-    self.oldPostfix = Project.version.SetPostfix('')
-  
-  def NextVersion(self):
-    Project.version.SetPostfix(self.oldPostfix)
-    Project.version.NextMinor()
-
-  def GetCommitMessage(self):  
-    return 'Next minor version number'
-    
-'''
-# for build2.py
-'''
-
-Project.targetsMap['deploy'] = 'build.deploy'
-Project.targetsMap['deploy_rc'] = 'build.deploy_rc'
-Project.targetsMap['deploy_release'] = 'build.deploy_release'
-
-'''
-Deploy
-'''
-
-p = Properties.Open('deploy.properties')
-
-from atta.repositories import Styles
-    
-class MyStyle(Styles.Flat):
-  def DirName(self, packageId):
-    return '%s' % (str(packageId.version))
-
-Project.deployTo = [
-#                    {
-#                     # into ftp repository
-#                     'repository' : 'atta.repositories.Ftp',
-#                     'host'       : p.Get('host'),
-#                     'rootDir'    : p.Get('rootDir'),
-#                     'user'       : p.Get('user'),
-#                     'password'   : p.Get('password'),
-#                     'useCache'   : False,
-#                    },
-#                    {
-#                     # into machine local repository
-#                     'repository' : 'atta.repositories.Local',
-#                    },
-                    {
-                     # into project subdirectory archive
-                     'repository' : 'atta.repositories.Local',
-                     'style'      : MyStyle,
-                     'rootDir'    : 'archive',
-                    },
-                  ]  
-      
-'''
 Dependencies
 ------------
 '''
@@ -164,6 +83,7 @@ Dependencies
 #         'user'       : p.Get('user'),
 #         'password'   : p.Get('password'),
 #         'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#         'getOptional': True,
 #        },
 #        ] 
 
@@ -247,3 +167,82 @@ Project.dependsOn += [{
                                        }]
                       }]
 
+'''
+Deploy
+'''
+
+from atta.repositories import Styles
+    
+class MyStyle(Styles.Flat):
+  def DirName(self, packageId):
+    return '%s' % (str(packageId.version))
+
+Project.deployTo = [
+                    {
+                     # into ftp repository
+                     'repository' : 'atta.repositories.Ftp',
+                     'host'       : p.Get('host'),
+                     'rootDir'    : p.Get('rootDir'),
+                     'user'       : p.Get('user'),
+                     'password'   : p.Get('password'),
+                     'useCache'   : False,
+                    },
+                    {
+                     # into machine local repository
+                     'repository' : 'atta.repositories.Local',
+                    },
+                    {
+                     # into project subdirectory archive
+                     'repository' : 'atta.repositories.Local',
+                     'style'      : MyStyle,
+                     'rootDir'    : 'archive',
+                    },
+                  ]  
+      
+'''
+Customizing Java targets that come with Atta. It's easy :)
+
+Just define a class that inherits from the class of the Java module.
+No matter on which it will be call level, this class will be used.
+See also example in build2.py.
+'''
+
+class deploy(Java.deploy):
+  def TagBuild(self, tag):
+    if Project.dvcs != None:
+      Project.dvcs.SetTag(tag, replace = True)
+ 
+class deploy_rc(deploy):
+  def PreparePostfix(self):
+    rcN = Project.env.get('N', None)
+    if rcN == None or rcN == '':
+      raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
+    self.oldPostfix = Project.version.SetPostfix('-rc%d' % int(rcN))
+
+  def Prepare(self):
+    Java.deploy.Prepare(self)
+    self.PreparePostfix()
+    return True
+  
+  def NextVersion(self):
+    Project.version.SetPostfix(self.oldPostfix)
+    Java.deploy.NextVersion(self)
+
+class deploy_release(deploy_rc):
+  def PreparePostfix(self):
+    self.oldPostfix = Project.version.SetPostfix('')
+  
+  def NextVersion(self):
+    Project.version.SetPostfix(self.oldPostfix)
+    Project.version.NextMinor()
+
+  def GetCommitMessage(self):  
+    return 'Next minor version number'
+    
+'''
+# for build2.py
+'''
+
+Project.targetsMap['deploy'] = 'build.deploy'
+Project.targetsMap['deploy_rc'] = 'build.deploy_rc'
+Project.targetsMap['deploy_release'] = 'build.deploy_release'

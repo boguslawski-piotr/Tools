@@ -10,8 +10,11 @@ class ARepository:
     if data is not None:
       _styleClass = data.get(Dict.style, ARepository.GetDefaultStyleImpl())
     else:
+      self.data = {}
       _styleClass = ARepository.GetDefaultStyleImpl()
     self._styleImpl = ObjectFromClass(_styleClass)
+    
+  ''''''
     
   _defaultStyleImpl = ObjectFromClass(Styles.Maven) 
 
@@ -23,6 +26,15 @@ class ARepository:
   def GetDefaultStyleImpl():  
     return ARepository._defaultStyleImpl.GetClass()
 
+  '''Properties'''
+  
+  def OptionalAllowed(self):
+    '''Returns `True` if optional packages allowed for repository instance.
+    TODO: more description'''
+    return self.data.get(Dict.getOptional, False)
+    
+  '''Abstract'''
+  
   def Get(self, packageId, scope, store = None):
     '''TODO: description'''
     pass

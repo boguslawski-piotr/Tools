@@ -22,6 +22,8 @@ newLine = '\n'
 name = 'name'
 true = 'true'
 false = 'false'
+yes = 'yes'
+no = 'no'
 
 #
 #
@@ -39,6 +41,7 @@ groupId    = 'groupId'
 artifactId = 'artifactId'
 version    = 'version'
 type       = 'type'
+getOptional= 'getOptional'
 dependsOn  = 'dependsOn'
 putIn      = 'putIn'
 ifNotExists= 'ifNotExists'
@@ -99,6 +102,9 @@ errNotEnoughParams = 'Not enough parameters.'
 errFileNotExists = 'File: %s does not exists.'
 errOSErrorForX = "OS error: %d, '%s' for: %s"
 
+errXWhileGettingYFromZ = "Error '%s' while trying to get: %s from: %s"
+errXWhileGettingTimestamp = "Error '%s' while trying to get timestamp."
+
 errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not support writing to archive files."
 
 errDvcsWorkingDirectoryNotClean = 'Working directory is not clean.'
@@ -108,11 +114,14 @@ errDvcsWorkingDirectoryNotClean = 'Working directory is not clean.'
 
 msgDumpParameters = '\n*** Parameters:'
 msgChecking = 'Checking: {0}'
+msgCheckingWithX = 'Checking: {0} with: {1}'
 msgCreating = 'Creating: {0}'
 msgDelDirectory = 'Deleting directory: %s'
 msgExitCode = 'exit code: {0}'
 msgFile = 'File: %s'
 msgDirectory = 'Directory: %s'
+msgFrom = 'From: %s'
+msgDownloading = 'Downloading: %s'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'
@@ -123,7 +132,7 @@ msgNoneHaveBeenAdded = 'To: %s none have been added.'
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
-msgGettingProperties = 'Getting %s properties.'
+msgGettingProperties = 'Loading properties from: %s'
 
 msgDvcsRepository = 'Repository: %s'
 msgDvcsOutputTitle = 'Output from DVCS:'

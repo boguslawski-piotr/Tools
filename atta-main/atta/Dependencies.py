@@ -1,6 +1,7 @@
 '''TODO: description'''
 import sys
 
+from .tools.Misc import RemoveDuplicates
 from .repositories.Package import PackageId
 from .repositories import ArtifactNotFoundError
 from . import Dict
@@ -70,7 +71,7 @@ class Resolver:
     return rc
     
   def Result(self):
-    self.result = list(set(self.result))  # remove duplicates
+    self.result = RemoveDuplicates(self.result)
     return self.result
   
   def ResultPackages(self):
