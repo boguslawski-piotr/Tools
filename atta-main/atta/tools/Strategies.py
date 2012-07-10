@@ -67,11 +67,11 @@ class VersionDefaultStrategy(IVersionStrategy):
   def NextMajor(self, v):
     v.major += 1
     v.minor = 0
-    v.path = 0
+    v.patch = 0
   def NextMinor(self, v):
     v.minor += 1
-    v.path = 0
-  def NextPath(self, v):
+    v.patch = 0
+  def NextPatch(self, v):
     v.patch += 1
   def NextBuild(self, v):
     v.build += 1

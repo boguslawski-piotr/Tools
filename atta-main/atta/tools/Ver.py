@@ -1,12 +1,13 @@
-'''.. Miscellaneous: Project version management'''
+'''.. Miscellaneous: Project version management: ver'''
 import os
+import re
+import cStringIO
 
 from ..tasks.Base import Task
 from .. import Dict
 from .. import LogLevel
 from .internal.Misc import ObjectFromClass
 from .DefaultVarsExpander import Expander
-from .Properties import Properties
 from .Misc import isiterable
 from .Strategies import VersionDefaultStrategy
 
@@ -139,18 +140,12 @@ class Version(Task):
 
     def Run(self, v):
       f = open(self.srcFileName, 'rb')
-      try:
-        data = f.read()
-      finally:
-        f.close()
-
+      try: data = f.read()
+      finally: f.close()
       data = v.ExpandVariables(data)
-
       f = open(self.destFileName, 'wb')
-      try:
-        f.write(data)
-      finally:
-        f.close()
+      try: f.write(data)
+      finally: f.close()
 
   _defaultImpl = ObjectFromClass(VersionDefaultStrategy)
 
@@ -174,46 +169,88 @@ class Version(Task):
     else:
       self.changed = True
 
-  # TODO: odczyt i zapis w taki sposob aby w tym pliku mozna bylo umieszczac inne rzeczy
-  # np. z oznaczeniem bloku: #!version: ... #:version!
-
-  def _Read(self):
+  def _CreateIfNotExists(self):
     if not os.path.exists(self.fileName):
-      return False
-    p = Properties().Open(self.fileName)
-    self.major = int(p.Get('major', 0))
-    self.minor = int(p.Get('minor', 0))
-    self.patch = int(p.Get('patch', 0))
-    self.build = int(p.Get('build', 0))
-    self._RunListeners('AfterRead')
-    return True
-
-  def _Update(self):
-    if not self.changed:
-      return True
-    self._RunListeners('BeforeUpdate')
-    p = Properties().Create(self.fileName)
-    p.Set('major', self.major)
-    p.Set('minor', self.minor)
-    p.Set('patch', self.patch)
-    p.Set('build', self.build)
-    p.Save()
-    self.changed = False
-    self._RunListeners('AfterUpdate')
-    return True
+      self._ForceUpdate()
 
   def _ForceUpdate(self):
     self.changed = True
     self._Update()
 
+  def _Pattern(self):
+    return re.compile('(\s*version_(\w+)\s*=\s*(\d+))\s*$')
+  
+  def _Read(self):
+    if not os.path.exists(self.fileName):
+      return False
+    f = open(self.fileName, 'r')
+    try:
+      pattern = self._Pattern()
+      for line in f:
+        m = pattern.search(line)
+        if m:
+          setattr(self, m.group(2), int(m.group(3)))
+    finally:
+      f.close
+    self.changed = False
+    self._RunListeners('AfterRead')
+    return True
+
+  def _CreateNew(self):
+    fo = cStringIO.StringIO()
+    fo.write('\nversion_major = %d' % self.major)
+    fo.write('\nversion_minor = %d' % self.minor)
+    fo.write('\nversion_patch = %d' % self.patch)
+    fo.write('\nversion_build = %d\n' % self.build)
+    fo.seek(0)
+    return fo
+  
+  def _UpdateExisting(self):
+    found = False
+    fo = cStringIO.StringIO()
+    f = open(self.fileName, 'r')
+    try:
+      pattern = self._Pattern()
+      for line in f:
+        m = pattern.search(line)
+        if m:
+          n = m.group(1).replace(m.group(3), str(getattr(self, m.group(2))))
+          line = line.replace(m.group(1), n)
+          found = True
+        fo.write(line)
+    finally:
+      f.close()
+    if not found:
+      fo.write(self._CreateNew().read())
+    fo.seek(0)
+    return fo
+  
+  def _Update(self):
+    if not self.changed:
+      return True
+    self._RunListeners('BeforeUpdate')
+    
+    if os.path.exists(self.fileName):
+      fo = self._UpdateExisting()
+    else:
+      fo = self._CreateNew()
+    f = open(self.fileName, 'wb')
+    try:
+      for line in fo:
+        f.write(line)
+    finally:
+      f.close()
+      fo.close()
+    
+    self.changed = False
+    self._RunListeners('AfterUpdate')
+    return True
+
   def _RunListeners(self, action):
     for l in self._listeners:
-      if action in dir(l.GetObject()):
-        exec('l.GetObject().' + action + '(self)')
-
-  def _CreateIfNotExists(self):
-    if not os.path.exists(self.fileName):
-      self._ForceUpdate()
+      actionFn = getattr(l.GetObject(), action, None)
+      if actionFn:
+        actionFn(self)
 
   def _AsStr(self):
     return '%d.%d.%d.%d' % (self.major, self.minor, self.patch, self.build)

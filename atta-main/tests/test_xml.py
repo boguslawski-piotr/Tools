@@ -23,7 +23,7 @@ def test():
   Echo()
   xml = Xml('test_xml.vcproj')
   Echo(xml.tag + str(xml.attrib) + '\n', file = 'test_xml.log')
-  #printxml(xml, 2)
+  printxml(xml, 2)
 
   Echo('POM data test:')
   Echo()
