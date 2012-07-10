@@ -86,16 +86,18 @@ Dependencies
 #         'getOptional': True,
 #        },
 #        ] 
-
+#
 #test = [{
 #       'repository' : 'atta.repositories.Maven',
-#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'package'    : 'org.apache.velocity:velocity.jar:1.5'
+#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       'getOptional': True,
 #       }]
 
 #test = [{
 #       'repository' : 'atta.repositories.Local',
 #       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       'getOptional': True,
+#       'putIn'     : 'atta.repositories.Project', # like repository
 #       }]
 
 #test = [{
@@ -112,7 +114,7 @@ Dependencies
 #          },
 #        }] 
 
-#r = Project.ResolveDependencies(test)
+r = Project.ResolveDependencies(test)
 #print r
 
 # Below dependencies are mostly not real. 
@@ -178,19 +180,19 @@ class MyStyle(Styles.Flat):
     return '%s' % (str(packageId.version))
 
 Project.deployTo = [
-                    {
-                     # into ftp repository
-                     'repository' : 'atta.repositories.Ftp',
-                     'host'       : p.Get('host'),
-                     'rootDir'    : p.Get('rootDir'),
-                     'user'       : p.Get('user'),
-                     'password'   : p.Get('password'),
-                     'useCache'   : False,
-                    },
-                    {
-                     # into machine local repository
-                     'repository' : 'atta.repositories.Local',
-                    },
+#                    {
+#                     # into ftp repository
+#                     'repository' : 'atta.repositories.Ftp',
+#                     'host'       : p.Get('host'),
+#                     'rootDir'    : p.Get('rootDir'),
+#                     'user'       : p.Get('user'),
+#                     'password'   : p.Get('password'),
+#                     'useCache'   : False,
+#                    },
+#                    {
+#                     # into machine local repository
+#                     'repository' : 'atta.repositories.Local',
+#                    },
                     {
                      # into project subdirectory archive
                      'repository' : 'atta.repositories.Local',

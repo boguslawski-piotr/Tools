@@ -89,13 +89,12 @@ class Repository(Local.Repository):
     pass
   
   def GetFileLikeCallback(self, data):
-    #self.Log('*')
     self.tempFile.write(data)
     
   def GetFileLike(self, fileName):
     self.tempFile = tempfile.SpooledTemporaryFile()
     fileName = OS.Path.NormUnix(fileName)
-    self.Log('Downloading file: %s' % fileName, level = LogLevel.INFO)
+    self.Log(Dict.msgDownloadingFile % fileName, level = LogLevel.VERBOSE)
   
     maxRetries = self.data.get(Dict.maxRetries, 3)
     retries = 0
@@ -116,7 +115,6 @@ class Repository(Local.Repository):
     return self.tempFile
   
   def _vPutFileLikeCallback(self, data):
-    #self.Log('*')
     self.sha1.update(data)
     if self.fileInCache != None:
       self.fileInCache.write(data)
@@ -131,7 +129,7 @@ class Repository(Local.Repository):
       self.fileInCache = open(fileNameInCache, 'wb')
     
     fileName = OS.Path.NormUnix(fileName)
-    self.Log('Sending file: %s' % fileName, level = LogLevel.INFO)
+    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
 
     startPos = 0
     if 'tell' in dir(f):
@@ -191,7 +189,6 @@ class Repository(Local.Repository):
     return rc
   
   def vPutMarkerFileContents(self, markerFileName, contents):
-    #self.Log(markerFileName)
     f = tempfile.SpooledTemporaryFile()
     f.write(contents)
     f.seek(0)
@@ -206,7 +203,7 @@ class Repository(Local.Repository):
   def vPrepareFileName(self, fileName):
     return fileName
 
-  def _Get(self, packageId, scope, store = None):
+  def _Get(self, packageId, scope, store, resolvedPackages):
     '''TODO: description'''
     '''returns: list of filesNames'''
     self._DumpParams(locals())
@@ -217,7 +214,8 @@ class Repository(Local.Repository):
       store = self.cache
     if store is None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
-      
+    store.SetOptionalAllowed(self.OptionalAllowed())
+
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
       fileName = self.PrepareFileName(packageId, self._RootDir())
@@ -225,34 +223,40 @@ class Repository(Local.Repository):
         packageId.timestamp, sha1 = self.GetFileMarker(fileName)
         if packageId.timestamp is not None:
           filesInStore = store.Check(packageId, scope)
-            
         if filesInStore is None:
-          # Get the dependencies.
+          download = True
           filesInStore = []
+          
+          # Get the dependencies.
           packages = self.GetDependenciesFromPOM(packageId, scope)
           if packages != None:
             for p in packages:
-              filesInStore += self._Get(p, scope, store)
+              if not packageId.Excludes(p):
+                if p not in resolvedPackages:
+                  resolvedPackages.append(p)
+                  filesInStore += self._Get(p, scope, store, resolvedPackages)
           
           # Get artifact.
-          filesToDownload = []
-          try:
-            for rFileName in self.GetAll(fileName):
-              filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName)))
-            filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), packageId)
-          finally:
-            for i in range(len(filesToDownload)):
-              filesToDownload[i] = None 
+          if download:
+            self.Log(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
+            filesToDownload = []
+            try:
+              for rFileName in self.GetAll(fileName):
+                filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName)))
+              filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), packageId)
+            finally:
+              for i in range(len(filesToDownload)):
+                filesToDownload[i] = None 
       
     if filesInStore is None or len(filesInStore) <= 0:
       raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
     
     filesInStore = RemoveDuplicates(filesInStore)
-    self.Log('Returns: %s' % OS.Path.FromList(filesInStore), level = LogLevel.VERBOSE)
+    self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
   
   def Get(self, packageId, scope, store = None):
-    self._Get(packageId, scope, store)
+    self._Get(packageId, scope, store, [])
     
   def _ChangeFileNamesToFtpUrls(self, fileNames):
     if fileNames != None:

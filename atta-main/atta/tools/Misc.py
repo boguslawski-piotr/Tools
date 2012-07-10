@@ -8,9 +8,20 @@ def isiterable(obj):
   '''TODO: description'''
   return not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
 
-def RemoveDuplicates(obj, preserveOrder = True):
-  obj = list(set(obj)) 
-  return obj
+def RemoveDuplicates(iterable, preserveOrder = True):
+  '''TODO: description
+  elements must be hashable
+  '''
+  if preserveOrder:
+    seen = {}
+    result = []
+    for item in iterable:
+      if item in seen: continue
+      seen[item] = 1
+      result.append(item)
+  else:
+    result = list(set(iterable)) 
+  return result
 
 #------------------------------------------------------------------------------ 
 

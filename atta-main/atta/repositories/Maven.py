@@ -27,20 +27,22 @@ class Repository(ARepository, Task):
     
     if store is None:
       from . import Local
-      store = Local.Repository({Dict.style : Styles.Maven, Dict.getOptional : self.OptionalAllowed()}) 
+      store = Local.Repository({Dict.style : Styles.Maven}) 
     if store is None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
-
+    store.SetOptionalAllowed(self.OptionalAllowed())
+    
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
       # Get artifact information.
       packageId.timestamp = Repository.GetArtifactTimestamp(packageId, self.Log)
       if packageId.timestamp is not None:
         filesInStore = store.Check(packageId, scope)
-          
       if filesInStore is None:
-        # Get the dependencies.
+        download = True
         filesInStore = []
+        
+        # Get the dependencies.
         pom = Repository.GetPOM(packageId, self.Log)
         if pom:
           packages = Repository.GetDependenciesFromPOM(packageId, pom, 
@@ -52,29 +54,36 @@ class Repository(ARepository, Task):
               if p not in resolvedPackages:
                 resolvedPackages.append(p)
                 filesInStore += self._Get(p, scope, store, resolvedPackages)
-            
+          if len(packages) > 0:
+            filesInStore2 = store.Check(packageId, scope)
+            if filesInStore2:
+              download = False
+              filesInStore = filesInStore2
+              
         # Get artifact.
-        filesToDownload = []
-        if packageId.type != Dict.pom or not pom:
-          f = Repository.GetArtifactFile(packageId, pom, self.Log)
-          if f != None:
-            filesToDownload.append(NamedFileLike(Styles.Maven().FileName(packageId), f))
-        if pom:
-          filesToDownload.append(
-            NamedFileLike(Styles.Maven().FileName(PackageId.FromPackageId(packageId, type = Dict.pom)), cStringIO.StringIO(pom)))
-        try:
-          if len(filesToDownload) > 0:
-            filesInStore += store.Put(filesToDownload, '', packageId)
-        finally:
-          for i in range(len(filesToDownload)):
-            filesToDownload[i] = None 
+        if download:
+          self.Log(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
+          filesToDownload = []
+          if packageId.type != Dict.pom or not pom:
+            f = Repository.GetArtifactFile(packageId, pom, self.Log)
+            if f != None:
+              filesToDownload.append(NamedFileLike(Styles.Maven().FileName(packageId), f))
+          if pom:
+            filesToDownload.append(
+              NamedFileLike(Styles.Maven().FileName(PackageId.FromPackageId(packageId, type = Dict.pom)), cStringIO.StringIO(pom)))
+          try:
+            if len(filesToDownload) > 0:
+              filesInStore += store.Put(filesToDownload, '', packageId)
+          finally:
+            for i in range(len(filesToDownload)):
+              filesToDownload[i] = None 
           
     if not packageId.IsOptional():
       if filesInStore is None or len(filesInStore) <= 0:
         raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
     
     filesInStore = RemoveDuplicates(filesInStore)
-    self.Log('Returns: %s' % OS.Path.FromList(filesInStore), level = LogLevel.VERBOSE)
+    self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
 
   def Get(self, packageId, scope, store = None):
@@ -116,23 +125,21 @@ class Repository(ARepository, Task):
     url = 'http://search.maven.org/remotecontent?filepath={0}/{1}/{2}/{1}-{2}.{3}'.format(
                           packageId.groupId.replace('.', '/'), packageId.artifactId, packageId.version, packageId.type)
     if logFn:
-      logFn(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
-      logFn(Dict.msgFrom % url, level = LogLevel.DEBUG)
+      logFn(Dict.msgDownloadingFile % url, level = LogLevel.VERBOSE)
     try:
       return urllib2.urlopen(url)
     except urllib2.HTTPError as E:
-      if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), 
-                        level = LogLevel.VERBOSE if E.code == 404 else LogLevel.ERROR)
+      if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
       if pom:
         # When the error occurred, check the alternate place from which you can download the file. 
         # If it is specified in the POM file.
         url = Repository.GetArtifactUrlFromPOM(pom, logFn)
         if url:
-          if logFn: logFn(Dict.msgFrom % url, level = LogLevel.DEBUG)
+          if logFn: logFn(Dict.msgDownloadingFile % url, level = LogLevel.VERBOSE)
           try:
             return urllib2.urlopen(url)
           except urllib2.HTTPError as E:
-            if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), LogLevel.ERROR)
+            if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
     return None
  
   @staticmethod
@@ -184,9 +191,9 @@ class Repository(ARepository, Task):
         
   @staticmethod
   def GetPOM(packageId, logFn = None):
-    '''Gets POM file from Maven Central Repository.
+    '''Gets the POM file from Maven Central Repository.
        The function uses the local impermanent cache.
-       Returns POM contents or None.'''
+       Returns the POM contents or None.'''
     packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
     pomFile = Repository.GetPOMFromCache(packageId, logFn)
     if pomFile == None:

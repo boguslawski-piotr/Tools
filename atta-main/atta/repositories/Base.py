@@ -20,14 +20,20 @@ class ARepository:
 
   @staticmethod
   def SetDefaultStyleImpl(_class):
+    '''TODO: description'''
     ARepository._defaultStyleImpl = ObjectFromClass(_class)
   
   @staticmethod
   def GetDefaultStyleImpl():  
+    '''TODO: description'''
     return ARepository._defaultStyleImpl.GetClass()
 
   '''Properties'''
   
+  def SetOptionalAllowed(self, v):
+    '''TODO: description'''
+    self.data[Dict.getOptional] = v
+    
   def OptionalAllowed(self):
     '''Returns `True` if optional packages allowed for repository instance.
     TODO: more description'''

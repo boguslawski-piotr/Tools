@@ -13,6 +13,10 @@ class PackageId:
     self.type = type
     self.timestamp = tparams.get('timestamp')
     
+    #self.scope
+    #self.optional
+    #self.exclusions
+    
   def __eq__(self, other):
     return str(self) == str(other)
   
@@ -62,6 +66,7 @@ class PackageId:
     return xml
   
   def IsOptional(self):
+    '''TODO: description'''
     optional = getattr(self, Dict.optional, False)
     if not optional:
       return False

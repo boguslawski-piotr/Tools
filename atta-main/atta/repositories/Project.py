@@ -84,7 +84,7 @@ class Repository(Local.Repository):
     if result is None:
       raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultProperties))
     
-    self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
+    self.Log(Dict.msgReturns % OS.Path.FromList(result), level = LogLevel.DEBUG)
     return result
 
   def _Name(self):

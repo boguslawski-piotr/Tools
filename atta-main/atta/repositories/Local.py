@@ -34,6 +34,7 @@ class Repository(ARepository, Task):
     os.utime(fileName, None) # equivalent: touch
     
   def vPutFileLike(self, f, fileName):
+    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
     lf = open(fileName, 'wb')
     try:
       for chunk in iter(lambda: f.read(32768), b''): 
@@ -43,6 +44,7 @@ class Repository(ARepository, Task):
     return OS.FileHash(fileName, hashlib.sha1())
   
   def vPutFile(self, fFileName, fileName):
+    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
     self.vMakeDirs(os.path.dirname(fileName))
     OS.CopyFile(fFileName, fileName, force = True)
     return OS.FileHash(fileName, hashlib.sha1())
@@ -77,6 +79,7 @@ class Repository(ARepository, Task):
       return (timestamp, sha1)
     
   def vPutMarkerFileContents(self, markerFileName, contents):
+    self.Log(Dict.msgSavingFile % markerFileName, level = LogLevel.VERBOSE)
     f = open(markerFileName, 'wb')
     try:
       f.write(contents)
@@ -114,6 +117,7 @@ class Repository(ARepository, Task):
     return infoFile.split('\n')
   
   def vPutInfoFileContents(self, infoFileName, contents):
+    self.Log(Dict.msgSavingFile % infoFileName, level = LogLevel.VERBOSE)
     f = open(infoFileName, 'wb')
     try:
       f.write(contents)
@@ -145,7 +149,7 @@ class Repository(ARepository, Task):
       result = [fileName]
     return result
   
-  def _Get(self, packageId, scope, store):
+  def _Get(self, packageId, scope, store, resolvedPackages):
     '''TODO: description'''
     '''returns: list of filesNames'''
     # Get the dependencies.
@@ -153,7 +157,10 @@ class Repository(ARepository, Task):
     packages = self.GetDependenciesFromPOM(packageId, scope)
     if packages != None:
       for p in packages:
-        additionalFiles += self._Get(p, scope, store)
+        if not packageId.Excludes(p):
+          if p not in resolvedPackages:
+            resolvedPackages.append(p)
+            additionalFiles += self._Get(p, scope, store, resolvedPackages)
     
     # Check and prepare artifact files.
     fileName = self.PrepareFileName(packageId, self._RootDir())
@@ -166,9 +173,10 @@ class Repository(ARepository, Task):
     if store is not None:
       # Put artifact files into store.
       packageId.timestamp, sha1 = self.GetFileMarker(fileName)
+      store.SetOptionalAllowed(self.OptionalAllowed())
       filesInStore = store.Check(packageId, scope)
       if filesInStore is None:
-        self.Log('Uploading: %s' % str(packageId), level = LogLevel.INFO)
+        self.Log(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
         store.Put(result, dirName, packageId)
       else:
         if fileName in filesInStore:
@@ -176,11 +184,12 @@ class Repository(ARepository, Task):
 
     result += additionalFiles
     result = RemoveDuplicates(result)
-    self.Log('Returns: %s' % OS.Path.FromList(result), level = LogLevel.VERBOSE)
+    
+    self.Log(Dict.msgReturns % OS.Path.FromList(result), level = LogLevel.DEBUG)
     return result
   
   def Get(self, packageId, scope, store = None):
-    return self._Get(packageId, scope, store)
+    return self._Get(packageId, scope, store, [])
   
   def vGetPOMFileContents(self, pomFileName):
     f = open(pomFileName, 'rb')
@@ -275,12 +284,11 @@ class Repository(ARepository, Task):
     dirName = os.path.normpath(os.path.dirname(fileName))
     self.vMakeDirs(dirName)
     
-    self.Log('to: %s' % dirName, level = LogLevel.DEBUG)
+    self.Log('to:\n  %s' % dirName, level = LogLevel.DEBUG)
     
     if 'read' in dir(f):
       sha1 = self.vPutFileLike(f, fileName)
       self.PutMarkerFile(fileName, sha1, packageId)
-      self.LogIterable('with files:', [os.path.relpath(fileName, dirName)], level = LogLevel.VERBOSE)
       return [fileName]
     else:
       rnames = []
@@ -303,7 +311,6 @@ class Repository(ARepository, Task):
       if len(lnames) > 1:
         self.PutInfoFile(fileName, lnames)
       
-      self.LogIterable('with files:', lnames, level = LogLevel.VERBOSE)
       return rnames
     
   def _Name(self):
