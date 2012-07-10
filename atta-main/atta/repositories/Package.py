@@ -30,14 +30,21 @@ class PackageId:
   
   def __str__(self):
     '''TODO: description'''
-    return self.AsStr(self)
+    return self.AsStr()
   
-  def AsStr(self, packageId):
+  def AsStr(self):
     '''TODO: description'''
-    if packageId.groupId is None or packageId.groupId == packageId.artifactId:
-      return '%s.%s:%s' % (str(packageId.artifactId), str(packageId.type), str(packageId.version))
+    if self.groupId is None or self.groupId == self.artifactId:
+      return '%s.%s:%s' % (str(self.artifactId), str(self.type), str(self.version))
     else: 
-      return '%s:%s.%s:%s' % (str(packageId.groupId), str(packageId.artifactId), str(packageId.type), str(packageId.version))
+      return '%s:%s.%s:%s' % (str(self.groupId), str(self.artifactId), str(self.type), str(self.version))
+
+  def AsStrWithoutType(self):
+    '''TODO: description'''
+    if self.groupId is None or self.groupId == self.artifactId:
+      return '%s:%s' % (str(self.artifactId), str(self.version))
+    else: 
+      return '%s:%s:%s' % (str(self.groupId), str(self.artifactId), str(self.version))
   
   def AsDependencyInPOM(self):
     xml = Dict.dependencyStartTag + Dict.newLine

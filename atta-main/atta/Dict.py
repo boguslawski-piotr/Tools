@@ -126,6 +126,7 @@ msgDownloadingFile = 'Downloading file: %s'
 msgUploading = 'Uploading: %s'
 msgSavingFile = 'Saving file: %s'
 msgReturns = 'Returns: %s'
+msgSendingXToY = 'Sending: %s to: %s'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'
@@ -136,8 +137,9 @@ msgNoneHaveBeenAdded = 'To: %s none have been added.'
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
-msgGettingProperties = 'Loading properties from: %s'
-
+msgLoadingPropertiesForX = 'Loading properties for: %s'
+msgCollectingDependenciesForX = 'Collecting dependencies for: %s'
+ 
 msgDvcsRepository = 'Repository: %s'
 msgDvcsOutputTitle = 'Output from DVCS:'
 msgDvcsNextBuildNumber = 'Next build number'

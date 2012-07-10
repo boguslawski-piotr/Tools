@@ -33,8 +33,8 @@ class Repository(ARepository, Task):
     '''Sets the current modification time for file `fileName`.'''
     os.utime(fileName, None) # equivalent: touch
     
-  def vPutFileLike(self, f, fileName):
-    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
+  def vPutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
+    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
     lf = open(fileName, 'wb')
     try:
       for chunk in iter(lambda: f.read(32768), b''): 
@@ -43,8 +43,8 @@ class Repository(ARepository, Task):
       lf.close()
     return OS.FileHash(fileName, hashlib.sha1())
   
-  def vPutFile(self, fFileName, fileName):
-    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
+  def vPutFile(self, fFileName, fileName, logLevel = LogLevel.VERBOSE):
+    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
     self.vMakeDirs(os.path.dirname(fileName))
     OS.CopyFile(fFileName, fileName, force = True)
     return OS.FileHash(fileName, hashlib.sha1())
@@ -54,7 +54,8 @@ class Repository(ARepository, Task):
     dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
     return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
   
-  def vGetMarkerFileContents(self, markerFileName):
+  def vGetMarkerFileContents(self, markerFileName, logLevel = LogLevel.DEBUG):
+    self.Log(Dict.msgDownloadingFile % markerFileName, level = logLevel)
     f = open(markerFileName, 'rb')
     try:
       rc = f.read()
@@ -73,13 +74,14 @@ class Repository(ARepository, Task):
         timestamp = contents[0]
       if len(contents) > 1:
         sha1 = contents[1]
-    except:
+    except Exception as E:
+      self.Log("Error '%s' while processing the file: %s" % (str(E), markerFileName), level = LogLevel.ERROR)
       return (None, None)
     else:
       return (timestamp, sha1)
     
-  def vPutMarkerFileContents(self, markerFileName, contents):
-    self.Log(Dict.msgSavingFile % markerFileName, level = LogLevel.VERBOSE)
+  def vPutMarkerFileContents(self, markerFileName, contents, logLevel = LogLevel.DEBUG):
+    self.Log(Dict.msgSavingFile % markerFileName, level = logLevel)
     f = open(markerFileName, 'wb')
     try:
       f.write(contents)
@@ -99,7 +101,8 @@ class Repository(ARepository, Task):
     '''TODO: description'''
     return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
 
-  def vGetInfoFileContents(self, infoFileName):
+  def vGetInfoFileContents(self, infoFileName, logLevel = LogLevel.DEBUG):
+    self.Log(Dict.msgDownloadingFile % infoFileName, level = logLevel)
     f = open(infoFileName, 'rb')
     try:
       rc = f.read()
@@ -116,8 +119,8 @@ class Repository(ARepository, Task):
   def GetFilesListFromInfoFile(self, infoFile):
     return infoFile.split('\n')
   
-  def vPutInfoFileContents(self, infoFileName, contents):
-    self.Log(Dict.msgSavingFile % infoFileName, level = LogLevel.VERBOSE)
+  def vPutInfoFileContents(self, infoFileName, contents, logLevel = LogLevel.DEBUG):
+    self.Log(Dict.msgSavingFile % infoFileName, level = logLevel)
     f = open(infoFileName, 'wb')
     try:
       f.write(contents)
@@ -176,7 +179,7 @@ class Repository(ARepository, Task):
       store.SetOptionalAllowed(self.OptionalAllowed())
       filesInStore = store.Check(packageId, scope)
       if filesInStore is None:
-        self.Log(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
+        self.Log(Dict.msgSendingXToY % (packageId.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
         store.Put(result, dirName, packageId)
       else:
         if fileName in filesInStore:
@@ -191,7 +194,8 @@ class Repository(ARepository, Task):
   def Get(self, packageId, scope, store = None):
     return self._Get(packageId, scope, store, [])
   
-  def vGetPOMFileContents(self, pomFileName):
+  def vGetPOMFileContents(self, pomFileName, logLevel = LogLevel.VERBOSE):
+    self.Log(Dict.msgDownloadingFile % pomFileName, level = logLevel)
     f = open(pomFileName, 'rb')
     try:  
       rc = f.read()
@@ -229,7 +233,7 @@ class Repository(ARepository, Task):
   # TODO: uzyc wzorca Strategy do implementacji Check
   def _Check(self, packageId, scope, checkedPackages):
     '''returns: None or list of filesNames'''
-    self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.DEBUG)
+    self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.VERBOSE)
     
     fileName = self.PrepareFileName(packageId, self._RootDir())
     if not self.vFileExists(fileName):
@@ -278,7 +282,7 @@ class Repository(ARepository, Task):
   
   def Put(self, f, fBaseDirName, packageId):
     '''returns: list of filesNames'''
-    self.Log('Takes: %s' % str(packageId), level = LogLevel.INFO)
+    self.Log('Takes: %s' % packageId.AsStrWithoutType(), level = LogLevel.INFO)
 
     fileName = self.PrepareFileName(packageId, self._RootDir())
     dirName = os.path.normpath(os.path.dirname(fileName))

@@ -74,49 +74,6 @@ Dependencies
 ------------
 '''
 
-#test = [
-#        {
-#         'repository' : 'atta.repositories.Ftp',
-#         'style'      : 'atta.repositories.Styles.Flat',
-#         'host'       : p.Get('host'),
-#         'rootDir'    : p.Get('rootDir'),
-#         'user'       : p.Get('user'),
-#         'password'   : p.Get('password'),
-#         'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#         'getOptional': True,
-#        },
-#        ] 
-#
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'getOptional': True,
-#       }]
-
-#test = [{
-#       'repository' : 'atta.repositories.Local',
-#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'getOptional': True,
-#       'putIn'     : 'atta.repositories.Project', # like repository
-#       }]
-
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'putIn' :
-#          {
-#           'repository' : 'atta.repositories.Ftp',
-#           'style'      : 'atta.repositories.Styles.Flat',
-#           'host'       : p.Get('host'),
-#           'rootDir'    : p.Get('rootDir'),
-#           'user'       : p.Get('user'),
-#           'password'   : p.Get('password'),
-#          },
-#        }] 
-
-r = Project.ResolveDependencies(test)
-#print r
-
 # Below dependencies are mostly not real. 
 # It's only example of power of Atta.
 

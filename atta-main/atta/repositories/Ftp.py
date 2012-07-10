@@ -88,22 +88,22 @@ class Repository(Local.Repository):
     # TODO: I don't known method for simulate touch on ftp server :(
     pass
   
-  def GetFileLikeCallback(self, data):
+  def _GetFileLikeCallback(self, data):
     self.tempFile.write(data)
     
-  def GetFileLike(self, fileName):
+  def GetFileLike(self, fileName, logLevel):
     self.tempFile = tempfile.SpooledTemporaryFile()
     fileName = OS.Path.NormUnix(fileName)
-    self.Log(Dict.msgDownloadingFile % fileName, level = LogLevel.VERBOSE)
+    self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
   
     maxRetries = self.data.get(Dict.maxRetries, 3)
     retries = 0
     while retries < maxRetries:
       try:
-        self.ftp.retrbinary('RETR ' + fileName, self.GetFileLikeCallback)
+        self.ftp.retrbinary('RETR ' + fileName, self._GetFileLikeCallback)
         break
       except ftplib.Error as E:
-        self.Log("Error '%s' while downloading file: %s" % (str(E), fileName), level = LogLevel.WARNING)
+        self.Log("Error '%s' while downloading the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
         self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
         self.tempFile.seek(0)
         retries += 1
@@ -119,7 +119,7 @@ class Repository(Local.Repository):
     if self.fileInCache != None:
       self.fileInCache.write(data)
   
-  def vPutFileLike(self, f, fileName):
+  def vPutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     self.fileInCache = None
     if self.cache != None:
       # NOTE: We assume that the cache is a repository on the file system.
@@ -129,7 +129,7 @@ class Repository(Local.Repository):
       self.fileInCache = open(fileNameInCache, 'wb')
     
     fileName = OS.Path.NormUnix(fileName)
-    self.Log(Dict.msgSavingFile % fileName, level = LogLevel.VERBOSE)
+    self.Log(Dict.msgSavingFile % fileName, logLevel)
 
     startPos = 0
     if 'tell' in dir(f):
@@ -143,7 +143,7 @@ class Repository(Local.Repository):
         self.ftp.storbinary('STOR ' + fileName, f, callback = self._vPutFileLikeCallback) #, blocksize, callback, rest
         break
       except ftplib.Error as E:
-        self.Log("Error '%s' while sending file: %s" % (str(E), fileName), level = LogLevel.WARNING)
+        self.Log("Error '%s' while sending the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
         self.Log('Retry sending (%d).' % (retries + 1), level = LogLevel.WARNING)
         f.seek(startPos) 
         if self.fileInCache != None:
@@ -162,60 +162,60 @@ class Repository(Local.Repository):
     
     return sha1
   
-  def vPutFile(self, fFileName, fileName):
+  def vPutFile(self, fFileName, fileName, logLevel = LogLevel.VERBOSE):
     self.vMakeDirs(os.path.dirname(fileName))
     f = open(fFileName, 'rb')
     try:
-      rc = self.vPutFileLike(f, fileName)
+      rc = self.vPutFileLike(f, fileName, logLevel)
     finally:
       f.close()
     return rc
   
-  def vGetMarkerFileContents(self, markerFileName):
+  def vGetMarkerFileContents(self, markerFileName, logLevel = LogLevel.DEBUG):
     if self.cache != None:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
       markerFileNameInCache = os.path.join(self.cache._RootDir(), os.path.relpath(markerFileName, self._RootDir()))
       try:
-        return self.cache.vGetMarkerFileContents(markerFileNameInCache)
+        return self.cache.vGetMarkerFileContents(markerFileNameInCache, logLevel)
       except: 
         pass
       
-    f = self.GetFileLike(markerFileName)
+    f = self.GetFileLike(markerFileName, logLevel)
     try:  
       rc = f.read()
     finally:
       f.close()
     return rc
   
-  def vPutMarkerFileContents(self, markerFileName, contents):
+  def vPutMarkerFileContents(self, markerFileName, contents, logLevel = LogLevel.DEBUG):
     f = tempfile.SpooledTemporaryFile()
     f.write(contents)
     f.seek(0)
-    self.vPutFileLike(f, markerFileName)
+    self.vPutFileLike(f, markerFileName, logLevel)
 
-  def vGetInfoFileContents(self, infoFileName):
-    return self.vGetMarkerFileContents(infoFileName)
+  def vGetInfoFileContents(self, infoFileName, logLevel = LogLevel.DEBUG):
+    return self.vGetMarkerFileContents(infoFileName, logLevel)
 
-  def vPutInfoFileContents(self, infoFileName, contents):
-    self.vPutMarkerFileContents(infoFileName, contents)
+  def vPutInfoFileContents(self, infoFileName, contents, logLevel = LogLevel.DEBUG):
+    self.vPutMarkerFileContents(infoFileName, contents, logLevel)
 
   def vPrepareFileName(self, fileName):
     return fileName
 
+  # NOTE: Code for this function is very similar to the analogous function in Maven.Repository.
+  # The differences are in minor details. I do not have sensible idea ​​how to minimize the duality: (
   def _Get(self, packageId, scope, store, resolvedPackages):
-    '''TODO: description'''
-    '''returns: list of filesNames'''
+    # Check parameters.
     self._DumpParams(locals())
     if not packageId:
       raise AttaError(self, 'Not enough parameters.')
-
     if store is None:
       store = self.cache
     if store is None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
+    
     store.SetOptionalAllowed(self.OptionalAllowed())
-
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
       fileName = self.PrepareFileName(packageId, self._RootDir())
@@ -223,6 +223,7 @@ class Repository(Local.Repository):
         packageId.timestamp, sha1 = self.GetFileMarker(fileName)
         if packageId.timestamp is not None:
           filesInStore = store.Check(packageId, scope)
+        
         if filesInStore is None:
           download = True
           filesInStore = []
@@ -238,24 +239,29 @@ class Repository(Local.Repository):
           
           # Get artifact.
           if download:
-            self.Log(Dict.msgDownloading % str(packageId), level = LogLevel.INFO)
+            self.Log(Dict.msgSendingXToY % (packageId.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
             filesToDownload = []
             try:
               for rFileName in self.GetAll(fileName):
-                filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName)))
+                filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName, LogLevel.VERBOSE)))
               filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), packageId)
             finally:
               for i in range(len(filesToDownload)):
                 filesToDownload[i] = None 
       
-    if filesInStore is None or len(filesInStore) <= 0:
-      raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+    # Check results.
+    if not packageId.IsOptional():
+      if filesInStore is None or len(filesInStore) <= 0:
+        raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
     
+    # Return package and its dependencies files.
     filesInStore = RemoveDuplicates(filesInStore)
     self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
   
   def Get(self, packageId, scope, store = None):
+    '''TODO: description'''
+    '''returns: list of filesNames'''
     self._Get(packageId, scope, store, [])
     
   def _ChangeFileNamesToFtpUrls(self, fileNames):
@@ -264,8 +270,8 @@ class Repository(Local.Repository):
         fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
     return fileNames
     
-  def vGetPOMFileContents(self, pomFileName):
-    return self.vGetMarkerFileContents(pomFileName)
+  def vGetPOMFileContents(self, pomFileName, logLevel = LogLevel.VERBOSE):
+    return self.vGetMarkerFileContents(pomFileName, logLevel)
 
   def Check(self, packageId, scope):
     cresult = None
