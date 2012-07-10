@@ -48,6 +48,9 @@ Project.defaultTarget = 'test'
 #print r
 
 def test():
+  Echo(DirSet('.', '*'))
+  return
+
   from atta.repositories.Maven import Repository
   from atta.repositories.Package import PackageId
   

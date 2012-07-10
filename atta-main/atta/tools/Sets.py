@@ -25,16 +25,16 @@ class FileSet(list):
     :return: iterable TODO
     
   '''
-  def __init__(self, rootDir = '.', includes = '*', excludes = [], **tparams):
+  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
     if not tparams.get('createEmpty', False):
       self.AddFiles(rootDir, includes, excludes, **tparams)
 
-  def AddFiles(self, rootDir, includes = '*', excludes = [], **tparams):
+  def AddFiles(self, rootDir, includes = '*', excludes = None, **tparams):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
     # TODO: how to handle rootDir if FileSet includes files from different roots?
     
-  def MakeSet(self, rootDir, includes, excludes = [], **tparams):
+  def MakeSet(self, rootDir, includes, excludes = None, **tparams):
     '''Creates a set of files.
     '''
     includes = OS.Path.AsList(includes)
@@ -138,10 +138,10 @@ class DirSet(FileSet):
     TODO: description
     
   '''
-  def __init__(self, rootDir = '.', includes = '**/**', excludes = [], **tparams):
+  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
     self.AddDirs(rootDir, includes, excludes, **tparams)
 
-  def AddDirs(self, rootDir, includes = '*', excludes = [], **tparams):
+  def AddDirs(self, rootDir, includes = '*', excludes = None, **tparams):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
   

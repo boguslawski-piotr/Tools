@@ -24,3 +24,5 @@ class test(Target):
     e = Exec('echo', ['4','5','6'], logOutput = False, failOnError = False)
     if e.returnCode == 0:
       Echo(e.output)
+
+    Exec('echo')

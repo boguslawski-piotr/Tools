@@ -115,7 +115,7 @@ class Version(Task):
     i = self._listeners.index(listener)
     del self._listeners[i]
 
-  def ExpandVariables(self, data):
+  def ExpandVariables(self, data, **tparams):
     '''TODO: description'''
     e = Expander()
     return e.Expand(data, 
@@ -125,7 +125,8 @@ class Version(Task):
                     build   = self.build,
                     prefix  = self.prefix,
                     postfix = self.postfix,
-                    version = str(self))
+                    version = str(self),
+                    **tparams)
   
   class FileFilter:
     '''TODO: description'''
@@ -137,11 +138,19 @@ class Version(Task):
       self.Run(v)
       
     def Run(self, v):
-      with open(self.srcFileName, 'rb') as f:
+      f = open(self.srcFileName, 'rb')
+      try:
         data = f.read()
+      finally:
+        f.close()
+      
       data = v.ExpandVariables(data)
-      with open(self.destFileName, 'wb') as f:
+      
+      f = open(self.destFileName, 'wb')
+      try:
         f.write(data)
+      finally:
+        f.close()
       
   _defaultImpl = ObjectFromClass(VersionDefaultStrategy) 
 

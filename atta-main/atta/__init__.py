@@ -90,7 +90,7 @@ class Atta:
     Atta._logger.Log(msg, **tparams)
   
   @staticmethod
-  def LogIterable(msg = '', iterable = [], **tparams):
+  def LogIterable(msg, iterable, **tparams):
     '''TODO: description'''
     Atta._logger.LogIterable(msg, iterable, **tparams)  
     

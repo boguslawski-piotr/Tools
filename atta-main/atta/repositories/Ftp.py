@@ -129,7 +129,7 @@ class Repository(Local.Repository):
       self.fileInCache = open(fileNameInCache, 'wb')
     
     fileName = OS.Path.NormUnix(fileName)
-    self.Log(Dict.msgSavingFile % fileName, logLevel)
+    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
 
     startPos = 0
     if 'tell' in dir(f):

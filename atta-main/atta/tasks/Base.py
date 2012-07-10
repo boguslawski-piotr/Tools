@@ -26,5 +26,5 @@ class Task(Activity):
     return self
   
   def __exit__(self, exc_type, exc_value, traceback):
-    return self
+    return False
     

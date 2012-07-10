@@ -16,7 +16,7 @@ class Activity:
   def Log(self, msg = '', **args):
     self._Log(msg, **args)
 
-  def LogIterable(self, msg = '', iterable = [], **args):
+  def LogIterable(self, msg, iterable, **args):
     self._LogIterable(msg, iterable, **args)
   
   '''private section'''
@@ -31,7 +31,7 @@ class Activity:
     args[self._Type()] = self._Name()
     Atta.Log(msg, **args)
 
-  def _LogIterable(self, msg = '', iterable = [], **args):
+  def _LogIterable(self, msg, iterable, **args):
     args[self._Type()] = self._Name()
     Atta.LogIterable(msg, iterable, **args)
 

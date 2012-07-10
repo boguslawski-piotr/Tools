@@ -20,7 +20,7 @@ class PyExec(Exec):
   as in :py:class:`.Exec`.
 
   '''
-  def __init__(self, fileName, params = [], **tparams):  
+  def __init__(self, fileName, params = None, **tparams):  
     if len(fileName) > 0 and not fileName.startswith('-'):
       if OS.Path.Ext(fileName) == '':
         fileName = fileName + '.py' 
@@ -33,5 +33,6 @@ class PyExec(Exec):
             fileName = _fileName
             break
     
-    params.insert(0, fileName)
-    Exec.__init__(self, 'python', params, **tparams)
+    _params = (params[:] if params else [])
+    _params.insert(0, fileName)
+    Exec.__init__(self, 'python', _params, **tparams)

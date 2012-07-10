@@ -193,12 +193,12 @@ class Project:
         return target
     return None
   
-  def RunProject(self, environ, fileName, targets = []):
+  def RunProject(self, environ, fileName, targets = None):
     '''TODO: description'''
     project = Project(self)
     if environ is None:
       environ = self.env
-    project._Run(environ, fileName, targets)
+    project._Run(environ, fileName, (targets if targets else []))
     return project
   
   def Deploy(self, packageId, files, baseDirName, data = None):
@@ -208,7 +208,7 @@ class Project:
 
   '''private section'''
   
-  def _Run(self, environ, fileName, targets = []):
+  def _Run(self, environ, fileName, targets):
     prevDir = os.getcwd()
     prevAttaProject = GetProject()
     try:

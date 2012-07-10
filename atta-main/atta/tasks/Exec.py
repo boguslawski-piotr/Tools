@@ -47,7 +47,7 @@ class Exec(Task):
     - Parameters: os and osFamily
 
   '''
-  def __init__(self, executable, params = [], **tparams):  
+  def __init__(self, executable, params = None, **tparams):  
     params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get('failOnError', True)
     self.logOutput = tparams.get('logOutput', True)

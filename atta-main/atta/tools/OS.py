@@ -69,6 +69,8 @@ class Path:
   @staticmethod
   def AsList(paths, sep = ':'):
     '''TODO: description'''
+    if paths == None:
+      return []
     if isinstance(paths, basestring):
       if sep == ':' and IsWindows():
         # This is a very ugly solution, but effective.

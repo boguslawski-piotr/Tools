@@ -60,7 +60,7 @@ class Delete(Task):
           if err != 0:
             self.Log(Dict.errOSErrorForX % (err, os.strerror(err), f), level = LogLevel.WARNING)
           else:
-            self.Log(Dict.msgFile % f, level = LogLevel.VERBOSE if not verbose else LogLevel.WARNING)
+            self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not verbose else LogLevel.WARNING))
       
     # 2.
     # For each directory:
@@ -83,7 +83,7 @@ class Delete(Task):
         if err != 0:
           self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.WARNING)
         else:
-          self.Log(Dict.msgDirectory % d, level = LogLevel.VERBOSE if not verbose else LogLevel.WARNING)
+          self.Log(Dict.msgDirectory % d, level = (LogLevel.VERBOSE if not verbose else LogLevel.WARNING))
     
     # 3.
     if includeEmptyDirs:

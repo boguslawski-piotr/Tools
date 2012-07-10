@@ -111,7 +111,7 @@ class Logger:
     '''Shortcut for Log.'''
     self.Log(msg, **args)
     
-  def LogIterable(self, msg = '', iterable = [], **args):
+  def LogIterable(self, msg, iterable, **args):
     '''TODO: description'''
     level = args.get('level', LogLevel.Default())
     if self.LogAllowed(level):
@@ -130,7 +130,7 @@ class Logger:
           else:
             self.Log('  {0}'.format(v), **args)
 
-  def LI(self, msg = '', iterable = [], **args):
+  def LI(self, msg, iterable, **args):
     '''Shortcut for LogIterable'''
     self.LogIterable(msg, iterable, **args)
       

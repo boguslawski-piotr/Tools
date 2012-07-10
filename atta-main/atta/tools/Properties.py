@@ -2,10 +2,16 @@
 import os, cStringIO, ConfigParser
 import sys
 
+from . import OS
+
 class Properties:
   '''
   Supports the Java properties files.
   '''
+  def __init__(self):
+    self.c = None
+    self.fileName = None
+    
   @staticmethod
   def Create(fileName):
     '''Creates empty Properties object. TODO: ''' 
@@ -45,7 +51,8 @@ class Properties:
   
   def Save(self, force = True):
     '''TODO: description'''
-    # TODO: handle force (== remove ro attribute)
+    if force:
+      OS.SetReadOnly(self.fileName, False)
     with open(self.fileName, 'wb') as f:
       for (key, value) in self.c.items('p'):
         if key == "__name__":
@@ -58,7 +65,7 @@ class Properties:
     return self
   
   def __exit__(self, exc_type, exc_value, traceback):
-    return self
+    return False
     
 #------------------------------------------------------------------------------ 
 
@@ -73,5 +80,3 @@ def msetattr(moduleName, attrName, value):
   '''TODO: description'''
   module = sys.modules[moduleName]
   setattr(module, attrName, value)
-
-       
