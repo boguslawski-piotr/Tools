@@ -18,7 +18,7 @@ class Target(Activity):
 
   system = []
   '''TODO: description'''
-  
+
   def CanRun(self):
     '''TODO: description'''
     canRun = True
@@ -31,7 +31,7 @@ class Target(Activity):
           canRun = True
           break
     return canRun
-  
+
   '''
   Method 'Prepare' maybe be defined in a class that inherits from the Target. Then will start.
   When it returns False, project will not run any targets from 
@@ -39,22 +39,22 @@ class Target(Activity):
   '''
   #def Prepare(self):
   #  return True
-  
+
   def Run(self):
     '''TODO: description'''
     pass
-  
+
   '''
   Method 'Finalize' maybe be defined in a class that inherits from the Target. Then will start.
   '''
   #def Finalize(self):
   #  pass
-  
+
   '''private section'''
-      
+
   def _Type(self):
     return 'target'
-  
+
   def _Name(self):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
@@ -63,22 +63,21 @@ class Target(Activity):
       if project._parent is None:
         self.name = self.name.replace(Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
     return self.name
-  
+
   def _RunPrepare(self):
     if 'Prepare' in dir(self):
       self._Log(prepare = True)
       return self.Prepare()
     return True
-  
+
   def _Run(self):
     if not hasattr(self, 'wasExecuted') or not self.wasExecuted:
       self._Log(start = True)
       self.Run()
       self._Log(end = True)
     self.wasExecuted = True
-    
+
   def _RunFinalize(self):
     if 'Finalize' in dir(self):
       self._Log(finalize = True)
       self.Finalize()
-      

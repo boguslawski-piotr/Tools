@@ -23,8 +23,7 @@ class ILogger:
     log
     
   task
-  ''' 
+  '''
   def Log(self, msg, **args):
     pass
-  
-    
+

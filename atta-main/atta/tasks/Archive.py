@@ -9,14 +9,14 @@ from ..tools import OS
 from .. import Dict
 from .. import AttaError
 from .Base import Task
-  
+
 class Archive(Task):
   '''TODO: description'''
   def __init__(self, _class, fileName, srcs, **tparams):
     self._DumpParams(locals())
-    
+
     _impl = ObjectFromClass(_class)
-    
+
     srcs = OS.Path.AsList(srcs)
     recreate = tparams.get('recreate', False)
     checkCRC = tparams.get('checkCRC', True)
@@ -24,7 +24,7 @@ class Archive(Task):
     fileName = os.path.normpath(fileName)
     changedFiles = []
     allFiles = []
-    
+
     # collecting files to add
     self.Log(Dict.msgChecking.format(fileName), level = LogLevel.VERBOSE)
     archive = None
@@ -34,7 +34,7 @@ class Archive(Task):
         raise AttaError(self, Dict.errArchiveImplCantWrite)
     except:
       pass
-    
+
     for src in srcs:
       if len(src) <= 0:
         continue
@@ -54,7 +54,7 @@ class Archive(Task):
           else:
             rootDir, src = os.path.split(src)
             srcsSet = [src]
-      
+
       for name in srcsSet:
         fullName = os.path.normpath(os.path.join(rootDir, name))
         changed = (archive == None) or recreate
@@ -71,12 +71,12 @@ class Archive(Task):
         allFiles.append((fullName, name))
         if changed:
           changedFiles.append((fullName, name))
-        
+
     if archive is not None:
       archive.close()
-              
+
     # create archive file (if nedded)
-    self.sometingWasWritten = False  
+    self.sometingWasWritten = False
     if len(changedFiles) > 0 or recreate:
       self.Log(Dict.msgCreating.format(fileName), level = LogLevel.INFO)
       with _impl.GetClass()(fileName, 'w') as archive:
@@ -86,6 +86,6 @@ class Archive(Task):
           archive.write(fullName, name)
           self.sometingWasWritten = True
           self.Log(Dict.msgXfromY % (name, fullName), level = LogLevel.VERBOSE)
-        
+
     if not self.sometingWasWritten and (len(changedFiles) > 0 or recreate):
       self.Log(Dict.msgNoneHaveBeenAdded % fileName, level = LogLevel.WARNING)

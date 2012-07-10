@@ -20,5 +20,5 @@ class Deployer:
         result += repository.Put(files, baseDirName, packageId)
       finally:
         repository = None
-    
+
     return result

@@ -33,7 +33,7 @@ class FileSet(list):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
     # TODO: how to handle rootDir if FileSet includes files from different roots?
-    
+
   def MakeSet(self, rootDir, includes, excludes = None, **tparams):
     '''Creates a set of files.
     '''
@@ -44,20 +44,20 @@ class FileSet(list):
     withRootDir = tparams.get('withRootDir', False)
     onlyDirs = tparams.get('onlyDirs', False)
     _filter = tparams.get('filter', None)
-          
+
     rootDir = os.path.normpath(rootDir)
     rootDir += os.path.sep
     filesSet = []
     for root, dirs, files in os.walk(rootDir):
       root = root.replace(rootDir, '')
-      if len(root) > 0 and not root.endswith(os.path.sep): 
+      if len(root) > 0 and not root.endswith(os.path.sep):
         root += os.path.sep
-      
+
       if onlyDirs:
         names = dirs
       else:
         names = files
-      
+
       for name in names:
         nameToAdd = None
         name = root + name
@@ -83,7 +83,7 @@ class FileSet(list):
             if withRootDir:
               nameToAdd = os.path.join(rootDir, nameToAdd)
           filesSet.append(nameToAdd)
-          
+
     return (rootDir, filesSet)
 
   @staticmethod
@@ -92,43 +92,43 @@ class FileSet(list):
     # There is one "shorthand": if a pattern ends with / or \, then ** is appended.
     if not useRegExp and (pattern.endswith('\\') or pattern.endswith('/')):
       pattern = pattern + '**'
-    
+
     name = name.replace('\\', '/')
     #Logger.Log('+++\nFileSet:Match:name: {0}'.format(name), level = LogLevel.DEBUG)
     #Logger.Log('FileSet:Match:pattern: {0}'.format(pattern), level = LogLevel.DEBUG)
-    
+
     if useRegExp:
       return re.match(pattern, name) is not None
-    
+
     pattern = pattern.replace('\\', '/')
-      
-    DOT      = '\\.'
+
+    DOT = '\\.'
     ONE_CHAR = '.{1,1}'
     pattern = pattern.replace('.', DOT)
     pattern = pattern.replace('?', ONE_CHAR)
-    
-    ANY_DIR_TMP    = ':/'
-    ANY_DIR        = '(.*/|\.{0,0})'
-    ANY_CHAR_TMP   = '."'
-    ANY_CHAR       = '.*'
+
+    ANY_DIR_TMP = ':/'
+    ANY_DIR = '(.*/|\.{0,0})'
+    ANY_CHAR_TMP = '."'
+    ANY_CHAR = '.*'
     FILE_NAME_CHAR = '[^<>:"/\\|?*]'
     ANY_FILE_NAME_CHAR = FILE_NAME_CHAR + '*'
-    
+
     pattern = pattern.replace('**/**', '**//**')  # prepare for next two lines
     pattern = pattern.replace('**/', ANY_DIR_TMP)
     pattern = pattern.replace('/**', ANY_CHAR_TMP)
-    pattern = pattern.replace('*',   ANY_FILE_NAME_CHAR)
+    pattern = pattern.replace('*', ANY_FILE_NAME_CHAR)
 
     pattern = pattern.replace(ANY_CHAR_TMP, ANY_CHAR)
     pattern = pattern.replace(ANY_DIR_TMP, ANY_DIR)
     pattern = '^' + pattern + '$'
-    
+
     #Logger.Log('FileSet:Match:regexp: {0}'.format(pattern), level = LogLevel.DEBUG)
 
     rc = re.match(pattern, name) is not None
-    
+
     #Logger.Log('FileSet:Match: {0}\n+++'.format(rc), level = LogLevel.DEBUG)
-    
+
     return rc
 
 class DirSet(FileSet):
@@ -144,7 +144,7 @@ class DirSet(FileSet):
   def AddDirs(self, rootDir, includes = '*', excludes = None, **tparams):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
-  
+
 class ExtendedFileSet(list):
   '''
     TODO: description
@@ -156,10 +156,10 @@ class ExtendedFileSet(list):
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
   
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
-  ''' 
+  '''
   def __init__(self, srcs):
     self.AddFiles(srcs)
-    
+
   def AddFiles(self, srcs):
     srcs = OS.Path.AsList(srcs)
     for src in srcs:
@@ -177,13 +177,12 @@ class ExtendedFileSet(list):
         if OS.Path.HasWildcards(src):
           rootDir, includes = OS.Path.Split(src)
           for fname in FileSet(rootDir, includes, realPaths = False, withRootDir = False):
-            self.append((rootDir, fname)) 
+            self.append((rootDir, fname))
         else:
           if os.path.isdir(src):
             for fname in FileSet(src, includes = '**/*', realPaths = False, withRootDir = False):
-              self.append((src, fname)) 
+              self.append((src, fname))
           else:
             src = os.path.normpath(src)
             if os.path.exists(src):
               self.append((os.path.dirname(src), os.path.basename(src)))
-    

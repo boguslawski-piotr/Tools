@@ -14,13 +14,13 @@ class IVariablesExpander:
   
   TODO: description
   '''
-  def Expand(self, txt, **tparams): 
-    pass  
-  
+  def Expand(self, txt, **tparams):
+    pass
+
 #------------------------------------------------------------------------------ 
 
 class IArchiveFile:
-  def __init__(self, fileName, mode, password = None, **tparams): 
+  def __init__(self, fileName, mode, password = None, **tparams):
     pass
   def close(self):
     pass
@@ -65,31 +65,30 @@ class IVersionListener:
   def AfterConfigure(self, v):
     '''TODO: description'''
     pass
-  def NextMajor(self, v):  
+  def NextMajor(self, v):
     '''TODO: description'''
     pass
-  def NextMinor(self, v):  
+  def NextMinor(self, v):
     '''TODO: description'''
     pass
-  def NextPatch(self, v):  
+  def NextPatch(self, v):
     '''TODO: description'''
     pass
-  def NextBuild(self, v):  
+  def NextBuild(self, v):
     '''TODO: description'''
     pass
-  def SetPrefix(self, v):  
+  def SetPrefix(self, v):
     '''TODO: description'''
     pass
-  def SetPostfix(self, v):  
+  def SetPostfix(self, v):
     '''TODO: description'''
     pass
-  def AfterRead(self, v):  
+  def AfterRead(self, v):
     '''TODO: description'''
     pass
-  def BeforeUpdate(self, v):  
+  def BeforeUpdate(self, v):
     '''TODO: description'''
     pass
-  def AfterUpdate(self, v):  
+  def AfterUpdate(self, v):
     '''TODO: description'''
     pass
-    

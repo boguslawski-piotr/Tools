@@ -9,7 +9,7 @@ def init():
 
 def prepare():
   Echo('prepare (should be first)')
-  
+
 def precompile():
   Echo('precompile (should be third)')
 
@@ -19,7 +19,7 @@ class compile_(Target):
   dependsOn = [prepare, precompile]
   def Run(self):
     Echo('compile (should be fourth)')
-    
+
 class install(Target):
   dependsOn = [prepare, compile_, precompile]
   def Run(self):

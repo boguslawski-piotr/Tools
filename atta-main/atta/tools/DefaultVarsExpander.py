@@ -42,8 +42,8 @@ class Expander:
           moduleName = ''
           for i in range(0, len(v) - 1):
             if len(moduleName) > 0: moduleName = moduleName + '.'
-            moduleName = moduleName + v[i] 
-            try: 
+            moduleName = moduleName + v[i]
+            try:
               _module = sys.modules[moduleName]
               _object = _module.__dict__[v[i + 1]]
               if i == len(v) - 2:
@@ -68,9 +68,8 @@ class Expander:
       if m == None:
         break
       txt = txt.replace(m.group(0), m.group(0)[1:])
-    
+
     return txt
 
   def VariablePattern(self):
     return '\$\{([\w\-\.]+)\}'
-  

@@ -31,7 +31,7 @@ class Echo(Task):
     _file = tparams.get('file', None)
     if isinstance(msg, basestring):
       msg = self.ExpandVariables(msg, **tparams)
-    
+
     if _file is None:
       if isiterable(msg):
         for line in msg:
@@ -43,7 +43,7 @@ class Echo(Task):
     else:
       append = tparams.get('append', False)
       force = tparams.get('force', False)
-      
+
       if isinstance(_file, basestring):
         if force:
           OS.SetReadOnly(_file, False)
@@ -54,7 +54,7 @@ class Echo(Task):
         _f = _file
         if append:
           _f.seek(0, os.SEEK_END)
-      
+
       if isiterable(msg):
         for line in msg:
           if isinstance(line, basestring):
@@ -62,6 +62,6 @@ class Echo(Task):
           _f.write(line)
       else:
         _f.write(msg)
-      
+
       if isinstance(_file, basestring):
         _f.close()

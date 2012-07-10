@@ -15,7 +15,7 @@ Common Tools
 
 def IsWindows():
   return platform.system() == 'Windows'
-  
+
 '''
 Path Tools
 '''
@@ -31,7 +31,7 @@ class Path:
     ext = fileNameSplited[len(fileNameSplited) - 1]
     if lowerCase: ext = ext.lower()
     return ext
-  
+
   @staticmethod
   def RemoveExt(fileName):
     '''Returns the file name without extension.'''
@@ -40,18 +40,18 @@ class Path:
     if s < 0:
       s = fileName.rfind('\\')
     return fileName if d <= 0 or d < s else fileName[0:d];
-  
+
   @staticmethod
   def JoinExt(fileName, ext):
     if not ext.startswith('.'):
       ext = '.' + ext
     return fileName + ext
-  
+
   @staticmethod
   def HasWildcards(fileName):
     '''TODO: description'''
     return re.search('(\?|\*)+', fileName) != None
-  
+
   @staticmethod
   def Split(path):
     '''TODO: description'''
@@ -60,12 +60,12 @@ class Path:
       l = l[:-2]
       r = '**/' + r
     return l, r
-  
+
   @staticmethod
   def NormUnix(path):
     path = os.path.normpath(path).replace('\\', '/')
     return path
-  
+
   @staticmethod
   def AsList(paths, sep = ':'):
     '''TODO: description'''
@@ -82,11 +82,11 @@ class Path:
             break
         paths = paths.split(sep)
         for i, path in enumerate(paths):
-          paths[i] = path.replace('<', ':') 
+          paths[i] = path.replace('<', ':')
       else:
         paths = paths.split(sep)
     return list(paths) # return copy
-  
+
   @staticmethod
   def FromList(paths):
     '''TODO: description'''
@@ -107,11 +107,11 @@ class Path:
         return name
       sleep(0.05)
     return ''
-  
+
 '''
 Directories Tools
 '''
-    
+
 def MakeDirs(paths):
   '''
   Recursive directory creation function. The parameter `paths` can be a string 
@@ -119,7 +119,7 @@ def MakeDirs(paths):
   For each item works like :py:func:`os.makedirs` but not throwing an exception 
   if the leaf directory already exists.
   '''
-  for dir_ in Path.AsList(paths):  
+  for dir_ in Path.AsList(paths):
     try:
       os.makedirs(dir_)
     except os.error as e:
@@ -146,7 +146,7 @@ def RemoveDirs(paths, failOnError = True):
      When `failOnError` is set to `True` is not throwing an exception if the directory not exists.
      When `failOnError` is set to `False` returns `0` when the directory has been removed/not exists
      or :py:data:`os.errno` when an error has occurred.'''
-  for dir_ in Path.AsList(paths):  
+  for dir_ in Path.AsList(paths):
     try:
       os.removedirs(dir_)
     except os.error as e:
@@ -167,14 +167,14 @@ def Touch(fileName, createIfNotExists = True):
   elif createIfNotExists:
     with open(fileName, 'wb') as f:
       pass
-      
+
 def SetReadOnly(fileName, v):
   '''Sets (if `v` is True) or unsets (if `v` is False) read-only flag for file `fileName`.
      Not throwing an exception if the file not exists.'''
   if os.path.exists(fileName):
     st = os.stat(fileName)
     os.chmod(fileName, stat.S_IMODE(st.st_mode) | (stat.S_IWRITE if not v else stat.S_IREAD))
-        
+
 def RemoveFile(fileName, force = False, failOnError = True):
   '''Removes the file `fileName`. 
      When `force` is set to `True` then the file is removed, even when it is read-only.
@@ -190,7 +190,7 @@ def RemoveFile(fileName, force = False, failOnError = True):
       if failOnError: raise
       return e.errno
   return 0
-  
+
 global INAVLID_FILE_SIZE
 INVALID_FILE_SIZE = -1
 '''Constant meaning incorrect file size (usually this means an error while attempting to read file size).'''
@@ -212,7 +212,7 @@ def CopyFile(fileName, destName, force = False):
   if force and not os.path.isdir(destName):
     SetReadOnly(destName, False)
   shutil.copy2(fileName, destName)
-  
+
 def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False):
   '''
   Copies the file `fileName` to the file or directory `destName`
@@ -247,8 +247,8 @@ def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
   More information about the available algorithms can be found in :py:mod:`hashlib`.
   '''
   try:
-    with open(fileName,'rb') as f: 
-      for chunk in iter(lambda: f.read(chunkSize), b''): 
+    with open(fileName, 'rb') as f:
+      for chunk in iter(lambda: f.read(chunkSize), b''):
         algo.update(chunk)
   except:
     return None
@@ -262,8 +262,8 @@ def FileCRCn(fileName, chunkSize = 32768):
   import zlib
   prev = 0
   try:
-    with open(fileName,'rb') as f: 
-      for chunk in iter(lambda: f.read(chunkSize), b''): 
+    with open(fileName, 'rb') as f:
+      for chunk in iter(lambda: f.read(chunkSize), b''):
         prev = zlib.crc32(chunk, prev)
   except:
     return None

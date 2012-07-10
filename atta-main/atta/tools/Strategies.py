@@ -21,9 +21,9 @@ class SrcHashStrategy(ICompareStrategy):
   '''TODO: description'''
   def ActionNeeded(self, srcFileName, destFileName):
     '''Returns True if SHA1-hash of `srcFileName` is not equal to the last saved.'''
-    if not os.path.exists(srcFileName):  
+    if not os.path.exists(srcFileName):
       return False
-    
+
     srcHashFileName = os.path.join('.atta/srchash', os.path.dirname(srcFileName))
     if not os.path.exists(srcHashFileName):
       OS.MakeDirs(srcHashFileName)
@@ -38,7 +38,7 @@ class SrcHashStrategy(ICompareStrategy):
           storedSrcHash = f.read()
       except:
         pass
-      
+
     actionNeeded = False
     if srcHash != storedSrcHash:
       actionNeeded = True
@@ -47,12 +47,12 @@ class SrcHashStrategy(ICompareStrategy):
           f.write(srcHash)
       except:
         pass
-    
-    if not os.path.exists(destFileName): 
-      actionNeeded =  True
-  
+
+    if not os.path.exists(destFileName):
+      actionNeeded = True
+
     return actionNeeded
-  
+
 #------------------------------------------------------------------------------ 
 
 from Interfaces import IVersionStrategy
@@ -66,11 +66,11 @@ class VersionDefaultStrategy(IVersionStrategy):
   '''
   def NextMajor(self, v):
     v.major += 1
-    v.minor  = 0
-    v.path   = 0
+    v.minor = 0
+    v.path = 0
   def NextMinor(self, v):
     v.minor += 1
-    v.path   = 0
+    v.path = 0
   def NextPath(self, v):
     v.patch += 1
   def NextBuild(self, v):
@@ -86,4 +86,3 @@ class VersionResetBuildStrategy(VersionDefaultStrategy):
   def NextMinor(self, v):
     VersionDefaultStrategy.NextMinor(self, v)
     v.build = 0
-  

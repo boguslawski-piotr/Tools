@@ -47,22 +47,22 @@ class Exec(Task):
     - Parameters: os and osFamily
 
   '''
-  def __init__(self, executable, params = None, **tparams):  
+  def __init__(self, executable, params = None, **tparams):
     params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get('failOnError', True)
     self.logOutput = tparams.get('logOutput', True)
     useShell = tparams.get('useShell', True)
     env = tparams.get('env', None)
-    
+
     _output = ''
     _rc = 0
-    
-    shExt  = '.sh'  if not OS.IsWindows() else '.bat'
+
+    shExt = '.sh'  if not OS.IsWindows() else '.bat'
     batExt = '.bat' if OS.IsWindows() else ''
     cmdExt = '.cmd' if OS.IsWindows() else ''
     exeExt = '.exe' if OS.IsWindows() else ''
     executable = DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
-    
+
     _params = [executable]
     _params.extend(params)
     if env is None:
@@ -70,8 +70,8 @@ class Exec(Task):
         env = os.environ
       else:
         env = GetProject().env
-    
-    process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, 
+
+    process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
                                bufsize = 1, env = env, shell = useShell)
     _output = self._communicate(process)
     _rc = process.poll()
@@ -81,15 +81,15 @@ class Exec(Task):
           self.Log(_output, level = LogLevel.ERROR)
         self._LogReturnCode(_rc, level = LogLevel.ERROR)
         raise subprocess.CalledProcessError(_rc, _params, output = _output)
-      
+
     if self.logOutput:
       self._LogReturnCode(_rc)
-    
+
     self.returnCode = _rc
     self.output = _output
 
   '''private section'''
-  
+
   def _reader(self, fh, output):
     line = ''
     while True:
@@ -108,21 +108,21 @@ class Exec(Task):
   def _communicate(self, process):
     stdout = []
     if process.stdout:
-      stdout_thread = threading.Thread(target=self._reader,
-                                       args=(process.stdout, stdout))
+      stdout_thread = threading.Thread(target = self._reader,
+                                       args = (process.stdout, stdout))
       stdout_thread.setDaemon(True)
       stdout_thread.start()
       stdout_thread.join()
 
     process.wait()
-    
+
     stdout = ''.join(stdout)
     lastEOL = stdout.rfind(os.linesep)
     if lastEOL >= 0:
-      stdout = stdout[0:lastEOL] 
-    
+      stdout = stdout[0:lastEOL]
+
     return stdout
-  
+
   def _LogReturnCode(self, _rc, **args):
     if _rc > 0:
       self.Log(Dict.msgExitCode.format(_rc), **args)

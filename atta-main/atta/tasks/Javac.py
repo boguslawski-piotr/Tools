@@ -11,7 +11,7 @@ from ..tools.Sets import FileSet
 from ..tools import OS
 from .. import Dict
 from .Base import Task
-  
+
 class Javac(Task):
   '''
     TODO: description
@@ -44,19 +44,19 @@ class Javac(Task):
       It must be class that implements :py:class:`.IJavaCompiler`.
   
     **Methods:**
-  ''' 
+  '''
   def __init__(self, srcs, destDir = '.', **tparams):
     self._DumpParams(locals())
 
     self._requiresCompileImpl = ObjectFromClass(tparams.get('requiresCompileImpl', Javac.GetDefaultRequiresCompileImpl()))
     self._compilerImpl = ObjectFromClass(tparams.get('compilerImpl', Javac.GetDefaultCompilerImpl()))
-    
+
     srcs = OS.Path.AsList(srcs)
     classPath = OS.Path.AsList(tparams.get(Dict.paramClassPath, []))
     sourcePath = OS.Path.AsList(tparams.get(Dict.paramSourcePath, []))
-    
-    RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams) 
-    
+
+    RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams)
+
     # collect source files
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
@@ -71,8 +71,8 @@ class Javac(Task):
           rootDir, includes = OS.Path.Split(src)
           if len(rootDir) <= 0:
             rootDir = '.'
-          sourcePath.append(rootDir) 
-          srcsSet.AddFiles(rootDir, includes = includes, 
+          sourcePath.append(rootDir)
+          srcsSet.AddFiles(rootDir, includes = includes,
                            filter = RequiresCompile, realPaths = False, withRootDir = True)
         else:
           if os.path.isdir(src):
@@ -83,7 +83,7 @@ class Javac(Task):
             includes = []
             for srcExt in srcExts:
               includes.append('**/*' + srcExt)
-            srcsSet.AddFiles(src, includes, 
+            srcsSet.AddFiles(src, includes,
                              filter = RequiresCompile, realPaths = False, withRootDir = True)
           else:
             src = os.path.normpath(src)
@@ -92,22 +92,22 @@ class Javac(Task):
               if RequiresCompile(rootDir, src):
                 sourcePath.append(rootDir)
                 srcsSet += [src]
-    
+
     if len(srcsSet) <= 0:
       self.Log(Dict.msgNothingToCompile.format(' '.join(srcs)), level = LogLevel.VERBOSE)
       self.returnCode = -1
       return None
-    
+
     self.Log(Dict.msgCompilingTo % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
-    
+
     tparams[Dict.paramSourcePath] = list(set(sourcePath))
     tparams[Dict.paramClassPath] = list(set(classPath))
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
     self.output = self._compilerImpl.GetObject().GetOutput()
 
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
-    
+
   @staticmethod
   def SetDefaultRequiresCompileImpl(_class):
     '''Sets default implementation of :py:meth:`RequiresCompile` method. 
@@ -117,14 +117,14 @@ class Javac(Task):
   @staticmethod
   def GetDefaultRequiresCompileImpl():
     return Javac._defaultRequiresCompileImpl.GetClass()
-    
-  def RequiresCompile(self, destDir, srcDir, fileName, **tparams): 
+
+  def RequiresCompile(self, destDir, srcDir, fileName, **tparams):
     '''TODO: description'''
-    dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams)) 
+    dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
     src = os.path.join(srcDir, fileName)
     return self._requiresCompileImpl.GetObject().ActionNeeded(src, dest)
 
-  _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler) 
+  _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler)
 
   @staticmethod
   def SetDefaultCompilerImpl(_class):

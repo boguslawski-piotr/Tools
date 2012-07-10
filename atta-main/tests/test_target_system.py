@@ -23,9 +23,9 @@ class wlm(Target):
   system = 'win,linux,mac'
   def Run(self):
     Echo('on win,linux,mac')
-    
+
 class test(Target):
-  dependsOn = [win,linux,mac,wlm]
+  dependsOn = [win, linux, mac, wlm]
   def Run(self):
     Echo('on all')
-    
+

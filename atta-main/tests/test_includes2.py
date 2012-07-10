@@ -24,8 +24,8 @@ class test(Target):
   dependsOn = ['inc.inc2.includes2.includes2', 'xtests.includes2.includes2']
   def Run(self):
     Echo('includes2 target')
-    
-Project.Import('../xtests/includes2')    
+
+Project.Import('../xtests/includes2')
 
 Project.RunTarget('...xtests.includes2.includes2')
 

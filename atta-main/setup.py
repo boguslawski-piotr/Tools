@@ -10,10 +10,10 @@ from atta.version import AttaVersion
 import sys
 
 buildExeOptions = {
-  "packages" : ["atta"], 
-  "copy_dependent_files" : True,  
+  "packages" : ["atta"],
+  "copy_dependent_files" : True,
   "include_files" : ["atta.properties", 'docs/html'],
-}  
+}
 
 targetExt = ''
 if sys.platform == 'win32':

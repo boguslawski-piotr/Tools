@@ -26,14 +26,14 @@ class Jar(Zip):
     Returns: TODO
     
     **Methods:**
-  ''' 
+  '''
   def __init__(self, fileName, srcs, manifest = {}, **tparams):
     self._DumpParams(locals())
-    
-    manifestFileName = Dict.manifestFileName 
+
+    manifestFileName = Dict.manifestFileName
     manifestStr = self.ManifestAsStr(manifest, **tparams)
     fileName = os.path.normpath(fileName)
-    
+
     manifestChanged = True
     try:
       with ZipFile(fileName, 'r') as zipFile:
@@ -42,9 +42,9 @@ class Jar(Zip):
           manifestChanged = False
     except:
       pass
-              
+
     Zip.__init__(self, fileName, srcs, **tparams)
-    
+
     if manifestChanged or self.sometingWasWritten:
       if not self.sometingWasWritten:
         self.Log(Dict.msgCreating.format(fileName), level = LogLevel.INFO)
@@ -52,7 +52,7 @@ class Jar(Zip):
         # add manifest
         self.LogIterable(Dict.msgWithManifest, manifestStr.rstrip().split(Dict.newLine), level = LogLevel.VERBOSE)
         zipFile.writestr(manifestFileName, manifestStr)
-         
+
   def ManifestAsStr(self, manifest = {}, **tparams):
     '''TODO: description'''
     # TODO: obsluzyc gdy manifest: string (fileName), file-like object
@@ -60,4 +60,3 @@ class Jar(Zip):
     for name, value in manifest.items():
       manifestStr = manifestStr + '{0}: {1}\n'.format(name, value)
     return manifestStr
-  

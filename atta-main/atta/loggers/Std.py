@@ -8,26 +8,26 @@ class Logger(ILogger):
      
     TODO: description
   '''
-  
+
   def Log(self, msg, **args):
     _msg = self._HandleProject(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)
     if _msg is None:
       _msg = '{0}'.format(msg)
     self._PhysicalLog(_msg)
     return
-  
+
   '''private section'''
-  
+
   def _PhysicalLog(self, msg):
     if msg:
       print(msg)
-      
+
   def _HandleProject(self, msg, **args):
     if 'project' in args:
       if 'start' in args:
         pass
       if 'end' in args:
-        _msg =        '\nBuild: {0}'.format(args['status'])
+        _msg = '\nBuild: {0}'.format(args['status'])
         _msg = _msg + '\n   At: {0}'.format(args['at'].isoformat())
         _msg = _msg + '\n Time: {0}'.format(args['time'])
         if 'exception' in args:
@@ -39,7 +39,7 @@ class Logger(ILogger):
     return None
 
   def _HandleTarget(self, msg, **args):
-    if 'target' in args: 
+    if 'target' in args:
       if 'prepare' in args:
         _msg = os.linesep + args['target'] + ':prepare:'
         return _msg

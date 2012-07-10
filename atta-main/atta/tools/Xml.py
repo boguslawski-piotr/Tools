@@ -10,31 +10,31 @@ class XmlElement(ET.Element):
   '''TODO: description
   You can use any attribute and method from :py:class:`.ElementTree.Element`.
   '''
-  
+
   ns = None
   '''element namespace TODO: description'''
-  
+
   parent = None
   '''TODO: description'''
-  
+
   def __init__(self, tag, attrib = {}, ns = '', **extra):
     self.ns = ns
     self._parent = None
     ET.Element.__init__(self, tag, attrib, **extra)
-  
+
   def append(self, element):
     element._setparent(self)
     ET.Element.append(self, element)
-  
+
   def insert(self, index, element):
     element._setparent(self)
     ET.Element.insert(self, index, element)
-  
+
   def extend(self, elements):
     for e in elements:
       e._setparent(self)
     ET.Element.extend(self, elements)
-      
+
   def values(self, match, caseSensitive = True, stripfn = lambda str: str):
     '''Returns values for tag or path as list with dicts inside...
     It's more flexible and powerful version of Element.findtext. 
@@ -78,16 +78,16 @@ class XmlElement(ET.Element):
         if e.text:
           text = stripfn(e.text)
           if text:
-            d[e.tag] = text 
-        
+            d[e.tag] = text
+
         lastFlatLevel = len(list(c[0])) == 0
         if lastFlatLevel:
-          tag = c[0].tag 
+          tag = c[0].tag
           for z in c[1:]:
-            if z.tag != tag or len(list(z)) > 0: 
+            if z.tag != tag or len(list(z)) > 0:
               lastFlatLevel = False
               break
-            
+
         d = {}
         for e in c:
           _GetValues(e, d)
@@ -96,7 +96,7 @@ class XmlElement(ET.Element):
             d = {}
         if not lastFlatLevel:
           values.append(d)
-    
+
     if len(match) <= 0:
       # Return all values in whole document (it is not very useful, but who knows?)
       d = {}
@@ -126,7 +126,7 @@ class XmlElement(ET.Element):
         i += 1
         if i >= len(match):
           break
-      
+
     # Remove empty 'lines'.
     values = filter((lambda e: len(e)), values)
     return values
@@ -138,18 +138,18 @@ class XmlElement(ET.Element):
       m = re.search('({(.*)})', tag)
       if m != None:
         return (m.group(2), tag.replace(m.group(1), ''))
-    except: 
+    except:
       pass
     return ('', tag)
-  
+
   def _setparent(self, parent):
     self._parent = parent
-    
+
   def _setns(self):
     if len(self.ns) <= 0:
       self.ns, self.tag = XmlElement._splittag(self.tag)
     return self.ns
-  
+
   @staticmethod
   def __repr(parent, ident):
     if parent == None:
@@ -158,10 +158,10 @@ class XmlElement(ET.Element):
        (repr(parent.ns), repr(parent.tag), repr(parent.text), str(parent.attrib)) \
        + ' ' * ident + \
        "%s>" % (XmlElement.__repr(parent._parent, ident + 2))
-           
+
   def __repr__(self):
     return XmlElement.__repr(self, 2)
-  
+
 class _TreeBuilderEx(ET.TreeBuilder):
   def end(self, tag):
     _last = ET.TreeBuilder.end(self, tag)
@@ -180,7 +180,7 @@ class Xml:
   def __init__(self, src):
     self.namespaces = None
     self.read(src)
-   
+
   def read(self, src):
     '''src can be: xml data (as string), filename or filelike object'''
     parser = ET.XMLParser(target = _TreeBuilderEx(XmlElement))
@@ -190,23 +190,23 @@ class Xml:
       self._root = ET.parse(src, parser).getroot()
     for e in self._root.iter():
       e._setns()
-    
+
   def write(self, f, **tparams):
     '''TODO: description'''
     # TODO: handle namespaces...
     self._buildnamespaces()
     return ET.ElementTree(self._root).write(f, **tparams)
- 
+
   def append(self, element):
     '''TODO: description'''
     element._setns()
     self._root.append(element)
-  
+
   def insert(self, index, element):
     '''TODO: description'''
     element._setns()
     self._root.insert(index, element)
-  
+
   def extend(self, elements):
     '''TODO: description'''
     for e in elements:
@@ -217,12 +217,12 @@ class Xml:
     element._setparent(self._root)
     element._setns()
     self._root[index] = element
-    
+
   def __getattr__(self, name):
     if not hasattr(self._root, name):
       raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
     return getattr(self._root, name, None)
-   
+
   def _buildnamespaces(self):
     self.namespaces = {}
     i = 0
@@ -235,8 +235,7 @@ class Xml:
       else:
         self.namespaces[e.ns] = [prefix, 1]
         i += 1
-   
+
   def _setroot(self, element):
     self._root = element
     self._buildnamespaces()
-        

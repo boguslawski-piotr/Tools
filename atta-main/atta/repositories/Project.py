@@ -11,14 +11,14 @@ from . import Local
 
 class Repository(Local.Repository):
   '''TODO: description'''
-  
+
   def vPrepareFileName(self, fileName):
     return os.path.normpath(os.path.join(GetProject().dirName, fileName))
 
   def Get(self, packageId, scope, store = None):
     if packageId.groupId is None:
       raise AttaError(self, 'Not given name / directory of the project (grupId entry).')
-    
+
     if os.path.isdir(packageId.groupId):
       projectName = packageId.groupId + '/' + Dict.defaultBuildFileName
       dirName = packageId.groupId
@@ -27,11 +27,11 @@ class Repository(Local.Repository):
       dirName = os.path.dirname(projectName)
     if not os.path.exists(projectName):
       raise AttaError(self, Dict.errFileNotExists % projectName)
-    
+
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
     resultProperties = self.data.get(Dict.resultIn, ['packageName'])
     result = None
-    
+
     projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
     try:
       shutil.copy2(projectName, projectTmpName)
@@ -43,12 +43,12 @@ class Repository(Local.Repository):
         # Invoke Atta project.
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
-        
+
         project = GetProject().RunProject(GetProject().env, projectTmpName, targetNames)
-        
+
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
-        
+
         # Collect produced file(s).
         result = []
         resultProperties = OS.Path.AsList(resultProperties)
@@ -60,7 +60,7 @@ class Repository(Local.Repository):
               if not os.path.exists(r[i]):
                 r[i] = os.path.join(dirName, r[i])
             result += r
-            
+
         # Prepare valid packageId if it's possible.
         packageId.groupId = getattr(project, Dict.groupId, None)
         packageId.artifactId = getattr(project, Dict.name, None)
@@ -72,7 +72,7 @@ class Repository(Local.Repository):
           # We assume that the main file of the project is always the first on the list.
 #          packageId.systemPath = OS.Path.NormUnix(os.path.realpath(result[0]))
 #          packageId.type = OS.Path.Ext(packageId.systemPath)
-        
+
       except:
         raise
       finally:
@@ -80,10 +80,10 @@ class Repository(Local.Repository):
         OS.RemoveFile(projectTmpName)
         OS.RemoveFile(projectTmpName + 'c')
         OS.RemoveFile(projectTmpName + 'o')
-    
+
     if result is None:
       raise AttaError(self, 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultProperties))
-    
+
     self.Log(Dict.msgReturns % OS.Path.FromList(result), level = LogLevel.DEBUG)
     return result
 

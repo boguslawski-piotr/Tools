@@ -20,13 +20,12 @@ class test(Target):
     Echo('Project:')
     Echo('   dirName: ' + Project.dirName)
     Echo('  fileName: ' + Project.fileName)
-    
+
     Echo()
     Echo('Project.Env:')
     for var, v in Project.env.iteritems():
       Echo('  {0}: {1}'.format(var, v))
-    
+
     Echo()
     Project.env['test_env'] = Project.dirName
     Echo('  {0}: {1}'.format('test_env', Project.env['test_env']))
-    

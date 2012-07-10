@@ -12,7 +12,7 @@ class ObjectFromClass:
     self._object = None
     if _class is not None:
       self.SetClass(_class)
-  
+
   def SetClass(self, _class):
     '''TODO:description'''
     oldClass = self._class
@@ -22,10 +22,10 @@ class ObjectFromClass:
       self._class = _class
     self._object = None
     return oldClass
-  
+
   def GetClass(self):
     return self._class
-  
+
   def GetObject(self):
     '''TODO:description'''
     if self._object is None:

@@ -14,61 +14,61 @@ class Version(Task):
   '''TODO: description'''
   def __init__(self, **conf):
     self.Configure(**conf)
-  
+
   def Configure(self, **conf):
     '''TODO: description'''
     self._impl = ObjectFromClass(conf.get('impl', Version.GetDefaultImpl()))
-    
+
     listeners = conf.get('listeners', [])
     if not isiterable(listeners):
       listeners = [listeners]
     self._listeners = []
     for _class in listeners:
       self.RegisterListener(_class)
-      
+
     self.major = 0
     self.minor = 0
     self.patch = 0
     self.build = 0
     self.changed = False
-    
+
     self.fileName = conf.get('fileName', 'version.info')
     if not self._Read():
       if conf.get('createIfNotExists', True):
         self._ForceUpdate()
-    
+
     self.format = conf.get('format', '${major}.${minor}.${patch}.${build}')
-    
+
     self.prefix = conf.get('prefix', '')
     self.postfix = conf.get('postfix', '')
-    
+
     self._RunListeners('AfterConfigure')
-    
+
   def __del__(self):
     self._Update()
-    
+
   def AsStr(self):
     '''TODO: description'''
     return str(self)
-  
+
   def __str__(self):
     '''TODO: description'''
     e = Expander()
-    return e.Expand(self.format, 
-                    major = self.major, 
-                    minor = self.minor, 
-                    patch = self.patch, 
+    return e.Expand(self.format,
+                    major = self.major,
+                    minor = self.minor,
+                    patch = self.patch,
                     build = self.build,
                     prefix = self.prefix,
                     postfix = self.postfix)
-  
+
   def NextMajor(self, update = True):
     '''TODO: description'''
     old = self._AsStr()
     self._impl.GetObject().NextMajor(self)
     self._RunListeners('NextMajor')
     self._Changed(update, old)
-    
+
   def NextMinor(self, update = True):
     '''TODO: description'''
     old = self._AsStr()
@@ -82,7 +82,7 @@ class Version(Task):
     self._impl.GetObject().NextPatch(self)
     self._RunListeners('NextPatch')
     self._Changed(update, old)
-    
+
   def NextBuild(self, update = True):
     '''TODO: description'''
     old = self._AsStr()
@@ -96,20 +96,20 @@ class Version(Task):
     self.prefix = prefix
     self._RunListeners('SetPrefix')
     return old
-  
+
   def SetPostfix(self, postfix):
     '''TODO: description'''
     old = self.postfix
     self.postfix = postfix
     self._RunListeners('SetPostfix')
     return old
-  
+
   def RegisterListener(self, _class):
     '''TODO: description'''
     listener = ObjectFromClass(_class)
     self._listeners.append(listener)
     return listener
-  
+
   def UnRegisterListener(self, listener):
     '''TODO: description'''
     i = self._listeners.index(listener)
@@ -118,41 +118,41 @@ class Version(Task):
   def ExpandVariables(self, data, **tparams):
     '''TODO: description'''
     e = Expander()
-    return e.Expand(data, 
-                    major   = self.major, 
-                    minor   = self.minor, 
-                    patch   = self.patch, 
-                    build   = self.build,
-                    prefix  = self.prefix,
+    return e.Expand(data,
+                    major = self.major,
+                    minor = self.minor,
+                    patch = self.patch,
+                    build = self.build,
+                    prefix = self.prefix,
                     postfix = self.postfix,
                     version = str(self),
                     **tparams)
-  
+
   class FileFilter:
     '''TODO: description'''
     def __init__(self, srcFileName, destFileName):
       self.srcFileName = srcFileName
       self.destFileName = destFileName
-    
+
     def __call__(self, v):
       self.Run(v)
-      
+
     def Run(self, v):
       f = open(self.srcFileName, 'rb')
       try:
         data = f.read()
       finally:
         f.close()
-      
+
       data = v.ExpandVariables(data)
-      
+
       f = open(self.destFileName, 'wb')
       try:
         f.write(data)
       finally:
         f.close()
-      
-  _defaultImpl = ObjectFromClass(VersionDefaultStrategy) 
+
+  _defaultImpl = ObjectFromClass(VersionDefaultStrategy)
 
   @staticmethod
   def SetDefaultImpl(_class):
@@ -167,16 +167,16 @@ class Version(Task):
   '''private section'''
 
   def _Changed(self, forceUpdate, old = None):
-    if forceUpdate: 
+    if forceUpdate:
       self._ForceUpdate()
       if old:
         self.Log(Dict.msgChangedFromXToYInZ % (old, self._AsStr(), self.fileName), level = LogLevel.INFO)
-    else: 
+    else:
       self.changed = True
-  
+
   # TODO: odczyt i zapis w taki sposob aby w tym pliku mozna bylo umieszczac inne rzeczy
   # np. z oznaczeniem bloku: #!version: ... #:version!
-  
+
   def _Read(self):
     if not os.path.exists(self.fileName):
       return False
@@ -187,7 +187,7 @@ class Version(Task):
     self.build = int(p.Get('build', 0))
     self._RunListeners('AfterRead')
     return True
-    
+
   def _Update(self):
     if not self.changed:
       return True
@@ -201,7 +201,7 @@ class Version(Task):
     self.changed = False
     self._RunListeners('AfterUpdate')
     return True
-    
+
   def _ForceUpdate(self):
     self.changed = True
     self._Update()
@@ -210,13 +210,13 @@ class Version(Task):
     for l in self._listeners:
       if action in dir(l.GetObject()):
         exec('l.GetObject().' + action + '(self)')
-        
+
   def _CreateIfNotExists(self):
     if not os.path.exists(self.fileName):
       self._ForceUpdate()
-      
+
   def _AsStr(self):
     return '%d.%d.%d.%d' % (self.major, self.minor, self.patch, self.build)
-  
+
   def _FromStr(self, v):
     self.major, self.minor, self.patch, self.build = v.split('.')

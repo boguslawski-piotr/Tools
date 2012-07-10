@@ -15,7 +15,7 @@ class test(Target):
     Project.RunTarget('inc.include1.test1')
     Echo('test_includes.test target')
     Echo('project property from_include1 = ' + Project.from_include1)
-    
+
     Echo('run project "include2" within test_includes.test target')
     Project.RunProject(None, 'include2', ['go2'])
 

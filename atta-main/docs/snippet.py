@@ -329,7 +329,7 @@ def read_snippets(app, doctree):
 
 def resolve_snippets(app, doctree, fromdocname):
     env = app.builder.env
-    
+
     for node in doctree.traverse(snippet):
         env.snippets[node['name']] = {'node': node.deepcopy()}
         node.replace_self(node.children)

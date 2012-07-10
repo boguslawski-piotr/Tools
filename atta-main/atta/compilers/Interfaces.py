@@ -23,4 +23,4 @@ class IJavaCompiler(ICompiler):
   def Compile(self, srcFiles, destDir, **tparams):
     '''TODO: description'''
     pass
-  
+

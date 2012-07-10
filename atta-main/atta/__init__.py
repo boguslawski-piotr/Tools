@@ -11,7 +11,7 @@ __all__ = [
            # Enums & Classes
            'Target',
            'Task',
-           
+
            # Tools
            'LogLevel',
            'Properties',
@@ -26,16 +26,16 @@ __all__ = [
            # Tasks
            'Echo',
            'Delete',
-           
+
            'Exec',
            'PyExec',
-           
+
            'Archive',
            'Zip',
-           
+
            'Javac',
            'Jar',
-           
+
            'Git',
           ]
 
@@ -45,13 +45,13 @@ from .tools.Misc import LogLevel, Logger, VariablesExpander
 from .loggers import Std
 from .tools import DefaultVarsExpander
 from .version import AttaVersion
-  
-class AttaError(RuntimeError): 
+
+class AttaError(RuntimeError):
   '''Base class for all exceptions thrown by Atta.'''
   def __init__(self, caller, msg):
     self.caller = caller
     self.msg = msg
-    
+
   def __str__(self):
     return '{0}:\n{1}'.format(self.caller.__class__ if self.caller else 'Atta', self.msg)
 
@@ -60,25 +60,25 @@ class Atta:
   Provides basic information about Atta. 
   Also provides a few simple tools.
   '''
-  name        = 'Atta'
+  name = 'Atta'
   description = 'Build tool in pure Python.'
-  
+
   version = AttaVersion
   '''TODO: description'''
-  
-  versionInt = int(AttaVersion.replace('.', ''))  
+
+  versionInt = int(AttaVersion.replace('.', ''))
   '''TODO: description'''
-  
+
   dirName = None
   '''TODO: description'''
-  
+
   _logger = Logger(Std.Logger)
-  
+
   @staticmethod
   def Logger():
     '''TODO: description'''
     return Atta._logger
-  
+
   @staticmethod
   def LogLevel():
     '''TODO: description'''
@@ -88,30 +88,30 @@ class Atta:
   def Log(msg = '', **tparams):
     '''TODO: description'''
     Atta._logger.Log(msg, **tparams)
-  
+
   @staticmethod
   def LogIterable(msg, iterable, **tparams):
     '''TODO: description'''
-    Atta._logger.LogIterable(msg, iterable, **tparams)  
-    
-  _varsExpander = VariablesExpander(DefaultVarsExpander.Expander) 
-  
+    Atta._logger.LogIterable(msg, iterable, **tparams)
+
+  _varsExpander = VariablesExpander(DefaultVarsExpander.Expander)
+
   @staticmethod
   def VarsExpander():
     '''TODO: description'''
     return Atta._varsExpander
-  
+
   _props = None
-  
+
   @staticmethod
   def Props():
     '''TODO: description'''
     return Atta._props
-  
+
   @staticmethod
   def _SetProps(props):
     Atta._props = props
-    
+
 # Project property 
 
 Project = None
@@ -127,12 +127,12 @@ def GetProject():
 def _SetProject(project):
   global Project
   Project = project
-  
+
 # File property 
 
 class File:
   '''Describes currently interpreted build script.'''
-  
+
   name = ''
   '''
   Full file name.
@@ -141,20 +141,20 @@ class File:
   the phase of interpreting the build script. 
   NOT when Atta performing targets & tasks.
   '''
-  
+
   '''private section'''
-  
+
   _list = []
-  
+
   @staticmethod
   def _Set(fileName):
     File._list.append(File.name)
     File.name = fileName
- 
+
   @staticmethod
   def _Unset():
     File.name = File._list.pop()
-    
+
 # Tools
 
 from .tools.Sets import FileSet, DirSet, ExtendedFileSet
@@ -184,4 +184,3 @@ from .tasks.Javac import Javac
 from .tasks.Jar import Jar
 
 from .dvcs.Git import Git
-  

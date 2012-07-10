@@ -2,11 +2,11 @@
 
 class Scopes:
   '''TODO: description'''
-  compile     = 'compile'
+  compile = 'compile'
   testcompile = 'testcompile'
-  install     = 'install'
-  testrun     = 'testrun'
-  
+  install = 'install'
+  testrun = 'testrun'
+
   map2POM = {
              compile     : ['compile'],
              testcompile : ['compile'],
@@ -14,7 +14,7 @@ class Scopes:
              testrun     : ['compile', 'runtime']
             }
   '''TODO: description'''
-  
+
 #
 # Common
 
@@ -34,25 +34,25 @@ defaultBuildFileName = 'build.py'
 # Repositories related
 
 repository = 'repository'
-style      = 'style'
-scope      = 'scope'
-package    = 'package'
-groupId    = 'groupId'
+style = 'style'
+scope = 'scope'
+package = 'package'
+groupId = 'groupId'
 artifactId = 'artifactId'
-version    = 'version'
-type       = 'type'
-getOptional= 'getOptional'
-dependsOn  = 'dependsOn'
-putIn      = 'putIn'
-ifNotExists= 'ifNotExists'
-resultIn   = 'resultIn'
-rootDir    = 'rootDir'
-host       = 'host'
-port       = 'port'
-user       = 'user'
-pasword    = 'password'
-passive    = 'passive'
-useCache   = 'useCache'
+version = 'version'
+type = 'type'
+getOptional = 'getOptional'
+dependsOn = 'dependsOn'
+putIn = 'putIn'
+ifNotExists = 'ifNotExists'
+resultIn = 'resultIn'
+rootDir = 'rootDir'
+host = 'host'
+port = 'port'
+user = 'user'
+pasword = 'password'
+passive = 'passive'
+useCache = 'useCache'
 maxRetries = 'maxRetries'
 
 #
@@ -62,7 +62,7 @@ systemPath = 'systemPath'
 system = 'system'
 dependencies = 'dependencies'
 dependencyStartTag = '<dependency>'
-dependencyEndTag   = '</dependency>'
+dependencyEndTag = '</dependency>'
 exclusions = 'exclusions'
 optional = 'optional'
 relativePath = 'relativePath'
@@ -139,7 +139,7 @@ msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
 msgLoadingPropertiesForX = 'Loading properties for: %s'
 msgCollectingDependenciesForX = 'Collecting dependencies for: %s'
- 
+
 msgDvcsRepository = 'Repository: %s'
 msgDvcsOutputTitle = 'Output from DVCS:'
 msgDvcsNextBuildNumber = 'Next build number'

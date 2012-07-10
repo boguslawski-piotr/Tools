@@ -17,26 +17,26 @@ from atta.tools.Interfaces import IVersionListener
 class MyVersionListener(IVersionListener):
   tmplFileName = 'version.java.tmpl'
   javaFileName = 'version.java'
-  
+
   def AfterConfigure(self, v):
     if SrcNewerStrategy().ActionNeeded(MyVersionListener.tmplFileName, MyVersionListener.javaFileName):
       self.AfterUpdate(v)
-  
-  def SetPostfix(self, v):  
+
+  def SetPostfix(self, v):
     self.AfterUpdate(v)
-    
-  def AfterUpdate(self, v):  
+
+  def AfterUpdate(self, v):
     Version.FileFilter(MyVersionListener.tmplFileName, MyVersionListener.javaFileName)(v)
     OS.Touch('main.java')
-    
-Project.version.Configure( impl     = VersionResetBuildStrategy,
-                           listeners= MyVersionListener,
+
+Project.version.Configure(impl = VersionResetBuildStrategy,
+                           listeners = MyVersionListener,
                            fileName = 'v.i',
                            # In this project we don't use ${patch} and ${build} version element.
-                           format   = '${major}.${minor}${postfix}', 
+                           format = '${major}.${minor}${postfix}',
                            # More about postfixs you can find in deploy_rc, deploy_release targets below.
-                           postfix  = '-SNAPSHOT' 
-                           
+                           postfix = '-SNAPSHOT'
+
                            # TODO: more formats for file: ini, prop, py, etc.
                           )
 
@@ -48,7 +48,7 @@ Java.Setup(Java.ProjectType.app, mainClass = 'main')
 First we have to compile the library 'lib', because the application uses it.
 That is why we put the folders at the beginning of the list.
 '''
-Project.javaDirs.insert(0, Project.srcBaseDir +'/lib/java')
+Project.javaDirs.insert(0, Project.srcBaseDir + '/lib/java')
 Project.classDirs.insert(0, Project.buildBaseDir + '/classes/lib')
 
 '''
@@ -78,7 +78,7 @@ Dependencies
 # It's only example of power of Atta.
 
 Project.dependsOn += [{
-                       'repository': 'atta.repositories.Maven',   # it can be any module with class Repository which inherits from ARepository
+                       'repository': 'atta.repositories.Maven', # it can be any module with class Repository which inherits from ARepository
                        'groupId'   : 'com.beust',
                        'artifactId': 'jcommander',
                        'version'   : '1.26',
@@ -98,13 +98,13 @@ Project.dependsOn += [{
                       # Calls Atta project in directory (default: build.py) or with file name specified by: groupId. 
                       'repository': 'atta.repositories.Project',
                       'groupId'   : '../JavaBasic',
-                      
+
                       # You can set the following items according to the commentary, 
                       # or not set, and then Atta will use the default values.
-                      
+
                       # This must be the name or names of the targets separated by spaces.
-                      'target'    : 'package',                        # default: package
-                      
+                      'target'    : 'package', # default: package
+
                       # This must be name (or list of names) of project property(ies) which may contains: 
                       # string, string path (entries separated by :) or list of strings.
                       # These values will be used in the parameter '-classpath' passed to javac compiler. 
@@ -117,9 +117,9 @@ Project.dependsOn += [{
                        'scope'      : 'install',
                        'package'    : 'javax.mail:mail.jar:1.4.5',
                        'ifNotExists': [{
-                                        'repository' : 'atta.repositories.Maven', 
-                                        'package'    : 'javax.mail:mail.jar:1.4.5', 
-                                        'putIn'      : { 
+                                        'repository' : 'atta.repositories.Maven',
+                                        'package'    : 'javax.mail:mail.jar:1.4.5',
+                                        'putIn'      : {
                                                         'repository' : 'atta.repositories.Local',
                                                         'style'      : 'atta.repositories.Styles.Flat',
                                                        }
@@ -131,7 +131,7 @@ Deploy
 '''
 
 from atta.repositories import Styles
-    
+
 class MyStyle(Styles.Flat):
   def DirName(self, packageId):
     return '%s' % (str(packageId.version))
@@ -156,8 +156,8 @@ Project.deployTo = [
                      'style'      : MyStyle,
                      'rootDir'    : 'archive',
                     },
-                  ]  
-      
+                  ]
+
 '''
 Customizing Java targets that come with Atta. It's easy :)
 
@@ -170,7 +170,7 @@ class deploy(Java.deploy):
   def TagBuild(self, tag):
     if Project.dvcs != None:
       Project.dvcs.SetTag(tag, replace = True)
- 
+
 class deploy_rc(deploy):
   def PreparePostfix(self):
     rcN = Project.env.get('N', None)
@@ -182,7 +182,7 @@ class deploy_rc(deploy):
     Java.deploy.Prepare(self)
     self.PreparePostfix()
     return True
-  
+
   def NextVersion(self):
     Project.version.SetPostfix(self.oldPostfix)
     Java.deploy.NextVersion(self)
@@ -190,14 +190,14 @@ class deploy_rc(deploy):
 class deploy_release(deploy_rc):
   def PreparePostfix(self):
     self.oldPostfix = Project.version.SetPostfix('')
-  
+
   def NextVersion(self):
     Project.version.SetPostfix(self.oldPostfix)
     Project.version.NextMinor()
 
-  def GetCommitMessage(self):  
+  def GetCommitMessage(self):
     return 'Next minor version number'
-    
+
 '''
 # for build2.py
 '''

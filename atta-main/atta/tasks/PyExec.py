@@ -20,11 +20,11 @@ class PyExec(Exec):
   as in :py:class:`.Exec`.
 
   '''
-  def __init__(self, fileName, params = None, **tparams):  
+  def __init__(self, fileName, params = None, **tparams):
     if len(fileName) > 0 and not fileName.startswith('-'):
       if OS.Path.Ext(fileName) == '':
-        fileName = fileName + '.py' 
-      
+        fileName = fileName + '.py'
+
       if fileName.find(os.path.sep) == -1:
         for path in sys.path:
           _fileName = os.path.join(path, fileName)
@@ -32,7 +32,7 @@ class PyExec(Exec):
             self.Log('Found {0} in: {1}'.format(fileName, path), level = LogLevel.VERBOSE)
             fileName = _fileName
             break
-    
+
     _params = (params[:] if params else [])
     _params.insert(0, fileName)
     Exec.__init__(self, 'python', _params, **tparams)

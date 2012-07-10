@@ -7,22 +7,22 @@ import sys
 import os
 
 from atta import *
-import atta.Project 
+import atta.Project
 import atta.Dict
 
 def _ParseArgv(argv):
   import argparse
-  
+
   argsParser = argparse.ArgumentParser(
     prog = Atta.name,
     formatter_class = argparse.RawDescriptionHelpFormatter,
-    description = Atta.name 
-                  + ' v' + Atta.version 
-                  + os.linesep 
-                  + Atta.description, 
+    description = Atta.name
+                  + ' v' + Atta.version
+                  + os.linesep
+                  + Atta.description,
     epilog = 'Bugs, comments and suggestions please report on page\nhttps://github.com/boguslawski-piotr/Atta/issues'
   )
-  
+
   buildGroup = argsParser.add_argument_group('build')
   buildGroup.add_argument(
     'target', nargs = '*', default = '',
@@ -32,7 +32,7 @@ def _ParseArgv(argv):
     '-f', nargs = 1, default = [atta.Dict.defaultBuildFileName], metavar = 'file',
     help = 'use given buildfile'
   )
-  
+
   paramGroup = argsParser.add_argument_group('parameters')
   paramGroup.add_argument(
     '-D', action = 'append', metavar = 'name=value',
@@ -53,7 +53,7 @@ def _ParseArgv(argv):
     '-q', action = 'store_true',
     help = 'be quiet (shortcut for -ll 3)')
   logGroup.add_argument(
-    '-ll', nargs = 1, metavar = 'level', type = int, choices = [0,1,2,3,4], 
+    '-ll', nargs = 1, metavar = 'level', type = int, choices = [0, 1, 2, 3, 4],
     help = 'set the log level to the one of: %(choices)s'
   )
   logGroup.add_argument(
@@ -67,15 +67,15 @@ def _ParseArgv(argv):
   logGroup.add_argument(
     '-scs', action = 'store_true',
     help = 'show call stack (traceback) on error')
-  
+
   args, argv = argsParser.parse_known_args(argv)
   if argv:
     print(Atta.name + ': error: unrecognized arguments: %s\n' % ' '.join(argv))
     argsParser.print_help()
     return None
-  
+
   return args
-  
+
 def _Dump():
   Atta.Log('*** Atta', level = LogLevel.DEBUG)
   Atta.Log('Platform.platform = ' + platform.platform(), level = LogLevel.DEBUG)
@@ -88,7 +88,7 @@ def _Dump():
 
 def Main():
   # Setup environment
-  
+
   minPythonVersion = '2.7.0'
   if int(platform.python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
     print('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version()))
@@ -97,38 +97,38 @@ def Main():
   Atta.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
   argv = sys.argv[1:]
   environ = os.environ
-  
+
   # Load settings
-  
+
   try:
     # TODO: szukac atta.properties w: Atta dir, user dir and project dir (nowe zastepuja stare)
     Atta._SetProps(Properties.Open(os.path.join(Atta.dirName, 'atta.properties')))
-    
+
     args = Atta.Props().Get('args', None)
     if args is not None:
       argv += args.split(' ')
-      
+
   except:
     pass
-  
+
   # Parse arguments
-  
+
   args = _ParseArgv(argv)
   if args is None:
     return 1
-  
+
   # Handle arguments
-  
+
   if args.D:
     for D in args.D:
       try:
         name, value = D.split('=')
         environ[name] = value
       except: pass
-      
+
   if args.javarc:
     Javac.SetDefaultRequiresCompileImpl(args.javarc[0])
-    
+
   if args.ll:
     Atta.Logger().SetLevel(args.ll[0])
   if args.d:
@@ -142,17 +142,17 @@ def Main():
     for llc in args.llc:
       __import__(OS.Path.RemoveExt(llc))
       Atta.Logger().RegisterListener(llc)
-      
+
   _Dump()
   Atta.Log("args = {0}".format(args), level = LogLevel.DEBUG)
   Atta.Log('***', level = LogLevel.DEBUG)
-  
+
   # Run project
-  
+
   try:
     atta.Project.Project()._Run(environ, args.f[0], args.target)
     return 0
-  
+
   except Exception as e:
     if args.scs or Atta.LogLevel() <= LogLevel.VERBOSE:
       import traceback
@@ -168,9 +168,9 @@ def Main():
     else:
       Atta.Log(e, level = LogLevel.ERROR)
     return 1
-  
+
   finally:
     pass
-    
+
 if __name__ == "__main__":
   sys.exit(Main())

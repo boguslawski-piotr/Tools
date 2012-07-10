@@ -12,21 +12,21 @@ class Activity:
   '''
   def LogLevel(self):
     return Atta.LogLevel()
-  
+
   def Log(self, msg = '', **args):
     self._Log(msg, **args)
 
   def LogIterable(self, msg, iterable, **args):
     self._LogIterable(msg, iterable, **args)
-  
+
   '''private section'''
-    
+
   def _Type(self):
     return ''
 
   def _Name(self):
     return ''
-  
+
   def _Log(self, msg = '', **args):
     args[self._Type()] = self._Name()
     Atta.Log(msg, **args)
@@ -45,5 +45,4 @@ class Activity:
           else:
             self.Log('{0}: {1}'.format(name, value))
       self.Log('')
-      
-    
+

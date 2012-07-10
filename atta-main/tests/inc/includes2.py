@@ -13,4 +13,3 @@ Echo('  1 In: ' + File.name)
 class includes2(Target):
   def Run(self):
     Echo('inc.includes2 target')
-    

@@ -14,15 +14,15 @@ class test(Target):
     Echo('''Multi
 line''')
     Echo('Multi' + os.linesep + 'line 2')
-    
+
     Echo()
-    
+
     Echo('only debug', level = LogLevel.DEBUG)
     Echo('debug, verbose', level = LogLevel.VERBOSE)
     Echo('debug, verbose, info', level = LogLevel.INFO)
     Echo('debug, verbose, info, warning', level = LogLevel.WARNING)
     Echo('always', level = LogLevel.ERROR)
-    
+
     Echo('''
 Use of variables    
   var1: ${var1}
@@ -34,19 +34,19 @@ Use of variables
 ''',
     var1 = 'var 1 contents',
     var3 = '${var1}')
-    
+
     testFileName = 'echo.log'
-    
+
     # prepare file for test:
     if os.path.exists(testFileName): os.chmod(testFileName, stat.S_IWRITE)
     with open(testFileName, 'w+') as f:
       f.write('1234567890')
     os.chmod(testFileName, stat.S_IREAD)
     # :prepare
-    
+
     Echo('file test', file = testFileName, force = True)
     Echo('file test 2', file = testFileName, append = True)
-    
+
     with open(testFileName, 'r+') as f:
       Echo('file test 3', file = f)
     with open(testFileName, 'r+') as f:
@@ -54,4 +54,4 @@ Use of variables
 
     with open(testFileName, 'r') as f:
       Echo(f.read())
-      
+

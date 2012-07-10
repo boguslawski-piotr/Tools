@@ -14,7 +14,6 @@ class RepositoriesTests(unittest.TestCase):
     self.assertEqual(str(p1), 'groupId:artifactId.type:ver')
     p2 = PackageId.FromStr('groupId:artifactId.type:ver')
     self.assertEqual(p1, p2)
-    
+
 if __name__ == '__main__':
   unittest.main
-    
