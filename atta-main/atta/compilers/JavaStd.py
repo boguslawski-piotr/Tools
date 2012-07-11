@@ -1,5 +1,6 @@
 '''.. Java related: TODO'''
 import os
+import tempfile
 
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
@@ -64,12 +65,22 @@ class JavaStdCompiler(IJavaCompiler, Task):
       self.LogIterable(Dict.msgDumpParameters, params)
       self.Log('')
 
-    # TODO: robic plik z params i przekazywac plik do javac (bo na linie komend to moze byc za duzo)
-
+    # Create temporary file with all parametres for javac.
+    argfile = tempfile.NamedTemporaryFile(delete = False)
+    cparams = ['@' + argfile.name]
+    for p in params:
+      if p.startswith('-J'):
+        cparams.append(p)
+      else:
+        argfile.write(p + '\n')
+    argfile.close()
+      
     # Compile.
-    e = Exec(self.GetExecutable(**tparams), params, **tparams)
+    e = Exec(self.GetExecutable(**tparams), cparams, **tparams)
     self.returnCode = e.returnCode
     self.output = e.output
+    
+    OS.RemoveFile(argfile.name, True, False)
     return self.returnCode
 
   def GetOutput(self):

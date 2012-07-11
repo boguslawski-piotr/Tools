@@ -181,7 +181,9 @@ class compile(Target):
             classPath = project.javacClassPath,
             sourcePath = project.javacSourcePath,
             debug = project.debug,
-            debugLevel = project.debugLevel)
+            debugLevel = project.debugLevel,
+            cParams = self.JavaCompilerParams(),
+            **self.JavacTaskParams())
 
       if not OS.Path.HasWildcards(srcDir):
         if not srcDir in project.javacSourcePath:
@@ -195,6 +197,15 @@ class compile(Target):
     project = GetProject()
     project.javacClassPath += ResolveDependencies(scope = Dict.Scopes.compile)
 
+  def JavacTaskParams(self):
+    '''Additional parameters for Javac task. It must be a dictionary.'''
+    return {}
+    
+  def JavaCompilerParams(self):
+    '''Additional parameters for Java compiler. 
+       Passed as cParams to :py:meth:`.IJavaCompiler.Compile` method.'''
+    return ['-deprecation', '-Xlint']
+  
 #------------------------------------------------------------------------------ 
 
 class package(Target):
