@@ -53,7 +53,7 @@ class Repository(Local.Repository):
     try:
       if self.ftp != None:
         self.ftp.close()
-    except:
+    except Exception:
       pass
     finally:
       self.ftp = None
@@ -91,7 +91,7 @@ class Repository(Local.Repository):
   def _GetFileLikeCallback(self, data):
     self.tempFile.write(data)
 
-  def GetFileLike(self, fileName, logLevel):
+  def GetFileLike(self, fileName, logLevel = LogLevel.VERBOSE):
     self.tempFile = tempfile.SpooledTemporaryFile()
     fileName = OS.Path.NormUnix(fileName)
     self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
@@ -114,7 +114,24 @@ class Repository(Local.Repository):
     self.tempFile.seek(0)
     return self.tempFile
 
-  def _vPutFileLikeCallback(self, data):
+  def vGetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
+    if self.cache != None:
+      # NOTE: We assume that the cache is a repository on the file system.
+      # See also the notes in self.__init__().
+      fileNameInCache = os.path.join(self.cache._RootDir(), os.path.relpath(fileName, self._RootDir()))
+      try:
+        return self.cache.vGetFileContents(fileNameInCache, logLevel)
+      except:
+        pass
+
+    f = self.GetFileLike(fileName, logLevel)
+    try:
+      rc = f.read()
+    finally:
+      f.close()
+    return rc
+
+  def _PutFileLikeCallback(self, data):
     self.sha1.update(data)
     if self.fileInCache != None:
       self.fileInCache.write(data)
@@ -140,11 +157,11 @@ class Repository(Local.Repository):
     while retries < maxRetries:
       try:
         self.sha1 = hashlib.sha1()
-        self.ftp.storbinary('STOR ' + fileName, f, callback = self._vPutFileLikeCallback) #, blocksize, callback, rest
+        self.ftp.storbinary('STOR ' + fileName, f, callback = self._PutFileLikeCallback) #, blocksize, callback, rest
         break
       except ftplib.Error as E:
-        self.Log("Error '%s' while sending the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
-        self.Log('Retry sending (%d).' % (retries + 1), level = LogLevel.WARNING)
+        self.Log("Error '%s' while saving the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
+        self.Log('Retry saving (%d).' % (retries + 1), level = LogLevel.WARNING)
         f.seek(startPos)
         if self.fileInCache != None:
           self.fileInCache.seek(0)
@@ -171,40 +188,17 @@ class Repository(Local.Repository):
       f.close()
     return rc
 
-  def vGetMarkerFileContents(self, markerFileName, logLevel = LogLevel.DEBUG):
-    if self.cache != None:
-      # NOTE: We assume that the cache is a repository on the file system.
-      # See also the notes in self.__init__().
-      markerFileNameInCache = os.path.join(self.cache._RootDir(), os.path.relpath(markerFileName, self._RootDir()))
-      try:
-        return self.cache.vGetMarkerFileContents(markerFileNameInCache, logLevel)
-      except:
-        pass
-
-    f = self.GetFileLike(markerFileName, logLevel)
-    try:
-      rc = f.read()
-    finally:
-      f.close()
-    return rc
-
-  def vPutMarkerFileContents(self, markerFileName, contents, logLevel = LogLevel.DEBUG):
+  def vPutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
     f = tempfile.SpooledTemporaryFile()
     f.write(contents)
     f.seek(0)
-    self.vPutFileLike(f, markerFileName, logLevel)
-
-  def vGetInfoFileContents(self, infoFileName, logLevel = LogLevel.DEBUG):
-    return self.vGetMarkerFileContents(infoFileName, logLevel)
-
-  def vPutInfoFileContents(self, infoFileName, contents, logLevel = LogLevel.DEBUG):
-    self.vPutMarkerFileContents(infoFileName, contents, logLevel)
+    self.vPutFileLike(f, fileName, logLevel)
 
   def vPrepareFileName(self, fileName):
     return fileName
 
   # NOTE: Code for this function is very similar to the analogous function in Maven.Repository.
-  # The differences are in minor details. I do not have sensible idea ​​how to minimize the duality: (
+  # The differences are in minor details. I do not have sensible idea how to minimize the duality :(
   def _Get(self, packageId, scope, store, resolvedPackages):
     # Check parameters.
     self._DumpParams(locals())
@@ -229,7 +223,7 @@ class Repository(Local.Repository):
           filesInStore = []
 
           # Get the dependencies.
-          packages = self.GetDependenciesFromPOM(packageId, scope)
+          packages = self.GetDependencies(packageId, scope)
           if packages != None:
             for p in packages:
               if not packageId.Excludes(p):
@@ -269,9 +263,6 @@ class Repository(Local.Repository):
       for i in range(len(fileNames)):
         fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
     return fileNames
-
-  def vGetPOMFileContents(self, pomFileName, logLevel = LogLevel.VERBOSE):
-    return self.vGetMarkerFileContents(pomFileName, logLevel)
 
   def Check(self, packageId, scope):
     cresult = None

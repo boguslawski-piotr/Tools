@@ -50,6 +50,9 @@ def _ParseArgv(argv):
     '-d', action = 'store_true',
     help = 'set debug mode (shortcut for -ll 0)')
   logGroup.add_argument(
+    '-v', action = 'store_true',
+    help = 'set verbose mode (shortcut for -ll 1)')
+  logGroup.add_argument(
     '-q', action = 'store_true',
     help = 'be quiet (shortcut for -ll 3)')
   logGroup.add_argument(
@@ -133,6 +136,8 @@ def Main():
     Atta.Logger().SetLevel(args.ll[0])
   if args.d:
     Atta.Logger().SetLevel(LogLevel.DEBUG)
+  if args.v:
+    Atta.Logger().SetLevel(LogLevel.VERBOSE)
   if args.q:
     Atta.Logger().SetLevel(LogLevel.WARNING)
   if args.lm:

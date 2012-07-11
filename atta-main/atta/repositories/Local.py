@@ -33,6 +33,16 @@ class Repository(ARepository, Task):
     '''Sets the current modification time for file `fileName`.'''
     os.utime(fileName, None) # equivalent: touch
 
+  def vGetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
+    '''Returns contents of the file `fileName`.'''
+    self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
+    f = open(fileName, 'rb')
+    try:
+      rc = f.read()
+    finally:
+      f.close()
+    return rc
+
   def vPutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     self.Log(Dict.msgSavingFile % fileName, level = logLevel)
     lf = open(fileName, 'wb')
@@ -49,25 +59,24 @@ class Repository(ARepository, Task):
     OS.CopyFile(fFileName, fileName, force = True)
     return OS.FileHash(fileName, hashlib.sha1())
 
+  def vPutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
+    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
+    f = open(fileName, 'wb')
+    try:
+      f.write(contents)
+    finally:
+      f.close()
+
   def PrepareMarkerFileName(self, fileName):
     '''TODO: description'''
     dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
     return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
 
-  def vGetMarkerFileContents(self, markerFileName, logLevel = LogLevel.DEBUG):
-    self.Log(Dict.msgDownloadingFile % markerFileName, level = logLevel)
-    f = open(markerFileName, 'rb')
-    try:
-      rc = f.read()
-    finally:
-      f.close()
-    return rc
-
   def GetFileMarker(self, fileName):
     '''TODO: description'''
     try:
       markerFileName = self.PrepareMarkerFileName(fileName)
-      contents = self.vGetMarkerFileContents(markerFileName)
+      contents = self.vGetFileContents(markerFileName)
       contents = contents.split('\n')
       timestamp, sha1 = (None, None)
       if len(contents) > 0:
@@ -80,55 +89,44 @@ class Repository(ARepository, Task):
     else:
       return (timestamp, sha1)
 
-  def vPutMarkerFileContents(self, markerFileName, contents, logLevel = LogLevel.DEBUG):
-    self.Log(Dict.msgSavingFile % markerFileName, level = logLevel)
-    f = open(markerFileName, 'wb')
-    try:
-      f.write(contents)
-    finally:
-      f.close()
-
   def PutMarkerFile(self, fileName, fileSha1, packageId):
     '''TODO: description'''
     markerFileName = self.PrepareMarkerFileName(fileName)
     dirName = os.path.dirname(markerFileName)
     if not self.vFileExists(dirName):
       self.vMakeDirs(dirName)
-    self.vPutMarkerFileContents(markerFileName,
-                                str(packageId.timestamp) + '\n' + str(fileSha1))
+    self.vPutFileContents(str(packageId.timestamp) + '\n' + str(fileSha1), markerFileName)
 
   def PrepareInfoFileName(self, fileName):
     '''TODO: description'''
     return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
 
-  def vGetInfoFileContents(self, infoFileName, logLevel = LogLevel.DEBUG):
-    self.Log(Dict.msgDownloadingFile % infoFileName, level = logLevel)
-    f = open(infoFileName, 'rb')
-    try:
-      rc = f.read()
-    finally:
-      f.close()
-    return rc
-
   def GetInfoFile(self, fileName):
     infoFileName = self.PrepareInfoFileName(fileName)
     if self.vFileExists(infoFileName):
-      return self.vGetInfoFileContents(infoFileName)
+      return self.vGetFileContents(infoFileName)
     return None
 
   def GetFilesListFromInfoFile(self, infoFile):
     return infoFile.split('\n')
 
-  def vPutInfoFileContents(self, infoFileName, contents, logLevel = LogLevel.DEBUG):
-    self.Log(Dict.msgSavingFile % infoFileName, level = logLevel)
-    f = open(infoFileName, 'wb')
-    try:
-      f.write(contents)
-    finally:
-      f.close()
-
   def PutInfoFile(self, fileName, storedFileNames):
-    self.vPutInfoFileContents(self.PrepareInfoFileName(fileName), '\n'.join(storedFileNames))
+    self.vPutFileContents('\n'.join(storedFileNames), self.PrepareInfoFileName(fileName))
+
+  def GetPOMFileContents(self, packageId, **tparams):
+    from . import Maven
+    packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
+    pom = Maven.Repository.GetPOMFromCache(packageId, self.Log)
+    if pom != None:
+      return pom
+
+    fileName = self.PrepareFileName(packageId, self._RootDir())
+    if not self.vFileExists(fileName):
+      return None
+
+    pom = self.vGetFileContents(fileName)
+    Maven.Repository.PutPOMIntoCache(packageId, pom, self.Log)
+    return pom
 
   def vPrepareFileName(self, fileName):
     '''TODO: description'''
@@ -157,7 +155,7 @@ class Repository(ARepository, Task):
     '''returns: list of filesNames'''
     # Get the dependencies.
     additionalFiles = []
-    packages = self.GetDependenciesFromPOM(packageId, scope)
+    packages = self.GetDependencies(packageId, scope)
     if packages != None:
       for p in packages:
         if not packageId.Excludes(p):
@@ -194,41 +192,15 @@ class Repository(ARepository, Task):
   def Get(self, packageId, scope, store = None):
     return self._Get(packageId, scope, store, [])
 
-  def vGetPOMFileContents(self, pomFileName, logLevel = LogLevel.VERBOSE):
-    self.Log(Dict.msgDownloadingFile % pomFileName, level = logLevel)
-    f = open(pomFileName, 'rb')
-    try:
-      rc = f.read()
-    finally:
-      f.close()
-    return rc
-
-  def GetPOMFileContents(self, packageId, **tparams):
-    from . import Maven
-    packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
-    pom = Maven.Repository.GetPOMFromCache(packageId, self.Log)
-    if pom != None:
-      return pom
-
-    fileName = self.PrepareFileName(packageId, self._RootDir())
-    if not self.vFileExists(fileName):
-      return None
-
-    pom = self.vGetPOMFileContents(fileName)
-    Maven.Repository.PutPOMIntoCache(packageId, pom, self.Log)
-    return pom
-
-  def GetDependenciesFromPOM(self, packageId, scope):
+  def GetDependencies(self, packageId, scope):
+    # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
+    # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
     from . import Maven
     return Maven.Repository.GetDependenciesFromPOM(packageId,
                                                    self.GetPOMFileContents,
                                                    Dict.Scopes.map2POM.get(scope, []),
                                                    self.OptionalAllowed(),
                                                    logFn = self.Log)
-
-  def _LifeTime(self):
-    return timedelta(days = 14)
-    #return timedelta(seconds = 5)
 
   # TODO: uzyc wzorca Strategy do implementacji Check
   def _Check(self, packageId, scope, checkedPackages):
@@ -253,17 +225,18 @@ class Repository(ARepository, Task):
 
     # If the local file was stored earlier (modification time) 
     # than _LifeTime then return None.
+    def _LifeTime():
+      return timedelta(days = 14)
+      #return timedelta(seconds = 5)
     fileTime = self.vFileTime(fileName)
     if fileTime is not None:
       fileTime = datetime.fromtimestamp(self.vFileTime(fileName))
-      if datetime.now() - fileTime > self._LifeTime():
+      if datetime.now() - fileTime > _LifeTime():
         return None
 
-    # Check dependencies from POM file.
-    # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
-    # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
+    # Check dependencies.
     additionalFiles = []
-    packages = self.GetDependenciesFromPOM(packageId, scope)
+    packages = self.GetDependencies(packageId, scope)
     if packages != None:
       for p in packages:
         if not packageId.Excludes(p):

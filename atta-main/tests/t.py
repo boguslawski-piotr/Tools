@@ -3,6 +3,7 @@
 from atta import *
 
 Project.defaultTarget = 'test'
+p = Properties.Open('JavaMedium/deploy.properties')
 
 #test = [
 #        {
@@ -30,27 +31,24 @@ Project.defaultTarget = 'test'
 #       'putIn'     : 'atta.repositories.Project', # like repository
 #       }]
 
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'putIn' :
-#          {
-#           'repository' : 'atta.repositories.Ftp',
-#           'style'      : 'atta.repositories.Styles.Flat',
-#           'host'       : p.Get('host'),
-#           'rootDir'    : p.Get('rootDir'),
-#           'user'       : p.Get('user'),
-#           'password'   : p.Get('password'),
-#          },
-#        }] 
+test = [{
+       'repository' : 'atta.repositories.Maven',
+       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+       'putIn' :
+          {
+           'repository' : 'atta.repositories.Ftp',
+           'style'      : 'atta.repositories.Styles.Flat',
+           'host'       : p.Get('host'),
+           'rootDir'    : p.Get('rootDir'),
+           'user'       : p.Get('user'),
+           'password'   : p.Get('password'),
+          },
+        }] 
 
-#r = Project.ResolveDependencies(test)
+r = Project.ResolveDependencies(test)
 #print r
 
 def test():
-  Echo(DirSet('.', '*'))
-  return
-
   from atta.repositories.Maven import Repository
   from atta.repositories.Package import PackageId
 
