@@ -1,13 +1,5 @@
 '''.. no-user-reference:'''
 
-class ICompareStrategy:
-  '''TODO: description'''
-  def ActionNeeded(self, src, dest):
-    '''Should return True if "action" is nedded.'''
-    pass
-
-#------------------------------------------------------------------------------ 
-
 class IVariablesExpander:
   '''
   IVariablesExpander interface

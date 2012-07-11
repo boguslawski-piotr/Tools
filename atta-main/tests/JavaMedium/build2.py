@@ -1,6 +1,6 @@
 from atta import *
 from atta.targets import Java
-from atta.tools.Strategies import SrcHashStrategy
+from atta.compilers.Strategies import SrcHashStrategy
 
 import build
 

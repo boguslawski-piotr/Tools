@@ -35,7 +35,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     the same data as :py:class:`.Exec` task.
      
     '''
-    # prepare command line for java compiler
+    # Prepare command line for java compiler.
     params = OS.Path.AsList(tparams.get('cParams', []), ' ')
 
     debug = tparams.get('debug', False)
@@ -66,7 +66,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
 
     # TODO: robic plik z params i przekazywac plik do javac (bo na linie komend to moze byc za duzo)
 
-    # compile
+    # Compile.
     e = Exec(self.GetExecutable(**tparams), params, **tparams)
     self.returnCode = e.returnCode
     self.output = e.output

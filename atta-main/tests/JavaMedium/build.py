@@ -11,7 +11,8 @@ Project.name = 'JavaMedium'
 #Project.dvcs = Git()
 p = Properties.Open('deploy.properties')
 
-from atta.tools.Strategies import SrcNewerStrategy, VersionResetBuildStrategy
+from atta.compilers.Strategies import SrcNewerStrategy
+from atta.tools.Strategies import VersionResetBuildStrategy
 from atta.tools.Interfaces import IVersionListener
 
 class MyVersionListener(IVersionListener):
@@ -19,7 +20,7 @@ class MyVersionListener(IVersionListener):
   javaFileName = 'version.java'
 
   def AfterConfigure(self, v):
-    if SrcNewerStrategy().ActionNeeded(MyVersionListener.tmplFileName, MyVersionListener.javaFileName):
+    if SrcNewerStrategy().RequiresCompile(MyVersionListener.tmplFileName, MyVersionListener.javaFileName):
       self.AfterUpdate(v)
 
   def SetPostfix(self, v):

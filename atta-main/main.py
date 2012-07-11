@@ -42,7 +42,7 @@ def _ParseArgv(argv):
   tasksGroup = argsParser.add_argument_group('tasks')
   tasksGroup.add_argument(
     '-javarc', nargs = 1, metavar = 'class',
-    help = 'use given class to implement the Javac.RequiresCompile (class must implements ICompareStrategy.ActionNeeded)'
+    help = 'use given class to implement the Javac.RequiresCompile (class must implements IRequiresCompileStrategy)'
   )
 
   logGroup = argsParser.add_argument_group('logging')

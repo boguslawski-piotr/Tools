@@ -4,9 +4,9 @@ import stat
 import os
 
 from ..tools.internal.Misc import ObjectFromClass
-from ..tools.Strategies import SrcNewerStrategy
+from ..compilers.Strategies import SrcNewerStrategy
 from ..compilers.JavaStd import JavaStdCompiler
-from ..tools.Misc import LogLevel
+from ..tools.Misc import LogLevel, RemoveDuplicates
 from ..tools.Sets import FileSet
 from ..tools import OS
 from .. import Dict
@@ -38,7 +38,7 @@ class Javac(Task):
     Advanced parameters:
     
     * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method. 
-      It must be class that implements :py:meth:`.ICompareStrategy.ActionNeeded`. 
+      It must be class that implements :py:meth:`.IRequiresCompileStrategy`. 
   
     * **compilerImpl**          Implementation of wrapper to the Java compiler. 
       It must be class that implements :py:class:`.IJavaCompiler`.
@@ -55,9 +55,10 @@ class Javac(Task):
     classPath = OS.Path.AsList(tparams.get(Dict.paramClassPath, []))
     sourcePath = OS.Path.AsList(tparams.get(Dict.paramSourcePath, []))
 
+    # Collect source files.
     RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams)
-
-    # collect source files
+    self._requiresCompileImpl.GetObject().Start(destDir, **tparams)
+    
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
       if len(src) <= 0:
@@ -93,6 +94,9 @@ class Javac(Task):
                 sourcePath.append(rootDir)
                 srcsSet += [src]
 
+    srcsSet += self._requiresCompileImpl.GetObject().End(**tparams)
+    srcsSet = RemoveDuplicates(srcsSet)
+    
     if len(srcsSet) <= 0:
       self.Log(Dict.msgNothingToCompile.format(' '.join(srcs)), level = LogLevel.VERBOSE)
       self.returnCode = -1
@@ -101,17 +105,23 @@ class Javac(Task):
     self.Log(Dict.msgCompilingTo % (len(srcsSet), destDir))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
 
-    tparams[Dict.paramSourcePath] = list(set(sourcePath))
-    tparams[Dict.paramClassPath] = list(set(classPath))
+    tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
+    tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
     self.output = self._compilerImpl.GetObject().GetOutput()
+
+  def GetReturnCode(self):
+    return self.returnCode
+
+  def GetOutput(self):
+    return self.output
 
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
 
   @staticmethod
   def SetDefaultRequiresCompileImpl(_class):
     '''Sets default implementation of :py:meth:`RequiresCompile` method. 
-       It may be any class that implements :py:meth:`.ICompareStrategy.ActionNeeded`'''
+       It may be any class that implements :py:meth:`.IRequiresCompileStrategy`'''
     Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
 
   @staticmethod
@@ -122,8 +132,10 @@ class Javac(Task):
     '''TODO: description'''
     dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
     src = os.path.join(srcDir, fileName)
-    return self._requiresCompileImpl.GetObject().ActionNeeded(src, dest)
-
+    rc = self._requiresCompileImpl.GetObject().RequiresCompile(src, dest, **tparams)
+    #self.Log('%s: %s' % (src, ('up to date' if not rc else 'needs compile')), level = LogLevel.DEBUG)
+    return rc
+  
   _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler)
 
   @staticmethod

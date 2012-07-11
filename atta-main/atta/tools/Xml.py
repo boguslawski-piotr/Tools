@@ -219,9 +219,10 @@ class Xml:
     self._root[index] = element
 
   def __getattr__(self, name):
-    if not hasattr(self._root, name):
+    attr = getattr(self._root, name, None)
+    if not attr:
       raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
-    return getattr(self._root, name, None)
+    return attr
 
   def _buildnamespaces(self):
     self.namespaces = {}
