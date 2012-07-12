@@ -100,6 +100,7 @@ errNotImplemented = 'Not implemented: {0}'
 errNotSpecified = 'Not specified: {0}'
 errNotEnoughParams = 'Not enough parameters.'
 errFileNotExists = 'File: %s does not exists.'
+errFileOrDirNotExists = 'File or directory: %s does not exists.'
 errOSErrorForX = "OS error: %d, '%s' for: %s"
 
 errXWhileGettingYFromZ = "Error '%s' while trying to get: %s from: %s"

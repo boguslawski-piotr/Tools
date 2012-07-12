@@ -71,6 +71,7 @@ class Path:
     '''TODO: description'''
     if paths == None:
       return []
+    from .Misc import isiterable
     if isinstance(paths, basestring):
       if sep == ':' and IsWindows():
         # This is a very ugly solution, but effective.
@@ -85,6 +86,8 @@ class Path:
           paths[i] = path.replace('<', ':')
       else:
         paths = paths.split(sep)
+    elif not isiterable(paths):
+      return [paths] 
     return list(paths) # return copy
 
   @staticmethod

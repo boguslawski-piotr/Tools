@@ -1,7 +1,7 @@
 '''.. Files, directories: Deletes files or/and directories'''
 import os
 
-from ..tools.Misc import LogLevel
+from ..tools.Misc import LogLevel, RemoveDuplicates
 from ..tools.Sets import FileSet, DirSet, ExtendedFileSet
 from ..tools import OS
 from .. import Dict
@@ -15,7 +15,7 @@ class Delete(Task):
   
   Parameters:
   
-  * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
+  * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet` NIE!
   * **force** |False| -            When set to `True` then the files with read-only attribute are also deleted.
   * **failOnError**  |True| -      Controls whether an error stops the build or is only reported to the log. Merely relevant if `quiet` is `False`.
   * **verbose** |False| -          Whether to show the name of each deleted file / directory.
@@ -40,10 +40,15 @@ class Delete(Task):
                         isinstance(src, DirSet)
                         or (not isinstance(src, FileSet) and os.path.isdir(src))),
                       filesSet)
-    dirsSet = list(set(dirsSet))
+    filesSet = filter((lambda src: src not in dirsSet), filesSet)
+    tmpDirsSet = []
+    for d in dirsSet:
+      if isinstance(d, DirSet): tmpDirsSet.extend(d)
+      else: tmpDirsSet.append(d)
+    dirsSet = tmpDirsSet
+    dirsSet = RemoveDuplicates(dirsSet)
     dirsSet.sort()
     dirsSet.reverse()
-    filesSet = filter((lambda src: src if src not in dirsSet else None), filesSet)
 
     # 1.
     # For each file:
@@ -66,7 +71,7 @@ class Delete(Task):
     # For each directory:
     for d in dirsSet:
       d = os.path.normpath(d)
-
+      
       # Delete all files (with full control).
       for r, f in ExtendedFileSet(os.path.join(d, '**/*')):
         f = os.path.normpath(os.path.join(r, f))
@@ -79,12 +84,14 @@ class Delete(Task):
       dd.sort()
       dd.reverse()
       err = OS.RemoveDirs(dd, failOnError)
+      if err == 0:
+        err = OS.RemoveDir(d, failOnError)
       if not quiet or self.LogLevel() == LogLevel.DEBUG:
         if err != 0:
           self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.WARNING)
         else:
           self.Log(Dict.msgDirectory % d, level = (LogLevel.VERBOSE if not verbose else LogLevel.WARNING))
-
+      
     # 3.
     if includeEmptyDirs:
       # Remove all empty directories from which files were deleted in first step.

@@ -1,4 +1,5 @@
 *.log
+*.out
 *.pyo
 *.pyc
 *.class
@@ -32,3 +33,5 @@ bin
 /tests/JavaMedium/version.java
 /version.info
 /tests/test_ver.info
+/tests/_test_filter
+/tests/_test_filter2

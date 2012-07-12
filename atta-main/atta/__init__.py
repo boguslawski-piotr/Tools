@@ -26,6 +26,7 @@ __all__ = [
            # Tasks
            'Echo',
            'Delete',
+           'Filter',
 
            'Exec',
            'PyExec',
@@ -173,6 +174,7 @@ from .tasks.Base import Task
 
 from .tasks.Echo import Echo
 from .tasks.Delete import Delete
+from .tasks.Filter import Filter
 
 from .tasks.Exec import Exec
 from .tasks.PyExec import PyExec

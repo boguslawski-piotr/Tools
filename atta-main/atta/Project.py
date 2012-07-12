@@ -269,7 +269,8 @@ class Project:
     finally:
       #atta.Project = prevAttaProject
       _SetProject(prevAttaProject)
-      self.env.chdir(prevDir)
+      if self.env:
+        self.env.chdir(prevDir)
 
   def _End(self, status, exception = None):
     self.endTime = datetime.now();
