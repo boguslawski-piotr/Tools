@@ -174,13 +174,23 @@ def Touch(fileName, createIfNotExists = True):
     with open(fileName, 'wb'):
       pass
 
+def IsReadOnly(fileName):
+  '''Checks if the file `fileName` is read-only.'''
+  if os.path.exists(fileName):
+    st = os.stat(fileName)
+    return stat.S_IMODE(st.st_mode) & (stat.S_IREAD | stat.S_IWRITE) != (stat.S_IREAD | stat.S_IWRITE)
+  return False
+
 def SetReadOnly(fileName, v):
   '''Sets (if `v` is True) or unsets (if `v` is False) read-only flag for file `fileName`.
      Not throwing an exception if the file not exists.'''
   if os.path.exists(fileName):
     st = os.stat(fileName)
-    os.chmod(fileName, stat.S_IMODE(st.st_mode) | (stat.S_IWRITE if not v else stat.S_IREAD))
-
+    if not v:
+      os.chmod(fileName, stat.S_IMODE(st.st_mode) | stat.S_IWRITE)
+    else:
+      os.chmod(fileName, (stat.S_IMODE(st.st_mode) & ~stat.S_IWRITE) | stat.S_IREAD)
+    
 def RemoveFile(fileName, force = False, failOnError = True):
   '''Removes the file `fileName`. 
      When `force` is set to `True` then the file is removed, even when it is read-only.

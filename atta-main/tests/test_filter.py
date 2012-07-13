@@ -29,15 +29,10 @@ class test(Target):
            append = False, binaryMode = True)
     f.close()
     
-    Echo('Copy one file with data filter.')
+    Echo('Data filter for many files.')
 
     def SimpleDataFilter(data, **tparams):
       return data.replace('import', 'IMPORT')
-
-    Filter('JavaMedium/main.java', '_test_filter/one_file/main_transformed.java', 
-           destIsAFile = True, dataFilters = SimpleDataFilter, failOnError = False)
-    
-    Echo('Data filter for many files.')
     
     class DataFilter:
       def Start(self, srcFileName, destFileName, **tparams):

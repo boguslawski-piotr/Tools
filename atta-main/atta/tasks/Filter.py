@@ -1,5 +1,6 @@
-'''.. Data manipulation: TODO: filter'''
+'''.. Data manipulation: TODO: filter, filter2'''
 import os
+import tempfile
 
 from ..tools.Misc import LogLevel
 from ..tools.Sets import ExtendedFileSet
@@ -12,17 +13,17 @@ class Filter(Task):
   '''
   TODO: description
 
-  Required parameters:
+  Parameters:
   
   * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
     TODO: allow file like object(s)
   
-  * **dest** - can be: directory, file name or file like object
+  * **dest** |None| - can be: None (== filter in place), directory, file name or file like object
   
   Parameters related to `dest` only:
   
   * **destIsAFile** - Indicates whether the `dest` is to be a directory or file. Valid when the `dest` does not exist. |False|
-  * **append** - |True| for existing file or file like object. If False the file is truncated.
+  * **append** |True| - for existing file or file like object. If False the file is truncated.
   * **failIfDestNotExists** |False| - for dir or file name
   * **failIfDestExists** |False| - For `dest` if it's a file name or directory.
     
@@ -34,7 +35,7 @@ class Filter(Task):
   * **force** |False| -            When set to `True` then the files with read-only attribute are overriden.
     For `dest` if it's a file name or for created files if `dest` is a directory. 
     
-  * **fileNameTransforms** - one or more (list) callables implements IFileNameTransform
+  * **fileNameTransforms** |None| - one or more (list) callables implements IFileNameTransform
     Valid only if `dest` is a directory. 
     
     .. code-block:: python
@@ -43,8 +44,9 @@ class Filter(Task):
                                destDirName, actualDestFileName, **tparams)
       
     Must return valid file name or `None` if you want to use the `actualDestFileName`.
+    The `tparams` has a entry named `caller`, which is a reference to the object that triggered the transformation.
     
-  * **fileFilters** - one or more (list) callables implements IFileFilter, first False stops further checking (if list)
+  * **fileFilters** |None| - one or more (list) callables implements IFileFilter, first False stops further checking (if list)
     Ten filtr moze sluzyc do eliminowania przetwarzania dla niektorych plikow.
     Np. w Copy z ustawionym: kopiuj tylko gdy nowsze.
     Itp. itd.
@@ -56,8 +58,9 @@ class Filter(Task):
     Must return True if src is meant to be further processed.
     If returns False then file is skipped.
     `destFileName` may be `None`.
+    The `tparams` has a entry named `caller`, which is a reference to the object that triggered the filter. 
        
-  * **dataFilters** - one or more (list) callable implements IDataFilter or instance of class that implements IDataFilter
+  * **dataFilters** |None| - one or more (list) callable implements IDataFilter or instance of class that implements IDataFilter
   
     .. code-block:: python
   
@@ -87,17 +90,19 @@ class Filter(Task):
         # data operations
         return data
     
+    The `tparams` has a entry named `caller`, which is a reference to the object that triggered the filter.
+    
   * **srcBinaryMode** - |False|
   * **destBinaryMode** - |False|
   * **binaryMode** - |False| 
   * **chunkSize** - 32768 for src, if srcBinaryMode/binaryMode is True
 
-  * **failOnError**  |True| -      Controls whether an error stops the build or is only reported to the log.
-  * **verbose** |False| -          Whether to show the name of each processed file. Even with log level set to WARNING.
-  * **quiet** |False| -            Be extra quiet. No error is reported even with log level set to VERBOSE.
-  
+  * **failOnError** |True| -      Controls whether an error stops the build or is only reported to the log.
+  * **verbose** |False|-          Whether to show the name of each processed file.
+  * **quiet** |False| -           Be extra quiet. No error is reported even with log level set to VERBOSE.
+ 
   '''
-  def __init__(self, srcs, dest, **tparams):
+  def __init__(self, srcs, dest = None, **tparams):
     self.verbose = False
     self._DumpParams(locals())
     
@@ -122,43 +127,44 @@ class Filter(Task):
     self.quiet = tparams.get('quiet', False)
   
     # Setup destination.
-    destFile = None
-    closeDestFile = False
-    if 'write' in dir(dest):
-      destFile = dest
-    else:
-      if not os.path.exists(dest):
-        if tparams.get('failIfDestNotExists', False):
-          raise AttaError(self, Dict.errFileOrDirNotExists % dest) 
-        try:
-          if tparams.get('destIsAFile', False):
-            destFile = open(dest, 'w' + self.destBinaryMode)
-            closeDestFile = True
-          else:  
-            OS.MakeDirs(dest)
-        except Exception as E:
-          self.HandleError(E, dest)
-          return None
+    self.destFile = None
+    self.closeDestFile = False
+    if dest:
+      if 'write' in dir(dest):
+        self.destFile = dest
       else:
-        if tparams.get('failIfDestExists', False):
-          raise AttaError(self, Dict.errFileOrDirExists % dest) 
-        if not os.path.isdir(dest):
+        dest = os.path.normpath(dest)
+        if not os.path.exists(dest):
+          if tparams.get('failIfDestNotExists', False):
+            raise AttaError(self, Dict.errFileOrDirNotExists % dest) 
           try:
-            if self.force:
-              OS.SetReadOnly(dest, False)
-            destFile = open(dest, 'r+' + self.destBinaryMode)
-            closeDestFile = True
+            if tparams.get('destIsAFile', False):
+              OS.MakeDirs(os.path.dirname(dest))
+              self.destFile = open(dest, 'w' + self.destBinaryMode)
+              self.closeDestFile = True
+            else:  
+              OS.MakeDirs(dest)
           except Exception as E:
             self.HandleError(E, dest)
             return None
+        else:
+          if tparams.get('failIfDestExists', False):
+            raise AttaError(self, Dict.errFileOrDirExists % dest) 
+          if not os.path.isdir(dest):
+            try:
+              if self.force:
+                OS.SetReadOnly(dest, False)
+              self.destFile = open(dest, 'r+' + self.destBinaryMode)
+              self.closeDestFile = True
+            except Exception as E:
+              self.HandleError(E, dest)
+              return None
           
     # Handle 'append' parameter.
     try:
-      if destFile:
-        if tparams.get('append', True): destFile.seek(0, os.SEEK_END)
-        else: destFile.truncate(0)
-      else:
-        dest = os.path.normpath(dest)
+      if self.destFile:
+        if tparams.get('append', True): self.destFile.seek(0, os.SEEK_END)
+        else: self.destFile.truncate(0)
     except Exception as E:
       self.HandleError(E, dest)
       return None
@@ -172,58 +178,69 @@ class Filter(Task):
         self.LogStart()
       for rn, fn in self.srcs:
         sfn = os.path.normpath(os.path.join(rn, fn))
-        dfn = None
+        dfn = None if dest else sfn 
         process = True
         try:
-          if not destFile:
-            # When the target is not a single file, then invoke registered file names transformations.
-            dfn = os.path.normpath(os.path.join(dest, fn))
+          if not self.destFile:
+            # When the destination is not a single file (== is directory), 
+            # then invoke registered file names transformations.
+            if dest:
+              dfn = os.path.normpath(os.path.join(dest, fn))
             for fntrans in fileNameTransforms:
-              ndfn = fntrans(rn, fn, dest, dfn, **tparams)
+              ndfn = fntrans(rn, fn, dest, dfn, caller = self, **tparams)
               if ndfn:
                 dfn = ndfn
           
           # Invoke registered files filters.
           for ffilter in fileFilters:
-            if not ffilter(sfn, dfn, **tparams):
+            if not ffilter(sfn, dfn, caller = self, **tparams):
               process = False
               break
           
           if not process:
             self.skippedFiles += 1
-            if not self.quiet: self.LogSkipped(sfn, dfn)
+            if not self.quiet: 
+              self.LogSkipped(sfn, dfn)
+          
           else:
             self.StartProcessing(sfn, dfn)
             if not self.quiet: 
-              self.LogStartProcessing(sfn, dfn)
+              self.LogStartProcessing(sfn, (dfn if dfn else dest))
             
-            if dfn == sfn:
-              # TODO: handle this, if option set then create temp file and if everything OK then override src + warning
-              raise AttaError(self, 'Destination: %s points to source: %s' % (dfn, sfn))
-          
             # Call the Start method of the registered data filters.
             for dfilter in dataFilters:
               startFn = getattr(dfilter, 'Start', None)
               if startFn:
-                startFn(sfn, dfn, **tparams)
+                startFn(sfn, dfn, caller = self, **tparams)
             
             # Prepare source file.
             sf = open(sfn, 'r' + self.srcBinaryMode)
+            dfIsTempFile = False
             df = None
             try:
               # Prepare destination file.
-              if not dfn:
-                df = destFile
+              if self.destFile:
+                df = self.destFile
               else:
                 try:
-                  if os.path.exists(dfn):
-                    if tparams.get('failIfExists', False):
-                      raise AttaError(self, Dict.errFileExists % dfn) 
-                    if self.force:
-                      OS.SetReadOnly(dfn, False)
-                  else:
-                    OS.MakeDirs(os.path.dirname(dfn))
-                  df = open(dfn, 'w' + self.destBinaryMode)
+                  # Check if the source and destination files are not the same file (in-place filter).
+                  if dfn == sfn:
+                    # If so then use a temporary file.
+                    df = tempfile.SpooledTemporaryFile(mode = 'w' + self.destBinaryMode, max_size = 1024 * 1024)
+                    dfIsTempFile = True
+                  else:          
+                    # If not then create new physical file.
+                    if os.path.exists(dfn):
+                      if tparams.get('failIfExists', False):
+                        raise AttaError(self, Dict.errFileExists % dfn) 
+                      if self.force:
+                        OS.SetReadOnly(dfn, False)
+                    else:
+                      OS.MakeDirs(os.path.dirname(dfn))
+                    df = open(dfn, 'w' + self.destBinaryMode)
+                
+                except AttaError:
+                  raise
                 except Exception as E3:
                   self.HandleError(E3, dfn)
                   try: sf.close()
@@ -240,23 +257,40 @@ class Filter(Task):
                 for dfilter in dataFilters:
                   call = getattr(dfilter, '__call__', None)
                   if call:
-                    data = call(data, **tparams)
+                    data = call(data, caller = self, **tparams)
                 df.write(data)
                 
             finally:
-              # Close files.
-              try:
-                if df and not destFile:
+              # Always try to close files even if exception occured.
+              if not dfIsTempFile:
+                if df and df != self.destFile:
                   df.close()
-                sf.close()
-              except Exception as E5: 
-                self.HandleError(E5, sfn)
+              sf.close()
             
+            if dfIsTempFile:
+              # The temporary destination file becomes the source file (in-place filter).
+              df.seek(0)
+              if not self.force and OS.IsReadOnly(sfn):
+                raise IOError(os.errno.EACCES, os.strerror(os.errno.EACCES), sfn)
+              baksfn = sfn + '~'
+              os.rename(sfn, baksfn)
+              sf = open(sfn, 'w')
+              try:
+                while True:
+                  data = df.read(chunkSize)
+                  if not data:
+                    break
+                  sf.write(data)
+              finally:
+                sf.close()
+                df.close()
+              OS.RemoveFile(baksfn, force = True)
+              
             # Call the End method of the registered data filters. 
             for dfilter in dataFilters:
               endFn = getattr(dfilter, 'End', None)
               if endFn:
-                endFn(**tparams)
+                endFn(caller = self, **tparams)
             
             self.EndProcessing(sfn, dfn)
             self.processedFiles += 1
@@ -272,14 +306,18 @@ class Filter(Task):
         self.LogEnd()
       
     finally:
-      if closeDestFile and destFile:
+      if self.closeDestFile and self.destFile:
         try:
-          destFile.close()
+          self.destFile.close()
         except Exception as E:
           self.HandleError(E, dest)
-
+      
+      self.destFile = None
+      self.closeDestFile = False
+      
   def StartProcessing(self, sfn, dfn):
-    '''TODO: description'''
+    '''TODO: description
+    dfn can be None - it means out is a file-like object'''
     pass
   
   def EndProcessing(self, sfn, dfn):
@@ -294,9 +332,9 @@ class Filter(Task):
       if type(E) == IOError: err = E.errno
       elif type(E) == os.error: err = os.errno
       if err:
-        self.Log(Dict.errOSErrorForX % (err, os.strerror(err), str(fileName)), level = LogLevel.WARNING)
+        self.Log(Dict.errOSErrorForX % (err, os.strerror(err), str(fileName)), level = LogLevel.ERROR)
       else:
-        self.Log(Dict.errException % str(E), level = LogLevel.WARNING)
+        self.Log(Dict.errException % str(E), level = LogLevel.ERROR)
     
   def Log(self, msg = '', **args):
     if not Dict.paramLevel in args:
@@ -313,7 +351,10 @@ class Filter(Task):
   
   def LogStartProcessing(self, sfn, dfn):
     '''TODO: description'''
-    self.Log(Dict.msgProcessingXToY % (sfn, dfn))
+    if sfn == dfn:
+      self.Log(Dict.msgProcessing % sfn)
+    else:
+      self.Log(Dict.msgProcessingXToY % (sfn, dfn))
   
   def LogEndProcessing(self, sfn, dfn):
     '''TODO: description'''
@@ -321,4 +362,5 @@ class Filter(Task):
   
   def LogEnd(self):
     '''TODO: description'''
-    self.Log(Dict.msgProcessedAndSkipped % (self.processedFiles, self.skippedFiles), level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
+    self.Log(Dict.msgProcessedAndSkipped % (self.processedFiles, self.skippedFiles), 
+               level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))

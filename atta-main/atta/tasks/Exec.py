@@ -18,16 +18,15 @@ class Exec(Task):
     
   Parameters:
   
-  * **executable** - The command to execute without any command line arguments.
-  * **params** -     Command line arguments. (string or list of strings) |None| 
+  * **executable** |req| -   The command to execute without any command line arguments.
+  * **params** |None| -      Command line arguments. (string or list of strings) 
     
   General parameters available in many tasks that use internally ``Exec`` task:
   
-  * **failOnError** - Stop the buildprocess if the command exits with a return code signaling failure. |True|
-  * **logOutput** -   TODO: Przesyla stdout and stderr do logu Atta. |True| 
-  * **useSheel** -    Command will be executed through the shell.
-    More information can be found in :py:class:`subprocess.Popen` documentation. |True|
-  * **env** -         Environment variables. Completely replace the variables from the project |None|.
+  * **failOnError** |True| - Stop the buildprocess if the command exits with a return code signaling failure. 
+  * **logOutput** |True| -   TODO: Przesyla stdout and stderr do logu Atta. 
+  * **useShell** |True| -    Command will be executed through the shell. More information can be found in :py:class:`subprocess.Popen` documentation. 
+  * **env** |None| -         Environment variables. Completely replace the variables from the project. 
                         
   Exec returns object with two attributtes:
   
@@ -50,7 +49,7 @@ class Exec(Task):
   def __init__(self, executable, params = None, **tparams):
     params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get('failOnError', True)
-    self.logOutput = tparams.get('logOutput', True)
+    self.logOutput = tparams.get(Dict.paramLogOutput, True)
     useShell = tparams.get('useShell', True)
     env = tparams.get('env', None)
 
@@ -77,8 +76,7 @@ class Exec(Task):
     _rc = process.poll()
     if _rc:
       if failOnError:
-        if not self.logOutput:
-          self.Log(_output, level = LogLevel.ERROR)
+        if not self.logOutput: self.Log(_output, level = LogLevel.ERROR)
         self._LogReturnCode(_rc, level = LogLevel.ERROR)
         raise subprocess.CalledProcessError(_rc, _params, output = _output)
 
