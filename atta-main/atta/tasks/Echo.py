@@ -22,21 +22,24 @@ class Echo(Task):
   * **level** -  Control the log level at which this message is reported. 
     |def| :py:attr:`.LogLevel.INFO`
   
+  * **expandVars** - Expand variables? |True|
+
   * **file** -   The file name or a file-like object to write the message to. |None|
   * **append** - Append to an existing file? |False|
   * **force** -  Overwrite read-only file? |False|
-
+  
   '''
   def __init__(self, msg = '', **tparams):
     level = tparams.get(Dict.paramLevel, LogLevel.INFO)
     _file = tparams.get('file', None)
-    if isinstance(msg, basestring):
+    expandVars = tparams.get('expandVars', True)
+    if isinstance(msg, basestring) and expandVars:
       msg = self.ExpandVariables(msg, **tparams)
 
     if _file is None:
       if isiterable(msg):
         for line in msg:
-          if isinstance(line, basestring):
+          if isinstance(line, basestring) and expandVars:
             line = self.ExpandVariables(line, **tparams)
           self.Log(line, level = level)
       else:
@@ -58,7 +61,7 @@ class Echo(Task):
 
       if isiterable(msg):
         for line in msg:
-          if isinstance(line, basestring):
+          if isinstance(line, basestring) and expandVars:
             line = self.ExpandVariables(line, **tparams)
           _f.write(line)
       else:

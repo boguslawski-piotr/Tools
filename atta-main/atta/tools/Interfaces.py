@@ -1,8 +1,8 @@
 '''.. no-user-reference:'''
 
-class IVariablesExpander:
+class IVarsExpander:
   '''
-  IVariablesExpander interface
+  IVarsExpander interface
   
   TODO: description
   '''

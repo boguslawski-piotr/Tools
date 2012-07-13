@@ -44,7 +44,7 @@ __all__ = [
 
 # Atta
 
-from .tools.Misc import LogLevel, Logger, VariablesExpander
+from .tools.Misc import LogLevel, Logger, VarsExpander
 from .loggers import Std
 from .tools import DefaultVarsExpander
 from .version import AttaVersion
@@ -97,7 +97,7 @@ class Atta:
     '''TODO: description'''
     Atta._logger.LogIterable(msg, iterable, **tparams)
 
-  _varsExpander = VariablesExpander(DefaultVarsExpander.Expander)
+  _varsExpander = VarsExpander(DefaultVarsExpander.Expander)
 
   @staticmethod
   def VarsExpander():

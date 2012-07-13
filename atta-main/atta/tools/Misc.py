@@ -150,7 +150,7 @@ class Logger:
 
 #------------------------------------------------------------------------------ 
 
-class VariablesExpander:
+class VarsExpander:
   '''
   TODO: description
   '''
