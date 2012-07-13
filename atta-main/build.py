@@ -185,7 +185,7 @@ class makedocs(Target):
       group = fileName.split(os.path.sep)[0]
       subgroup = 'TODO'
       desc = ''
-      usecase = ''
+      usecases = ''
       with open(os.path.join('atta', fileName), 'r') as f:
         line = f.readline()
         if not line.startswith('"""') and not line.startswith("'''"):
@@ -201,17 +201,17 @@ class makedocs(Target):
           del w[0]
         desc = w[0]
         if len(w) > 1:
-          usecase = w[1].strip()
+          usecases = w[1].strip()
         else:
           Echo('WARNING: No use cases for: ' + fileName, level = LogLevel.WARNING)
 
       if group in m:
         if subgroup in m[group]:
-          m[group][subgroup].append([desc, fileName, usecase])
+          m[group][subgroup].append([desc, fileName, usecases])
         else:
-          m[group][subgroup] = [[desc, fileName, usecase]]
+          m[group][subgroup] = [[desc, fileName, usecases]]
       else:
-        m[group] = { subgroup : [[desc, fileName, usecase]] }
+        m[group] = { subgroup : [[desc, fileName, usecases]] }
 
     for i, group in enumerate(sorted(m.keys())):
       groupFileName = os.path.join('docs', group + '_user.rst')
@@ -228,9 +228,12 @@ class makedocs(Target):
           #print doc
           fileName = OS.Path.RemoveExt(doc[1])
           desc = doc[0]
-          usecase = doc[2]
-          if len(usecase) > 0:
-            usecase = '\n\n**Use cases:**\n\n  .. literalinclude:: ../../../../tests/test_''' + usecase + '.py\n\n'
+          usecases = doc[2]
+          if len(usecases) > 0:
+            ucs = usecases
+            usecases = ''
+            for uc in ucs.split(','):
+              usecases = usecases + '\n\n**Use cases:**\n\n  .. literalinclude:: ../../../../tests/test_''' + uc.strip() + '.py\n\n'
           moduleName = OS.Path.Ext(fileName.replace(os.path.sep, '.'), False)
           Echo('  ' + fileName, level = LogLevel.VERBOSE)
           Echo('''${moduleName} - ${desc}
@@ -241,7 +244,7 @@ class makedocs(Target):
     :undoc-members:
     :show-inheritance:
     :member-order: bysource
-    ''' + usecase,
+    ''' + usecases,
           moduleName = moduleName,
           desc = desc,
           fullName = 'atta.' + fileName.replace(os.path.sep, '.'),
