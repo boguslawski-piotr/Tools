@@ -168,7 +168,7 @@ def Touch(fileName, createIfNotExists = True):
   if os.path.exists(fileName):
     os.utime(fileName, None)
   elif createIfNotExists:
-    with open(fileName, 'wb') as f:
+    with open(fileName, 'wb'):
       pass
 
 def SetReadOnly(fileName, v):
@@ -184,6 +184,7 @@ def RemoveFile(fileName, force = False, failOnError = True):
      When `failOnError` is set to `True` is not throwing an exception if the file not exists.
      When `failOnError` is set to `False` returns `0` when the file has been removed/not exists
      or :py:data:`os.errno` when an error has occurred.'''
+  # TODO: if error retry once
   try:
     if force:
       SetReadOnly(fileName, False)
@@ -216,7 +217,7 @@ def CopyFile(fileName, destName, force = False):
     SetReadOnly(destName, False)
   shutil.copy2(fileName, destName)
 
-def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False):
+def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False, granularity = 1):
   '''
   Copies the file `fileName` to the file or directory `destName`
   only if modification times or SHA1-hashs are different or `destName` not exists. 
@@ -238,7 +239,7 @@ def CopyFileIfDiffrent(fileName, destName, useHash = False, force = False):
       else:
         srcTime = datetime.fromtimestamp(os.path.getmtime(fileName))
         destTime = datetime.fromtimestamp(os.path.getmtime(destName))
-        shouldCopy = abs((srcTime - destTime)) > timedelta(seconds = 1)
+        shouldCopy = abs((srcTime - destTime)) > timedelta(seconds = granularity)
   if shouldCopy:
     CopyFile(fileName, destName, force)
   return shouldCopy

@@ -35,3 +35,8 @@ bin
 /tests/test_ver.info
 /tests/_test_filter
 /tests/_test_filter2
+/tests/_test_copy
+/tests/_test_move
+/tests/_test_copy2
+/tests/_test_copy3
+/tests/_test_move2

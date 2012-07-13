@@ -64,7 +64,7 @@ Project.debugLevel = 'vars,lines'
 
 '''
 '''
-Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*', realPaths = False)]
+Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*')]
 
 '''
 '''

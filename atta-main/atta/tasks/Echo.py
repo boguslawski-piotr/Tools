@@ -4,6 +4,7 @@ import os
 from ..tools.Misc import LogLevel, isiterable
 from ..tools import OS
 from .Base import Task
+from .. import Dict
 
 class Echo(Task):
   '''
@@ -27,7 +28,7 @@ class Echo(Task):
 
   '''
   def __init__(self, msg = '', **tparams):
-    level = tparams.get('level', LogLevel.INFO)
+    level = tparams.get(Dict.paramLevel, LogLevel.INFO)
     _file = tparams.get('file', None)
     if isinstance(msg, basestring):
       msg = self.ExpandVariables(msg, **tparams)

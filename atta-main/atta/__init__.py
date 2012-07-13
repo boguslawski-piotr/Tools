@@ -27,6 +27,8 @@ __all__ = [
            'Echo',
            'Delete',
            'Filter',
+           'Copy',
+           'Move',
 
            'Exec',
            'PyExec',
@@ -175,6 +177,8 @@ from .tasks.Base import Task
 from .tasks.Echo import Echo
 from .tasks.Delete import Delete
 from .tasks.Filter import Filter
+from .tasks.Copy import Copy
+from .tasks.Move import Move
 
 from .tasks.Exec import Exec
 from .tasks.PyExec import PyExec

@@ -1,4 +1,4 @@
-'''.. Files, directories: Sets TODO'''
+'''.. Files, directories: Sets TODO: sets'''
 import os
 import re
 
@@ -16,23 +16,24 @@ class FileSet(list):
     :type includes:            string or path (separator :) or list of strings
     :param excludes:           TODO
     :type excludes:            string or path (separator :) or list of strings
-    :param boolean useRegExp:  TODO
-    :param callable filter:    TODO
-    :param boolean realPaths:  TODO
-    :param boolean withRootDir: TODO
-    :param boolean createEmpty: TODO
+    :param boolean useRegExp:  TODO |False|
+    :param callable filter:    TODO |None|
+    :param boolean realPaths:  TODO |False|
+    :param boolean withRootDir: TODO |False|
+    :param boolean createEmpty: TODO |False|
     
     :return: iterable TODO
     
   '''
   def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
+    self.rootDir = None
     if not tparams.get('createEmpty', False):
       self.AddFiles(rootDir, includes, excludes, **tparams)
 
   def AddFiles(self, rootDir, includes = '*', excludes = None, **tparams):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
-    # TODO: how to handle rootDir if FileSet includes files from different roots?
+    # TODO: how to handle rootDir if FileSet includes files from different roots (many AddFiles called)?
 
   def MakeSet(self, rootDir, includes, excludes = None, **tparams):
     '''Creates a set of files.
@@ -40,7 +41,7 @@ class FileSet(list):
     includes = OS.Path.AsList(includes)
     excludes = OS.Path.AsList(excludes)
     useRegExp = tparams.get('useRegExp', False)
-    realPaths = tparams.get('realPaths', True)
+    realPaths = tparams.get('realPaths', False)
     withRootDir = tparams.get('withRootDir', False)
     onlyDirs = tparams.get('onlyDirs', False)
     _filter = tparams.get('filter', None)
@@ -154,30 +155,32 @@ class ExtendedFileSet(list):
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
-  
+      also FileSet or DirSet alone
+      
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
   '''
   def __init__(self, srcs):
     self.AddFiles(srcs)
 
   def AddFiles(self, srcs):
+    if isinstance(srcs, FileSet):
+      srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
     for src in srcs:
-      if len(src) <= 0:
-        continue
       if isinstance(src, DirSet):
-        for fname in src:
-          src = FileSet(fname, '**/*')
+        for dname in src:
+          src = FileSet(dname, '**/*', realPaths = False, withRootDir = False)
           for fname in src:
-            self.append((src.rootDir, os.path.relpath(fname, src.rootDir)))
+            self.append((src.rootDir, fname))
       elif isinstance(src, FileSet):
         for fname in src:
-          self.append((src.rootDir, os.path.relpath(fname, src.rootDir)))
+          self.append((src.rootDir, fname))
       else:
+        if len(src) <= 0:
+          continue
         if OS.Path.HasWildcards(src):
-          rootDir, includes = OS.Path.Split(src)
-          for fname in FileSet(rootDir, includes, realPaths = False, withRootDir = False):
-            self.append((rootDir, fname))
+          for fname in FileSet('.', includes = src, realPaths = False, withRootDir = False):
+            self.append(('.', fname))
         else:
           if os.path.isdir(src):
             for fname in FileSet(src, includes = '**/*', realPaths = False, withRootDir = False):

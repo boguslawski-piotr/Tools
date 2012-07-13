@@ -1,6 +1,4 @@
 '''.. Java related: TODO: java'''
-import sys
-import stat
 import os
 
 from ..tools.internal.Misc import ObjectFromClass
@@ -20,7 +18,8 @@ class Javac(Task):
   
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-      if list: each item may be: file/dir/wildcard name or FileSet
+      if list: each item may be: file/dir/wildcard name or FileSet or DirSet
+      also FileSet or DirSet alone
     * **destDir**     TODO
     * **classPath**
     * **sourcePath**
@@ -51,6 +50,8 @@ class Javac(Task):
     self._requiresCompileImpl = ObjectFromClass(tparams.get('requiresCompileImpl', Javac.GetDefaultRequiresCompileImpl()))
     self._compilerImpl = ObjectFromClass(tparams.get('compilerImpl', Javac.GetDefaultCompilerImpl()))
 
+    if isinstance(srcs, FileSet):
+      srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
     classPath = OS.Path.AsList(tparams.get(Dict.paramClassPath, []))
     sourcePath = OS.Path.AsList(tparams.get(Dict.paramSourcePath, []))
@@ -63,9 +64,11 @@ class Javac(Task):
     for src in srcs:
       if len(src) <= 0:
         continue
+      # TODO: handle DirSet
       if isinstance(src, FileSet):
         rootDir = src.rootDir
         sourcePath.append(rootDir)
+        # TODO: handle FileSet with withRootDir == False
         srcsSet.extend(src)
       else:
         if OS.Path.HasWildcards(src):

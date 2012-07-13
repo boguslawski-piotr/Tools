@@ -1,0 +1,22 @@
+<project name="a">
+  <target name="test">
+
+    <copy todir="_test_copy" verbose="True">
+      <fileset dir="JavaBasic" includes="**/*"/>
+    </copy>
+    <copy todir="_test_copy2">
+      <fileset dir='.' includes="JavaBasic/**/*"/>
+    </copy>
+    <copy todir="_test_copy3">
+      <fileset dir='.' includes="JavaBasic/**/*"/>
+    </copy>
+
+    <move todir="_test_move" verbose="True">
+      <fileset dir="_test_copy2" includes="**/*"/>
+    </move>
+    <move todir="_test_move2" verbose="True">
+      <fileset dir='.' includes="_test_copy3/**/*"/>
+    </move>
+    
+  </target>
+</project>

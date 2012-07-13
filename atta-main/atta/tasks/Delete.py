@@ -17,7 +17,7 @@ class Delete(Task):
   
   * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet` NIE!
   * **force** |False| -            When set to `True` then the files with read-only attribute are also deleted.
-  * **failOnError**  |True| -      Controls whether an error stops the build or is only reported to the log. Merely relevant if `quiet` is `False`.
+  * **failOnError**  |True| -      Controls whether an error stops the build or is only reported to the log.
   * **verbose** |False| -          Whether to show the name of each deleted file / directory.
   * **quiet** |False| -            Be extra quiet. No error is reported even with log level set to VERBOSE.
   * **includeEmptyDirs** |False| - Whether to remove all empty directories from which files were deleted.
@@ -28,6 +28,7 @@ class Delete(Task):
   def _delete(self, srcs, force = False, **tparams):
     self._DumpParams(locals())
 
+    # Parameters.
     failOnError = tparams.get('failOnError', True)
     verbose = tparams.get('verbose', False)
     quiet = tparams.get('quiet', False)
@@ -35,6 +36,9 @@ class Delete(Task):
       failOnError = False
     includeEmptyDirs = tparams.get('includeEmptyDirs', False)
 
+    # Prepare file names/directory names.
+    if isinstance(srcs, FileSet):
+      srcs = [srcs]
     filesSet = OS.Path.AsList(srcs)
     dirsSet = filter((lambda src:
                         isinstance(src, DirSet)
@@ -45,10 +49,8 @@ class Delete(Task):
     for d in dirsSet:
       if isinstance(d, DirSet): tmpDirsSet.extend(d)
       else: tmpDirsSet.append(d)
-    dirsSet = tmpDirsSet
-    dirsSet = RemoveDuplicates(dirsSet)
-    dirsSet.sort()
-    dirsSet.reverse()
+    dirsSet = RemoveDuplicates(tmpDirsSet)
+    dirsSet.sort(reverse = True)
 
     # 1.
     # For each file:
@@ -56,10 +58,10 @@ class Delete(Task):
     for r, f in ExtendedFileSet(filesSet):
       # Collect its directory (for third step - see below) and remove it.
       f = os.path.normpath(os.path.join(r, f))
-      filesDirsSet.add(os.path.dirname(f))
       if os.path.isdir(f):
         self._delete(f, force, **tparams)
       else:
+        filesDirsSet.add(os.path.dirname(f))
         err = OS.RemoveFile(f, force, failOnError)
         if not quiet or self.LogLevel() == LogLevel.DEBUG:
           if err != 0:
@@ -80,9 +82,8 @@ class Delete(Task):
           self.Log(Dict.errOSErrorForX % (err, os.strerror(err), f), level = LogLevel.WARNING)
 
       # Delete all subdirectories.
-      dd = DirSet(d, '**/*')
-      dd.sort()
-      dd.reverse()
+      dd = DirSet(d, '**/*', withRootDir = True)
+      dd.sort(reverse = True)
       err = OS.RemoveDirs(dd, failOnError)
       if err == 0:
         err = OS.RemoveDir(d, failOnError)
@@ -96,11 +97,11 @@ class Delete(Task):
     if includeEmptyDirs:
       # Remove all empty directories from which files were deleted in first step.
       filesDirsSet = list(filesDirsSet)
-      filesDirsSet.sort()
-      filesDirsSet.reverse()
+      filesDirsSet.sort(reverse = True)
       for d in filesDirsSet:
         err = OS.RemoveDirs(d, False)
-        if not quiet and err != 0 and err != os.errno.ENOTEMPTY:
+        if err != 0 and err != os.errno.ENOTEMPTY:
           if failOnError:
             raise OSError(err, os.strerror(err), d)
-          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.WARNING)
+          if not quiet or self.LogLevel() == LogLevel.DEBUG:
+            self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.WARNING)

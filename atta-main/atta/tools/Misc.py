@@ -1,6 +1,7 @@
 '''.. Miscellaneous: Various functions and classes'''
 
 from .internal.Misc import ObjectFromClass
+from .. import Dict
 
 #------------------------------------------------------------------------------ 
 
@@ -101,7 +102,7 @@ class Logger:
     More information can be found in 
     :py:class:`atta.tools.Interfaces.ILogger`.
     '''
-    level = args.get('level', LogLevel.Default())
+    level = args.get(Dict.paramLevel, LogLevel.Default())
     if self.LogAllowed(level):
       self._logger.GetObject().Log(msg, **args)
       for listener in self._listeners:
@@ -113,22 +114,23 @@ class Logger:
 
   def LogIterable(self, msg, iterable, **args):
     '''TODO: description'''
-    level = args.get('level', LogLevel.Default())
+    level = args.get(Dict.paramLevel, LogLevel.Default())
     if self.LogAllowed(level):
       if msg is not None:
         self.Log(msg, **args)
+      _depth = args.get('_depth', 2)
       if isinstance(iterable, dict):
         for n, v in iterable.items():
           if isiterable(v):
-            self.LogIterable(n + ':', v, **args)
+            self.LogIterable(' ' * _depth + n + ':', v, _depth = _depth + 2, **args)
           else:
-            self.Log('  {0}: {1}'.format(n, v), **args)
+            self.Log(' ' * _depth + '{0}: {1}'.format(n, v), **args)
       else:
         for v in iterable:
           if isiterable(v):
-            self.LogIterable(None, v, **args)
+            self.LogIterable(None, v, _depth = _depth + 2, **args)
           else:
-            self.Log('  {0}'.format(v), **args)
+            self.Log(' ' * _depth + '{0}'.format(v), **args)
 
   def LI(self, msg, iterable, **args):
     '''Shortcut for LogIterable'''

@@ -11,12 +11,21 @@ from .. import AttaError
 from .Base import Task
 
 class Archive(Task):
-  '''TODO: description'''
+  '''TODO: description
+
+    * **srcs**        TODO
+      if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
+      if list: each item may be: file/dir/wildcard name or FileSet or DirSet
+      also FileSet or DirSet alone
+  
+  '''
   def __init__(self, _class, fileName, srcs, **tparams):
     self._DumpParams(locals())
 
     _impl = ObjectFromClass(_class)
 
+    if isinstance(srcs, FileSet):
+      srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
     recreate = tparams.get('recreate', False)
     checkCRC = tparams.get('checkCRC', True)
@@ -40,17 +49,18 @@ class Archive(Task):
         continue
       srcsSet = FileSet(createEmpty = True)
       rootDir = ''
+      # TODO: handle DirSet
       if isinstance(src, FileSet):
         rootDir = src.rootDir
         srcsSet = src
       else:
         if OS.Path.HasWildcards(src):
           rootDir, includes = OS.Path.Split(src)
-          srcsSet.AddFiles(rootDir, includes = includes, realPaths = False)
+          srcsSet.AddFiles(rootDir, includes = includes, realPaths = False, withRootDir = False)
         else:
           if os.path.isdir(src):
             rootDir = src
-            srcsSet.AddFiles(rootDir, includes = '**/*', realPaths = False)
+            srcsSet.AddFiles(rootDir, includes = '**/*', realPaths = False, withRootDir = False)
           else:
             rootDir, src = os.path.split(src)
             srcsSet = [src]

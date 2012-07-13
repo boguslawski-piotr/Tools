@@ -129,6 +129,7 @@ class Version(Task):
                     version = str(self),
                     **tparams)
 
+  # TODO: polaczyc to jakos z Filter task (?)
   class FileFilter:
     '''TODO: description'''
     def __init__(self, srcFileName, destFileName):

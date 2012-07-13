@@ -56,7 +56,7 @@ def _ParseArgv(argv):
     '-q', action = 'store_true',
     help = 'be quiet (shortcut for -ll 3)')
   logGroup.add_argument(
-    '-ll', nargs = 1, metavar = 'level', type = int, choices = [0, 1, 2, 3, 4],
+    '-ll', nargs = 1, metavar = atta.Dict.paramLevel, type = int, choices = [0, 1, 2, 3, 4],
     help = 'set the log level to the one of: %(choices)s'
   )
   logGroup.add_argument(

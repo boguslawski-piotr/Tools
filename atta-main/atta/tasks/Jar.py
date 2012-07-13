@@ -17,8 +17,9 @@ class Jar(Zip):
     
     * **srcs**              TODO 
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
-      if list: each item may be: file/dir/wildcard name or FileSet
-    
+      if list: each item may be: file/dir/wildcard name or FileSet or DirSet
+      also FileSet or DirSet alone
+      
     * **manifest**          TODO (dict or string (fileName) or file-like object)
 
     * **checkCRC**          TODO

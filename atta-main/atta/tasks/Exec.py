@@ -88,6 +88,12 @@ class Exec(Task):
     self.returnCode = _rc
     self.output = _output
 
+  def GetReturnCode(self):
+    return self.returnCode
+
+  def GetOutput(self):
+    return self.output
+
   '''private section'''
 
   def _reader(self, fh, output):

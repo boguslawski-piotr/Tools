@@ -88,6 +88,8 @@ pom = 'pom'
 #
 # Common tasks (and others activites) parameters
 
+paramLevel = 'level'
+
 paramLogOutput = 'logOutput'
 
 paramClassPath = 'classPath'
@@ -100,8 +102,11 @@ errNotImplemented = 'Not implemented: {0}'
 errNotSpecified = 'Not specified: {0}'
 errNotEnoughParams = 'Not enough parameters.'
 errFileNotExists = 'File: %s does not exists.'
+errFileExists = 'File: %s exists.'
 errFileOrDirNotExists = 'File or directory: %s does not exists.'
+errFileOrDirExists = 'File or directory: %s exists.'
 errOSErrorForX = "OS error: %d, '%s' for: %s"
+errException = "Exception: '%s'"
 
 errXWhileGettingYFromZ = "Error '%s' while trying to get: %s from: %s"
 errXWhileGettingTimestamp = "Error '%s' while trying to get timestamp."
@@ -128,6 +133,14 @@ msgUploading = 'Uploading: %s'
 msgSavingFile = 'Saving file: %s'
 msgReturns = 'Returns: %s'
 msgSendingXToY = 'Sending: %s to: %s'
+msgProcessing = 'Processing: %s'
+msgProcessingXToY = 'Processing: %s to: %s'
+msgSkipped = 'Skipped: %s'
+msgProcessedAndSkipped = 'Processed %d file(s), skipped %d file(s).'
+msgCopyingXToY = 'Copying: %s to: %s'
+msgCopiedAndSkipped = 'Copied %d file(s), skipped %d file(s).'
+msgMovingXToY = 'Moving: %s to: %s'
+msgMovedAndSkipped = 'Moved %d file(s), skipped %d file(s).'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'
