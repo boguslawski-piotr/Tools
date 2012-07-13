@@ -32,9 +32,9 @@ class Repository(Local.Repository):
     resultProperties = self.data.get(Dict.resultIn, ['packageName'])
     result = None
 
-    projectTmpName = dirName + '/' + OS.Path.TempName(dirName, 'py')
+    projectTmpName = OS.Path.TempName(dirName, 'py')
     try:
-      shutil.copy2(projectName, projectTmpName)
+      OS.CopyFile(projectName, projectTmpName)
     except:
       pass
     else:
