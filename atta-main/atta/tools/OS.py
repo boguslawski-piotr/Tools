@@ -105,8 +105,8 @@ class Path:
       ext = '.' + ext
     for i in xrange(0, 100):
       dt = datetime.now()
-      name = dt.strftime('%Y%m%d%H%S%f') + ext
-      if not os.path.exists(os.path.join(dir_, name)):
+      name = os.path.join(dir_, dt.strftime('%Y%m%d%H%S%f') + ext)
+      if not os.path.exists(name):
         return name
       sleep(0.05)
     return ''
@@ -124,7 +124,8 @@ def MakeDirs(paths):
   '''
   for dir_ in Path.AsList(paths):
     try:
-      os.makedirs(dir_)
+      if dir_:
+        os.makedirs(dir_)
     except os.error as e:
       if e.errno != os.errno.EEXIST:
         raise
@@ -135,7 +136,8 @@ def RemoveDir(path, failOnError = True):
      When `failOnError` is set to `False` returns `0` when the directory has been removed/not exists
      or :py:data:`os.errno` when an error has occurred.'''
   try:
-    os.rmdir(path)
+    if path:
+      os.rmdir(path)
   except os.error as e:
     if e.errno != os.errno.ENOENT:
       if failOnError: raise
@@ -151,7 +153,8 @@ def RemoveDirs(paths, failOnError = True):
      or :py:data:`os.errno` when an error has occurred.'''
   for dir_ in Path.AsList(paths):
     try:
-      os.removedirs(dir_)
+      if dir_:
+        os.removedirs(dir_)
     except os.error as e:
       if e.errno != os.errno.ENOENT:
         if failOnError: raise
@@ -279,3 +282,12 @@ def FileCRC(fileName, chunkSize = 32768):
   Returns CRC as a string or None on error.
   '''
   return "{:08x}".format(FileCRCn(fileName, chunkSize))
+
+def LoadFile(fileName, binary = False):
+  '''Loads file `fileName` into memory buffer.'''
+  f = open(fileName, 'r' + ('b' if binary else ''))
+  try:
+    rc = f.read()
+  finally:
+    f.close()
+  return rc  
