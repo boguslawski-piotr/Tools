@@ -13,25 +13,23 @@ p = Properties.Open('deploy.properties')
 
 from atta.compilers.Strategies import SrcNewerStrategy
 from atta.tools.Strategies import VersionResetBuildStrategy
-from atta.tools.Interfaces import IVersionListener
 
-class MyVersionListener(IVersionListener):
+def MyVersion(v, event):
   tmplFileName = 'version.java.tmpl'
   javaFileName = 'version.java'
 
-  def AfterConfigure(self, v):
-    if SrcNewerStrategy().RequiresCompile(MyVersionListener.tmplFileName, MyVersionListener.javaFileName):
-      self.AfterUpdate(v)
-
-  def SetPostfix(self, v):
-    self.AfterUpdate(v)
-
-  def AfterUpdate(self, v):
-    Version.FileFilter(MyVersionListener.tmplFileName, MyVersionListener.javaFileName)(v)
+  if event == Version.Events.AfterConfigure:
+    if SrcNewerStrategy().RequiresCompile(tmplFileName, javaFileName):
+      event = Version.Events.AfterUpdate
+  
+  if event == Version.Events.SetPostfix or event == Version.Events.AfterUpdate:
+    Filter(tmplFileName, destFile = javaFileName, append = False, 
+           dataFilters = Project.version.ExpandVars, 
+           verbose = True)
     OS.Touch('main.java')
 
 Project.version.Configure(impl = VersionResetBuildStrategy,
-                           listeners = MyVersionListener,
+                           observers = MyVersion,
                            fileName = 'v.i',
                            # In this project we don't use ${patch} and ${build} version element.
                            format = '${major}.${minor}${postfix}',
@@ -142,7 +140,7 @@ Project.deployTo = [
 #                     # into ftp repository
 #                     'repository' : 'atta.repositories.Ftp',
 #                     'host'       : p.Get('host'),
-#                     'rootDir'    : p.Get('rootDir'),
+#                     'rootDirName': p.Get('rootDirName'),
 #                     'user'       : p.Get('user'),
 #                     'password'   : p.Get('password'),
 #                     'useCache'   : False,
@@ -155,7 +153,7 @@ Project.deployTo = [
                      # into project subdirectory archive
                      'repository' : 'atta.repositories.Local',
                      'style'      : MyStyle,
-                     'rootDir'    : 'archive',
+                     'rootDirName': 'archive',
                     },
                   ]
 

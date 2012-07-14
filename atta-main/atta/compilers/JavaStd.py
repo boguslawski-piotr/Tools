@@ -4,8 +4,8 @@ import tempfile
 
 from ..tasks.Base import Task
 from ..tasks.Exec import Exec
-from ..tools.Misc import LogLevel
 from ..tools import OS
+from .. import LogLevel
 from .. import Dict
 from .. import GetProject
 from .Interfaces import IJavaCompiler
@@ -18,14 +18,14 @@ class JavaStdCompiler(IJavaCompiler, Task):
   def OutputExt(self, **tparams):
     return '.class'
 
-  def Compile(self, srcFiles, destDir, **tparams):
+  def Compile(self, srcFileNames, destDirName, **tparams):
     '''
     TODO: description
     
     Parameters:
     
     * **srcFiles** TODO
-    * **destDir** (string)
+    * **destDirName** (string)
     * **debug**
     * **debugLevel** (stirng)
     * **cParams**    The parameters passed directly to the compiler. (string or list of strings) |None|
@@ -57,9 +57,9 @@ class JavaStdCompiler(IJavaCompiler, Task):
     if len(sourcePath) > 0:
       params.extend(['-sourcepath', os.path.normpath(sourcePath)])
 
-    params.extend(['-d', os.path.normpath(destDir)])
+    params.extend(['-d', os.path.normpath(destDirName)])
 
-    params.extend(OS.Path.AsList(srcFiles))
+    params.extend(OS.Path.AsList(srcFileNames))
 
     if self.LogLevel() == LogLevel.DEBUG:
       self.LogIterable(Dict.msgDumpParameters, params)

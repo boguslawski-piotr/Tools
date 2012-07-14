@@ -26,7 +26,8 @@ class VersionDefaultStrategy(IVersionStrategy):
 
 class VersionResetBuildStrategy(VersionDefaultStrategy):
   '''This strategy works almost as :py:class:`.VersionDefaultStrategy`
-     but resets the build number to zero after each change of a minor or major version.
+     but resets the build number to zero after each change of 
+     a minor or major version.
   '''
   def NextMajor(self, v):
     VersionDefaultStrategy.NextMajor(self, v)

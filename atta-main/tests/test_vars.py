@@ -14,7 +14,7 @@ class VarsLikeDOSExpander(atta.tools.DefaultVarsExpander.Expander):
 class test(Target):
   def Run(self):
     v1s = 'test'
-    v1t = Atta.VarsExpander().Expand('${test_ref}', test_ref = v1s)
+    v1t = Atta.ExpandVars('${test_ref}', test_ref = v1s)
     assert v1s == v1t
 
     Echo('''
@@ -32,7 +32,7 @@ Use of Ant style variables
     pc = Atta.VarsExpander().SetImpl(VarsLikeDOSExpander)
 
     v1s = 'test'
-    v1t = Atta.VarsExpander().Expand('%test_ref%', test_ref = v1s)
+    v1t = Atta.ExpandVars('%test_ref%', test_ref = v1s)
     assert v1s == v1t
 
     Echo('''

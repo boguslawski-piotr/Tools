@@ -6,10 +6,11 @@ import tempfile
 from time import sleep
 
 from ..tasks.Base import Task
-from ..tools.Misc import RemoveDuplicates, NamedFileLike, LogLevel
+from ..tools.Misc import RemoveDuplicates, NamedFileLike
 from ..tools import OS
 from .. import AttaError
 from .. import Dict
+from .. import LogLevel
 from .Base import ARepository
 from . import ArtifactNotFoundError
 from . import Local
@@ -22,8 +23,8 @@ class Repository(Local.Repository):
     self.host = data.get(Dict.host)
     if self.host == None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.host))
-    if self._RootDir() == None:
-      raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDir))
+    if self._RootDirName() == None:
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDirName))
 
     self.ftp = ftplib.FTP()
     self.ftp.set_debuglevel(0)
@@ -46,7 +47,7 @@ class Repository(Local.Repository):
       cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), '.ftpcache'))
       self.cache = Local.Repository({
                                      Dict.style   : data.get(Dict.style, ARepository.GetDefaultStyleImpl()),
-                                     Dict.rootDir : cacheDirName
+                                     Dict.rootDirName : cacheDirName
                                     })
 
   def __del__(self):
@@ -118,7 +119,7 @@ class Repository(Local.Repository):
     if self.cache != None:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
-      fileNameInCache = os.path.join(self.cache._RootDir(), os.path.relpath(fileName, self._RootDir()))
+      fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
       try:
         return self.cache.vGetFileContents(fileNameInCache, logLevel)
       except:
@@ -141,7 +142,7 @@ class Repository(Local.Repository):
     if self.cache != None:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
-      fileNameInCache = os.path.join(self.cache._RootDir(), os.path.relpath(fileName, self._RootDir()))
+      fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
       OS.MakeDirs(os.path.dirname(fileNameInCache))
       self.fileInCache = open(fileNameInCache, 'wb')
 
@@ -212,7 +213,7 @@ class Repository(Local.Repository):
     store.SetOptionalAllowed(self.OptionalAllowed())
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
-      fileName = self.PrepareFileName(packageId, self._RootDir())
+      fileName = self.PrepareFileName(packageId, self._RootDirName())
       if self.vFileExists(fileName):
         packageId.timestamp, sha1 = self.GetFileMarker(fileName)
         if packageId.timestamp is not None:
@@ -287,7 +288,7 @@ class Repository(Local.Repository):
     if result != None and self.cache != None:
       # Because the cache had just been updated, we give local file names.
       for i in range(len(result)):
-        result[i] = os.path.join(self.cache._RootDir(), os.path.relpath(result[i], self._RootDir()))
+        result[i] = os.path.join(self.cache._RootDirName(), os.path.relpath(result[i], self._RootDirName()))
       return result
     # If the repository is set to not use cache we give the full urls.
     return self._ChangeFileNamesToFtpUrls(result)

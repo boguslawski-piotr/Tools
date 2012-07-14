@@ -2,12 +2,8 @@
 import os
 import tempfile
 
-from ..tools.Misc import LogLevel
-from ..tools.Sets import ExtendedFileSet
-from ..tools import OS
-from .. import Dict
+from .. import Dict, LogLevel, OS, ExtendedFileSet, Task
 from .. import AttaError
-from .Base import Task
 
 class Filter(Task):
   '''
@@ -18,25 +14,28 @@ class Filter(Task):
   * **srcs** |req| -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
     TODO: allow file like object(s)
   
-  * **dest** |None| - can be: None (== filter in place), directory, file name or file like object
+  * **destDirName** |None| - directory
   
-  Parameters related to `dest` only:
+  or
+   
+  * **destFile** |None| - file name or file like object
   
-  * **destIsAFile** - Indicates whether the `dest` is to be a directory or file. Valid when the `dest` does not exist. |False|
-  * **append** |True| - for existing file or file like object. If False the file is truncated.
+  Parameters related to *dest...* only:
+  
+  * **append** |True| - for existing file or file like object. If False then the file is truncated.
   * **failIfDestNotExists** |False| - for dir or file name
   * **failIfDestExists** |False| - For `dest` if it's a file name or directory.
     
   Parameters related to source files and created destination files:
   
-  * **failIfExists** |False| - For created files if `dest` is a directory.
+  * **failIfExists** |False| - For created files if *destDirName*.
     TODO: change name (?)
     
   * **force** |False| -            When set to `True` then the files with read-only attribute are overriden.
     For `dest` if it's a file name or for created files if `dest` is a directory. 
     
   * **fileNameTransforms** |None| - one or more (list) callables implements IFileNameTransform
-    Valid only if `dest` is a directory. 
+    Valid only if *destDirName* specyfied. 
     
     .. code-block:: python
       
@@ -102,7 +101,7 @@ class Filter(Task):
   * **quiet** |False| -           Be extra quiet. No error is reported even with log level set to VERBOSE. Sets the `failOnError` to `False`.
  
   '''
-  def __init__(self, srcs, dest = None, **tparams):
+  def __init__(self, srcs, **tparams):
     self.verbose = False
     self._DumpParams(locals())
     
@@ -132,6 +131,11 @@ class Filter(Task):
     # Setup destination.
     self.destFile = None
     self.closeDestFile = False
+    dest = tparams.get(Dict.paramDestDirName, None)
+    if not dest:
+      dest = tparams.get(Dict.paramDestFile, None)
+      if dest:
+        self.destFile = True
     if dest:
       if 'write' in dir(dest):
         self.destFile = dest
@@ -141,7 +145,7 @@ class Filter(Task):
           if tparams.get('failIfDestNotExists', False):
             raise AttaError(self, Dict.errFileOrDirNotExists % dest) 
           try:
-            if tparams.get('destIsAFile', False):
+            if self.destFile:
               OS.MakeDirs(os.path.dirname(dest))
               self.destFile = open(dest, 'w' + self.destBinaryMode)
               self.closeDestFile = True
@@ -153,7 +157,10 @@ class Filter(Task):
         else:
           if tparams.get('failIfDestExists', False):
             raise AttaError(self, Dict.errFileOrDirExists % dest) 
-          if not os.path.isdir(dest):
+          if os.path.isdir(dest):
+            if self.destFile:
+              raise AttaError(self, '%s is a directory instead of the file.' % dest)
+          else:
             try:
               if self.force:
                 OS.SetReadOnly(dest, False)
@@ -174,11 +181,16 @@ class Filter(Task):
         
     # Filter files.
     try:
+      fntParams = tparams.copy()
+      if Dict.paramDestDirName in fntParams:
+        del fntParams[Dict.paramDestDirName]
+      
       self.srcs = ExtendedFileSet(srcs)
       self.processedFiles = 0
       self.skippedFiles = 0
       if not self.quiet: 
         self.LogStart()
+      
       for rn, fn in self.srcs:
         sfn = os.path.normpath(os.path.join(rn, fn))
         dfn = None if dest else sfn 
@@ -190,7 +202,7 @@ class Filter(Task):
             if dest:
               dfn = os.path.normpath(os.path.join(dest, fn))
             for fntrans in fileNameTransforms:
-              ndfn = fntrans(rn, fn, dest, dfn, caller = self, **tparams)
+              ndfn = fntrans(rn, fn, dest, dfn, caller = self, **fntParams)
               if ndfn:
                 dfn = ndfn
           

@@ -33,12 +33,10 @@ Line 1
     file = 'test_ver.info', force = True)
   Echo()
 
-  from atta.tools.Interfaces import IVersionListener
-  class MyVersionListener(IVersionListener):
-    def AfterUpdate(self, v):
-      Echo('From listener: Updated: %s' % v.fileName)
+  def VObserver(v, event):
+    Echo('%s sent event: %d' % (v.fileName, event))
   
-  v = Version(fileName = 'test_ver.info', listeners = [MyVersionListener])
+  v = Version(fileName = 'test_ver.info', observers = [VObserver])
   Echo(v)
   v.NextMajor(True)
   

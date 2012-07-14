@@ -4,10 +4,7 @@ import shutil
 import hashlib
 from datetime import datetime, timedelta
 
-from ..tools.Misc import LogLevel
-from ..tools import OS
-from .. import Dict
-from .Filter import Filter
+from .. import AttaError, LogLevel, OS, Dict, Filter
 
 class Copy(Filter):
   '''
@@ -21,8 +18,10 @@ class Copy(Filter):
   * **granularity** - The number of seconds leeway to give before deciding a file is out of date. Def: 1s
   * **useHash** - TODO
   '''
-  def __init__(self, srcs, dest, **tparams):
+  def __init__(self, srcs, **tparams):
     # Parameters.
+    if not tparams.get(Dict.paramDestDirName, None) and not tparams.get(Dict.paramDestFile, None):
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.paramDestDirName + ' ' + Dict.Or + ' ' + Dict.paramDestFile))
     self.preserveLastModified = tparams.get('preserveLastModified', True)
     self.copyStat = tparams.get('copyStat', True)
     self.overwrite = tparams.get('overwrite', False)
@@ -52,7 +51,7 @@ class Copy(Filter):
     tparams['binaryMode'] = True
     
     # Copy files.
-    Filter.__init__(self, srcs, dest, **tparams) 
+    Filter.__init__(self, srcs, **tparams) 
     
   def EndProcessing(self, sfn, dfn):
     # Handles parameters: copyStat and preserveLastModified.

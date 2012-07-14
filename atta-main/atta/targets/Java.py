@@ -172,11 +172,11 @@ class compile(Target):
     project = GetProject()
     self.ResolveDependencies()
     i = 0
-    for srcDir in project.javaDirs:
+    for srcDirName in project.javaDirs:
       if not project.classDirs[i] in project.javacClassPath:
         project.javacClassPath.append(project.classDirs[i])
 
-      Javac([srcDir],
+      Javac([srcDirName],
             project.classDirs[i],
             classPath = project.javacClassPath,
             sourcePath = project.javacSourcePath,
@@ -185,9 +185,9 @@ class compile(Target):
             cParams = self.JavaCompilerParams(),
             **self.JavacTaskParams())
 
-      if not OS.Path.HasWildcards(srcDir):
-        if not srcDir in project.javacSourcePath:
-          project.javacSourcePath.append(srcDir)
+      if not OS.Path.HasWildcards(srcDirName):
+        if not srcDirName in project.javacSourcePath:
+          project.javacSourcePath.append(srcDirName)
 
       if i < len(project.classDirs) - 1:
         i += 1

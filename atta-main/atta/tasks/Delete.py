@@ -1,11 +1,8 @@
 '''.. Files, directories: Deletes files or/and directories'''
 import os
 
-from ..tools.Misc import LogLevel, RemoveDuplicates
-from ..tools.Sets import FileSet, DirSet, ExtendedFileSet
-from ..tools import OS
-from .. import Dict
-from .Base import Task
+from ..tools.Misc import RemoveDuplicates
+from .. import Dict, FileSet, DirSet, ExtendedFileSet, OS, LogLevel, Task
 
 class Delete(Task):
   '''
@@ -47,9 +44,9 @@ class Delete(Task):
                       filesSet)
     filesSet = filter((lambda src: src not in dirsSet), filesSet)
     tmpDirsSet = []
-    for d in dirsSet:
-      if isinstance(d, DirSet): tmpDirsSet.extend(d)
-      else: tmpDirsSet.append(d)
+    for dn in dirsSet:
+      if isinstance(dn, DirSet): tmpDirsSet.extend(dn)
+      else: tmpDirsSet.append(dn)
     dirsSet = RemoveDuplicates(tmpDirsSet)
     dirsSet.sort(reverse = True)
 
@@ -76,25 +73,25 @@ class Delete(Task):
           self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
 
     def DelDirectories(dirs, ignore):
-      for d in dirs:
-        if not d: continue
-        err = OS.RemoveDir(d, False)
+      for dn in dirs:
+        if not dn: continue
+        err = OS.RemoveDir(dn, False)
         if err and not err in ignore:
           if self.failOnError:
-            raise OSError(err, os.strerror(err), d)
+            raise OSError(err, os.strerror(err), dn)
           self.errors += 1
-          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.ERROR)
+          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), dn), level = LogLevel.ERROR)
         elif not err:
           self.dirsDeleted += 1
-          self.Log(Dict.msgDirectory % d, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
+          self.Log(Dict.msgDirectory % dn, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
       
     # 2.
     # For each directory:
-    for d in dirsSet:
-      d = os.path.normpath(d)
+    for dn in dirsSet:
+      dn = os.path.normpath(dn)
       
       # Delete all files (with full control).
-      for r, f in ExtendedFileSet(os.path.join(d, '**/*')):
+      for r, f in ExtendedFileSet(os.path.join(dn, '**/*')):
         f = os.path.normpath(os.path.join(r, f))
         err = OS.RemoveFile(f, self.force, self.failOnError)
         if err:
@@ -105,12 +102,12 @@ class Delete(Task):
           self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
           
       # Delete all subdirectories.
-      dd = DirSet(d, '**/*', withRootDir = True)
+      dd = DirSet(dn, '**/*', withRootDirName = True)
       dd.sort(reverse = True)
       DelDirectories(dd, [])
       
       # Delete appropriate directory.  
-      DelDirectories([d], [])
+      DelDirectories([dn], [])
       
     # 3.
     if self.includeEmptyDirs:

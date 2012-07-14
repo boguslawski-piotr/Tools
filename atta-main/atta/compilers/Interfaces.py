@@ -17,18 +17,18 @@ class ICompiler:
 
 class IJavaCompiler(ICompiler):
   '''TODO: description'''
-  def Compile(self, srcFiles, destDir, **tparams):
+  def Compile(self, srcFileNames, destDirName, **tparams):
     '''TODO: description'''
     assert False
 
 class IRequiresCompileStrategy:
   '''TODO: description'''
-  def Start(self, destDir, **tparams):
+  def Start(self, destDirName, **tparams):
     '''Invoked before scanning the source files. The return value is not checked in any way.'''
     assert False
     
   def RequiresCompile(self, srcFileName, destFileName, **tparams):
-    '''Called for each source file. Should return `True` if `srcFileName` requires compilation.'''
+    '''Called for each source file. Should return `True` if *srcFileName* requires compilation.'''
     assert False
     
   def End(self, **tparams):

@@ -2,9 +2,7 @@
 import sys
 import os
 
-from ..tools.Misc import LogLevel
-from ..tools import OS
-from .Exec import Exec
+from .. import LogLevel, OS, Exec
 
 class PyExec(Exec):
   '''
@@ -26,10 +24,10 @@ class PyExec(Exec):
         fileName = fileName + '.py'
 
       if fileName.find(os.path.sep) == -1:
-        for path in sys.path:
-          _fileName = os.path.join(path, fileName)
+        for dirName in sys.path:
+          _fileName = os.path.join(dirName, fileName)
           if os.path.exists(_fileName):
-            self.Log('Found {0} in: {1}'.format(fileName, path), level = LogLevel.VERBOSE)
+            self.Log('Found {0} in: {1}'.format(fileName, dirName), level = LogLevel.VERBOSE)
             fileName = _fileName
             break
 

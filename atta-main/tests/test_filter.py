@@ -13,19 +13,19 @@ class test(Target):
     Echo('Simple contact files.')
     
     f = open('_test_filter.out', 'w')
-    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), f, 
+    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), destFile = f, 
            failOnError = False)
     f.close()
-    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), '_test_filter.out')
+    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), destFile = '_test_filter.out')
 
     Echo('Simple contact files in binary mode.')
     
     OS.Touch('_test_filter2.out')
-    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), '_test_filter2.out', 
+    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), destFile = '_test_filter2.out', 
            binaryMode = True)
     f = open('_test_filter2.out', 'a+b')
     f.seek(26000)
-    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), f, 
+    Filter(FileSet(includes = '**/*.py', excludes = '_test_filter/'), destFile = f, 
            append = False, binaryMode = True)
     f.close()
     
@@ -44,7 +44,7 @@ class test(Target):
       def End(self, **tparams):
         Echo('Success')
         
-    Filter('JavaMedium/**/*.java', '_test_filter/filter', 
+    Filter('JavaMedium/**/*.java', destDirName = '_test_filter/filter', 
            dataFilters = [SimpleDataFilter, DataFilter()])
     
     Echo('Transform, change file names.')
@@ -61,7 +61,7 @@ class test(Target):
       Echo('Changing file name from: %s to: %s' % (actualDestFileName, rc))
       return rc
     
-    Filter('JavaMedium/**/*.java', '_test_filter/filter2', 
+    Filter('JavaMedium/**/*.java', destDirName = '_test_filter/filter2', 
            fileNameTransforms = [FlattenFileName, ChangeToPy])
   
     Echo('Filter files.')
@@ -69,6 +69,6 @@ class test(Target):
     def FileFilter(srcFileName, destFileName, **tparams):
       return srcFileName.find('main') < 0
       
-    Filter('JavaMedium/**/*.java', '_test_filter/filter3', 
+    Filter('JavaMedium/**/*.java', destDirName = '_test_filter/filter3', 
            fileFilters = [FileFilter])
     

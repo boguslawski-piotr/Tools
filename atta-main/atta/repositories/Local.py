@@ -4,10 +4,11 @@ import hashlib
 from datetime import datetime, timedelta
 
 from ..tasks.Base import Task
-from ..tools.Misc import RemoveDuplicates, NamedFileLike, LogLevel
+from ..tools.Misc import RemoveDuplicates, NamedFileLike
 from ..tools import OS
 from .. import AttaError
 from .. import Dict
+from .. import LogLevel
 from .Base import ARepository
 from .Package import PackageId
 from . import ArtifactNotFoundError
@@ -120,7 +121,7 @@ class Repository(ARepository, Task):
     if pom != None:
       return pom
 
-    fileName = self.PrepareFileName(packageId, self._RootDir())
+    fileName = self.PrepareFileName(packageId, self._RootDirName())
     if not self.vFileExists(fileName):
       return None
 
@@ -132,13 +133,13 @@ class Repository(ARepository, Task):
     '''TODO: description'''
     return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
 
-  def PrepareFileName(self, packageId, rootDir = None):
+  def PrepareFileName(self, packageId, rootDirName = None):
     '''TODO: description'''
-    if rootDir is None:
+    if rootDirName is None:
       fileName = os.path.join('.repository', self._styleImpl.GetObject().FullFileName(packageId))
       return self.vPrepareFileName(fileName)
     else:
-      return os.path.join(rootDir, self._styleImpl.GetObject().FullFileName(packageId))
+      return os.path.join(rootDirName, self._styleImpl.GetObject().FullFileName(packageId))
 
   def GetAll(self, fileName):
     infoFile = self.GetInfoFile(fileName)
@@ -164,7 +165,7 @@ class Repository(ARepository, Task):
             additionalFiles += self._Get(p, scope, store, resolvedPackages)
 
     # Check and prepare artifact files.
-    fileName = self.PrepareFileName(packageId, self._RootDir())
+    fileName = self.PrepareFileName(packageId, self._RootDirName())
     if not self.vFileExists(fileName):
       raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
 
@@ -207,7 +208,7 @@ class Repository(ARepository, Task):
     '''returns: None or list of filesNames'''
     self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.VERBOSE)
 
-    fileName = self.PrepareFileName(packageId, self._RootDir())
+    fileName = self.PrepareFileName(packageId, self._RootDirName())
     if not self.vFileExists(fileName):
       return None
 
@@ -257,7 +258,7 @@ class Repository(ARepository, Task):
     '''returns: list of filesNames'''
     self.Log('Takes: %s' % packageId.AsStrWithoutType(), level = LogLevel.INFO)
 
-    fileName = self.PrepareFileName(packageId, self._RootDir())
+    fileName = self.PrepareFileName(packageId, self._RootDirName())
     dirName = os.path.normpath(os.path.dirname(fileName))
     self.vMakeDirs(dirName)
 
@@ -294,11 +295,11 @@ class Repository(ARepository, Task):
     name = Task._Name(self)
     return 'Local.' + name
 
-  def _RootDir(self):
-    rootDir = None
+  def _RootDirName(self):
+    rootDirName = None
     if self.data is not None:
-      rootDir = self.data.get(Dict.rootDir, None)
-    return rootDir
+      rootDirName = self.data.get(Dict.rootDirName, None)
+    return rootDirName
 
   def _AttaDataExt(self):
     return '.atta'

@@ -14,12 +14,12 @@ class Env(dict):
     dict.__init__(self, environ)
     self['cwd'] = os.getcwd()
 
-  def chdir(self, path):
+  def chdir(self, dirName):
     '''TODO: description'''
-    prevDir = os.getcwd()
-    os.chdir(path)
+    prevDirName = os.getcwd()
+    os.chdir(dirName)
     self['cwd'] = os.getcwd()
-    return prevDir
+    return prevDirName
 
   '''private section'''
 

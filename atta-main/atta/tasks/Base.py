@@ -8,8 +8,8 @@ class Task(Activity):
      
   TODO: description
   '''
-  def ExpandVariables(self, txt, **tparams):
-    return Atta.VarsExpander().Expand(txt, **tparams)
+  def ExpandVars(self, txt, **tparams):
+    return Atta.ExpandVars(txt, **tparams)
 
   '''private section'''
 

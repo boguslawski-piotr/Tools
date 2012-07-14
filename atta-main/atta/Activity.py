@@ -1,8 +1,7 @@
 '''TODO: description'''
 
-from .tools.Misc import LogLevel, isiterable
-from . import Dict
-from . import Atta
+from .tools.Misc import isiterable
+from . import Dict, LogLevel, Atta
 
 class Activity:
   '''

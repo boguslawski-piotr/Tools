@@ -1,10 +1,8 @@
 '''.. Miscellaneous: Echoes a message: echo'''
 import os
 
-from ..tools.Misc import LogLevel, isiterable
-from ..tools import OS
-from .Base import Task
-from .. import Dict
+from ..tools.Misc import isiterable
+from .. import Dict, LogLevel, Task, OS
 
 class Echo(Task):
   '''
@@ -33,13 +31,13 @@ class Echo(Task):
     expandVars = tparams.get('expandVars', True)
     
     if isinstance(msg, basestring) and expandVars:
-      msg = self.ExpandVariables(msg, **tparams)
+      msg = self.ExpandVars(msg, **tparams)
 
     if file is None:
       if isiterable(msg):
         for line in msg:
           if isinstance(line, basestring) and expandVars:
-            line = self.ExpandVariables(line, **tparams)
+            line = self.ExpandVars(line, **tparams)
           self.Log(line, level = level)
       else:
         self.Log(msg, level = level)
@@ -61,7 +59,7 @@ class Echo(Task):
       if isiterable(msg):
         for line in msg:
           if isinstance(line, basestring) and expandVars:
-            line = self.ExpandVariables(line, **tparams)
+            line = self.ExpandVars(line, **tparams)
           _f.write(line)
       else:
         _f.write(msg)

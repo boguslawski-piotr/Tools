@@ -9,7 +9,7 @@ from .. import LogLevel, GetProject
 from . import Interfaces
 
 class Git(Interfaces.IDvcs, Task):
-  def __init__(self, dir = '.', params = None, **tparams):
+  def __init__(self, dirName = '.', params = None, **tparams):
     self._lastRevision = None
     self._lastRemote = None
     self._tagWasSet = False
@@ -17,7 +17,7 @@ class Git(Interfaces.IDvcs, Task):
     self.output = None
     self.someChangesWereTaken = -1
 
-    self.dir = dir if len(dir) > 0 else '.'
+    self.dirName = dirName if len(dir) > 0 else '.'
     if params:
       self.Cmd(params, **tparams)
 

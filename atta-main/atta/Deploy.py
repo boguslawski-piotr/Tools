@@ -1,8 +1,6 @@
 '''TODO: description'''
 import sys
-
-from .tools import OS
-from . import Dict
+from . import Dict, OS
 
 class Deployer:
   '''TODO: description'''

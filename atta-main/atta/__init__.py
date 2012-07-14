@@ -45,8 +45,8 @@ __all__ = [
 
 # Atta
 
-from .tools.Misc import LogLevel, Logger, VarsExpander
-from .loggers import Std
+from .tools.Misc import VarsExpander
+from .loggers import LogLevel, Logger, Std
 from .tools import DefaultVarsExpander
 from .version import AttaVersion
 
@@ -104,6 +104,11 @@ class Atta:
   def VarsExpander():
     '''TODO: description'''
     return Atta._varsExpander
+  
+  @staticmethod
+  def ExpandVars(data, **tparams):
+    '''TODO: description'''
+    return Atta.VarsExpander().Expand(data, **tparams)
 
   _props = None
 
@@ -172,7 +177,6 @@ from .tools.Xml import Xml, XmlElement
 from .targets.Base import Target
 from .tasks.Base import Task
 
-# Tasks
 # All available tasks.
 
 from .tasks.Echo import Echo

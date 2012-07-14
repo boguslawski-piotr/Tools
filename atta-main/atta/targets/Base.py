@@ -33,7 +33,7 @@ class Target(Activity):
     return canRun
 
   '''
-  Method 'Prepare' maybe be defined in a class that inherits from the Target. Then will start.
+  Method 'Prepare' maybe defined in a class that inherits from the Target. Then will start.
   When it returns False, project will not run any targets from 
   the section 'dependsOn' as well as the Run method.
   '''
@@ -45,7 +45,7 @@ class Target(Activity):
     pass
 
   '''
-  Method 'Finalize' maybe be defined in a class that inherits from the Target. Then will start.
+  Method 'Finalize' maybe defined in a class that inherits from the Target. Then will start.
   '''
   #def Finalize(self):
   #  pass

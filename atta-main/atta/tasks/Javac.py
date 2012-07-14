@@ -4,11 +4,8 @@ import os
 from ..tools.internal.Misc import ObjectFromClass
 from ..compilers.Strategies import SrcNewerStrategy
 from ..compilers.JavaStd import JavaStdCompiler
-from ..tools.Misc import LogLevel, RemoveDuplicates
-from ..tools.Sets import FileSet
-from ..tools import OS
-from .. import Dict
-from .Base import Task
+from ..tools.Misc import RemoveDuplicates
+from .. import Dict, OS, FileSet, LogLevel, Task
 
 class Javac(Task):
   '''
@@ -20,7 +17,7 @@ class Javac(Task):
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
       also FileSet or DirSet alone
-    * **destDir**     TODO
+    * **destDirName**     TODO
     * **classPath**
     * **sourcePath**
     
@@ -44,7 +41,7 @@ class Javac(Task):
   
     **Methods:**
   '''
-  def __init__(self, srcs, destDir = '.', **tparams):
+  def __init__(self, srcs, destDirName = '.', **tparams):
     self._DumpParams(locals())
 
     self._requiresCompileImpl = ObjectFromClass(tparams.get('requiresCompileImpl', Javac.GetDefaultRequiresCompileImpl()))
@@ -57,8 +54,8 @@ class Javac(Task):
     sourcePath = OS.Path.AsList(tparams.get(Dict.paramSourcePath, []))
 
     # Collect source files.
-    RequiresCompile = lambda root, name: self.RequiresCompile(destDir, root, name, **tparams)
-    self._requiresCompileImpl.GetObject().Start(destDir, **tparams)
+    RequiresCompile = lambda root, name: self.RequiresCompile(destDirName, root, name, **tparams)
+    self._requiresCompileImpl.GetObject().Start(destDirName, **tparams)
     
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
@@ -66,18 +63,18 @@ class Javac(Task):
         continue
       # TODO: handle DirSet
       if isinstance(src, FileSet):
-        rootDir = src.rootDir
-        sourcePath.append(rootDir)
-        # TODO: handle FileSet with withRootDir == False
+        rootDirName = src.rootDirName
+        sourcePath.append(rootDirName)
+        # TODO: handle FileSet with withRootDirName == False
         srcsSet.extend(src)
       else:
         if OS.Path.HasWildcards(src):
-          rootDir, includes = OS.Path.Split(src)
-          if len(rootDir) <= 0:
-            rootDir = '.'
-          sourcePath.append(rootDir)
-          srcsSet.AddFiles(rootDir, includes = includes,
-                           filters = RequiresCompile, realPaths = False, withRootDir = True)
+          rootDirName, includes = OS.Path.Split(src)
+          if len(rootDirName) <= 0:
+            rootDirName = '.'
+          sourcePath.append(rootDirName)
+          srcsSet.AddFiles(rootDirName, includes = includes,
+                           filters = RequiresCompile, realPaths = False, withRootDirName = True)
         else:
           if os.path.isdir(src):
             sourcePath.append(src)
@@ -88,13 +85,13 @@ class Javac(Task):
             for srcExt in srcExts:
               includes.append('**/*' + srcExt)
             srcsSet.AddFiles(src, includes,
-                             filters = RequiresCompile, realPaths = False, withRootDir = True)
+                             filters = RequiresCompile, realPaths = False, withRootDirName = True)
           else:
             src = os.path.normpath(src)
             if os.path.exists(src):
-              rootDir = os.path.split(src)[0]
-              if RequiresCompile(rootDir, src):
-                sourcePath.append(rootDir)
+              rootDirName = os.path.split(src)[0]
+              if RequiresCompile(rootDirName, src):
+                sourcePath.append(rootDirName)
                 srcsSet += [src]
 
     srcsSet += self._requiresCompileImpl.GetObject().End(**tparams)
@@ -105,13 +102,13 @@ class Javac(Task):
       self.returnCode = -1
       return None
 
-    self.Log(Dict.msgCompilingTo % (len(srcsSet), destDir))
+    self.Log(Dict.msgCompilingTo % (len(srcsSet), destDirName))
     self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
 
     tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
     tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
     
-    self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
+    self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDirName, **tparams)
     self.output = self._compilerImpl.GetObject().output
 
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
@@ -126,10 +123,10 @@ class Javac(Task):
   def GetDefaultRequiresCompileImpl():
     return Javac._defaultRequiresCompileImpl.GetClass()
 
-  def RequiresCompile(self, destDir, srcDir, fileName, **tparams):
+  def RequiresCompile(self, destDirName, srcDirName, fileName, **tparams):
     '''TODO: description'''
-    dest = os.path.join(destDir, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
-    src = os.path.join(srcDir, fileName)
+    dest = os.path.join(destDirName, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
+    src = os.path.join(srcDirName, fileName)
     rc = self._requiresCompileImpl.GetObject().RequiresCompile(src, dest, **tparams)
     #self.Log('%s: %s' % (src, ('up to date' if not rc else 'needs compile')), level = LogLevel.DEBUG)
     return rc

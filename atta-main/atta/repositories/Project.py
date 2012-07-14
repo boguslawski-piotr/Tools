@@ -1,12 +1,8 @@
 '''.. Local: TODO'''
 import os
-import shutil
 
-from ..tasks.Base import Task
-from ..tools.Misc import LogLevel
-from ..tools import OS
 from ..loggers import Compact
-from .. import Atta, AttaError, GetProject, Dict
+from .. import Atta, AttaError, GetProject, LogLevel, Dict, OS, Task
 from . import Local
 
 class Repository(Local.Repository):

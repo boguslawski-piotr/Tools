@@ -4,12 +4,13 @@ import json
 import cStringIO
 
 from ..tools import DefaultVarsExpander
-from ..tools.Misc import NamedFileLike, LogLevel, RemoveDuplicates, strip
+from ..tools.Misc import NamedFileLike, RemoveDuplicates, strip
 from ..tools.Xml import Xml
 from ..tools import OS
 from ..tasks.Base import Task
 from .. import AttaError
 from .. import Dict
+from .. import LogLevel
 from .Base import ARepository
 from .Package import PackageId
 from . import ArtifactNotFoundError

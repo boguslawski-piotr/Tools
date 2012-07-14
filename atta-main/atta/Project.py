@@ -7,11 +7,7 @@ from datetime import datetime
 # Python 2.7+
 #import importlib
 
-from .tools.Misc import LogLevel
-from .tools import OS
-from .tools import Ver
-from .Env import Env
-from . import Dependencies, Deploy, Dict
+from . import LogLevel, OS, Dependencies, Deploy, Dict, Version, Env
 from . import AttaError, Atta, File, GetProject, _SetProject
 
 class Project:
@@ -110,7 +106,7 @@ class Project:
         else:
           packageFileName = None
 
-      prevDir = self.env.chdir(dirName)
+      prevDirName = self.env.chdir(dirName)
       File._Set(fileName)
       try:
         Atta.Log('  fullModuleName = ' + fullModuleName, level = logLevel)
@@ -137,8 +133,8 @@ class Project:
         raise
       finally:
         File._Unset()
-        if prevDir is not None:
-          self.env.chdir(prevDir)
+        if prevDirName is not None:
+          self.env.chdir(prevDirName)
 
     except:
       raise
@@ -209,7 +205,7 @@ class Project:
   '''private section'''
 
   def _Run(self, environ, fileName, targets):
-    prevDir = os.getcwd()
+    prevDirName = os.getcwd()
     prevAttaProject = GetProject()
     try:
       self.startTime = datetime.now()
@@ -224,9 +220,9 @@ class Project:
       if not os.path.exists(self.fileName):
         raise IOError(os.errno.ENOENT, Dict.errFileNotExists % self.fileName)
 
-      self.env = Env(environ)
+      self.env = Env.Env(environ)
       self.env.chdir(self.dirName)
-      self.version = Ver.Version(createIfNotExists = False)
+      self.version = Version(createIfNotExists = False)
       self.targets = targets
 
       if self._parent is None:
@@ -270,7 +266,7 @@ class Project:
       #atta.Project = prevAttaProject
       _SetProject(prevAttaProject)
       if self.env:
-        self.env.chdir(prevDir)
+        self.env.chdir(prevDirName)
 
   def _End(self, status, exception = None):
     self.endTime = datetime.now();

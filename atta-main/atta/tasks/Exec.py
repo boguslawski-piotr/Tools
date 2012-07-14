@@ -4,11 +4,8 @@ import subprocess
 import threading
 
 from ..tools import DefaultVarsExpander
-from ..tools.Misc import LogLevel
-from ..tools import OS
-from .. import Dict
+from .. import Dict, OS, LogLevel, Task
 from .. import GetProject
-from .Base import Task
 
 class Exec(Task):
   '''

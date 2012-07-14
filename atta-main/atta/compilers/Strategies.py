@@ -17,7 +17,7 @@ class SrcNewerStrategy(IRequiresCompileStrategy):
     srcTime = os.path.getmtime(srcFileName)
     return srcTime > destTime
   
-  def Start(self, destDir, **tparams): pass
+  def Start(self, destDirName, **tparams): pass
   def End(self, **tparams): return []
   
 class SrcHashStrategy(IRequiresCompileStrategy):
@@ -56,5 +56,5 @@ class SrcHashStrategy(IRequiresCompileStrategy):
 
     return actionNeeded
 
-  def Start(self, destDir, **tparams): pass
+  def Start(self, destDirName, **tparams): pass
   def End(self, **tparams): return []

@@ -6,7 +6,7 @@ import platform
 import sys
 import os
 
-from atta import *
+from atta import Atta, LogLevel, Properties, Javac, OS
 import atta.Project
 import atta.Dict
 
@@ -40,6 +40,10 @@ def _ParseArgv(argv):
   )
 
   tasksGroup = argsParser.add_argument_group('tasks')
+  tasksGroup.add_argument(
+    '-javac', nargs = 1, metavar = 'class',
+    help = 'use given class as default Java compiler (class must implements IJavaCompiler)'
+  )
   tasksGroup.add_argument(
     '-javarc', nargs = 1, metavar = 'class',
     help = 'use given class to implement the Javac.RequiresCompile (class must implements IRequiresCompileStrategy)'
@@ -129,6 +133,8 @@ def Main():
         environ[name] = value
       except: pass
 
+  if args.javac:
+    Javac.SetDefaultCompilerImpl(args.javac[0])
   if args.javarc:
     Javac.SetDefaultRequiresCompileImpl(args.javarc[0])
 

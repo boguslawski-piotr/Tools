@@ -3,12 +3,7 @@ import os
 from datetime import datetime, timedelta
 
 from ..tools.internal.Misc import ObjectFromClass
-from ..tools.Misc import LogLevel
-from ..tools.Sets import FileSet
-from ..tools import OS
-from .. import Dict
-from .. import AttaError
-from .Base import Task
+from .. import AttaError, Dict, LogLevel, OS, FileSet, Task
 
 class Archive(Task):
   '''TODO: description
@@ -48,25 +43,25 @@ class Archive(Task):
       if len(src) <= 0:
         continue
       srcsSet = FileSet(createEmpty = True)
-      rootDir = ''
+      rootDirName = ''
       # TODO: handle DirSet
       if isinstance(src, FileSet):
-        rootDir = src.rootDir
+        rootDirName = src.rootDirName
         srcsSet = src
       else:
         if OS.Path.HasWildcards(src):
-          rootDir, includes = OS.Path.Split(src)
-          srcsSet.AddFiles(rootDir, includes = includes, realPaths = False, withRootDir = False)
+          rootDirName, includes = OS.Path.Split(src)
+          srcsSet.AddFiles(rootDirName, includes = includes, realPaths = False, withRootDirName = False)
         else:
           if os.path.isdir(src):
-            rootDir = src
-            srcsSet.AddFiles(rootDir, includes = '**/*', realPaths = False, withRootDir = False)
+            rootDirName = src
+            srcsSet.AddFiles(rootDirName, includes = '**/*', realPaths = False, withRootDirName = False)
           else:
-            rootDir, src = os.path.split(src)
+            rootDirName, src = os.path.split(src)
             srcsSet = [src]
 
       for name in srcsSet:
-        fullName = os.path.normpath(os.path.join(rootDir, name))
+        fullName = os.path.normpath(os.path.join(rootDirName, name))
         changed = (archive == None) or recreate
         if not changed:
           try:

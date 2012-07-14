@@ -1,8 +1,8 @@
 '''.. group_name: desc'''
-from ..tools.Misc import LogLevel
-from .Base import Task
 
-class Filter(Task):
+from .. import LogLevel, Task
+
+class MyTask(Task):
   '''
   TODO: description
   '''

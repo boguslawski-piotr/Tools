@@ -17,7 +17,7 @@ class Expander:
     
       >>> funny = 'funny'
       >>> txt = 'The Atta is ${what} and ${__main__.funny}.'
-      >>> txt = ExpandVariables(txt, what = 'cool')
+      >>> txt = Expand(txt, what = 'cool')
       >>> print(txt)
       The Atta is cool and funny.
       

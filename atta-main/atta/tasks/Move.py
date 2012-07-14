@@ -1,10 +1,7 @@
 '''.. Files, directories: Moves files: move'''
 import os
 
-from ..tools.Misc import LogLevel
-from ..tools import OS
-from .. import Dict
-from .Copy import Copy
+from .. import Dict, OS, LogLevel, Copy
 
 class Move(Copy):
   '''
@@ -12,10 +9,10 @@ class Move(Copy):
   Uses Copy task. Not Rename!
   Parameters from Filter and Copy.
   '''
-  def __init__(self, srcs, dest, **tparams):
+  def __init__(self, srcs, **tparams):
     # 'Move' files (copy + delete which is done in the function: self.EndProcessing)
     self.dirsToDelete = set()
-    Copy.__init__(self, srcs, dest, **tparams)
+    Copy.__init__(self, srcs, **tparams)
     
     # Do not delete 'root' directories from file set.
     self.dirsDeleted = set()

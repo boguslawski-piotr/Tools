@@ -1,9 +1,7 @@
 '''.. Files, directories: Sets TODO: sets'''
 import os
-import re
 
 from .. import Dict
-#from .Misc import Logger, LogLevel
 from . import OS
 
 class FileSet(list):
@@ -12,7 +10,7 @@ class FileSet(list):
   
   TODO: description
   
-  * **rootDir** `(.)`             - TODO
+  * **rootDirName** `(.)`             - TODO
   * **includes** `(*)`            - TODO string or path (separator :) or list of strings
   * **excludes** |None|           - TODO string or path (separator :) or list of strings
   * **useDefaultExcludes** |True| - TODO
@@ -21,16 +19,16 @@ class FileSet(list):
   * **followLinks** |False|       - TODO
   * **failOnError** |False|       - Controls whether an error while scanning files and directories raise an exception.
   * **realPaths** |False|         - TODO 
-  * **withRootDir** |False|       - TODO
+  * **withRootDirName** |False|   - TODO
   * **createEmpty** |False|       - TODO
   
   Returns: TODO
   
   '''
-  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
-    self.rootDir = None
+  def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
+    self.rootDirName = None
     if not tparams.get('createEmpty', False):
-      self.AddFiles(rootDir, includes, excludes, **tparams)
+      self.AddFiles(rootDirName, includes, excludes, **tparams)
 
   DEFAULT_EXCLUDES = [
     # Miscellaneous typical temporary files
@@ -81,12 +79,12 @@ class FileSet(list):
   ]
   '''Definitions of files/directories that are excluded by default from any FileSet (and derived classes).'''
   
-  def AddFiles(self, rootDir, includes = '*', excludes = None, **tparams):
-    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
+  def AddFiles(self, rootDirName, includes = '*', excludes = None, **tparams):
+    self.rootDirName, files = self.MakeSet(rootDirName, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
-    # TODO: how to handle rootDir if FileSet includes files from different roots (many AddFiles called)?
+    # TODO: how to handle rootDirName if FileSet includes files from different roots (many AddFiles called)?
 
-  def MakeSet(self, rootDir, includes, excludes = None, **tparams):
+  def MakeSet(self, rootDirName, includes, excludes = None, **tparams):
     '''Creates a set of files.'''
     # Prepare parameters.
     includes = OS.Path.AsList(includes)
@@ -95,7 +93,7 @@ class FileSet(list):
       excludes.extend(FileSet.DEFAULT_EXCLUDES)
     useRegExp = tparams.get('useRegExp', False)
     realPaths = tparams.get('realPaths', False)
-    withRootDir = tparams.get('withRootDir', False)
+    withRootDirName = tparams.get('withRootDirName', False)
     filters = OS.Path.AsList(tparams.get('filters', None))
     followLinks = tparams.get('followLinks', False)
     failOnError = tparams.get(Dict.paramFailOnError, False)
@@ -103,8 +101,8 @@ class FileSet(list):
     _onlyDirs = tparams.get('onlyDirs', False)
     _onlyFiles = tparams.get('onlyFiles', True)
 
-    rootDir = os.path.normpath(rootDir)
-    rootDir += os.path.sep
+    rootDirName = os.path.normpath(rootDirName)
+    rootDirName += os.path.sep
     
     def OnError(E):
       if failOnError:
@@ -120,25 +118,25 @@ class FileSet(list):
       # If there are no subdirectories and/or Ant-style wildcards 
       # in includes then use the simplest directory list.
       try:
-        tree = os.listdir(rootDir)
+        tree = os.listdir(rootDirName)
       except os.error as E:
         OnError(E)
       dirs, nondirs = [], []
       for name in tree:
-        if os.path.isdir(os.path.join(rootDir, name)):
+        if os.path.isdir(os.path.join(rootDirName, name)):
           dirs.append(name)
         else:
           nondirs.append(name)
-      tree = [(rootDir, dirs, nondirs)]
+      tree = [(rootDirName, dirs, nondirs)]
     else:
       # If includes are more bit complicated then 
       # perform a full scan of the directory tree.
-      tree = os.walk(rootDir, onerror = OnError, followlinks = followLinks)
+      tree = os.walk(rootDirName, onerror = OnError, followlinks = followLinks)
         
     # Collect files/directories.
     filesSet = []
     for root, dirs, files in tree:
-      root = root.replace(rootDir, '')
+      root = root.replace(rootDirName, '')
       if len(root) > 0 and not root.endswith(os.path.sep):
         root += os.path.sep
 
@@ -163,22 +161,22 @@ class FileSet(list):
               break
         if nameToAdd:
           for flt in filters:
-            if not flt(rootDir, nameToAdd):
+            if not flt(rootDirName, nameToAdd):
               nameToAdd = None
               break
             
         if nameToAdd:
           if realPaths:
             cwd = os.getcwd()
-            os.chdir(rootDir)
+            os.chdir(rootDirName)
             nameToAdd = os.path.realpath(nameToAdd)
             os.chdir(cwd)
           else:
-            if withRootDir:
-              nameToAdd = os.path.join(rootDir, nameToAdd)
+            if withRootDirName:
+              nameToAdd = os.path.join(rootDirName, nameToAdd)
           filesSet.append(nameToAdd)
 
-    return (rootDir, filesSet)
+    return (rootDirName, filesSet)
 
 class DirSet(FileSet):
   ''' 
@@ -187,11 +185,11 @@ class DirSet(FileSet):
     TODO: description
     
   '''
-  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
-    self.AddDirs(rootDir, includes, excludes, **tparams)
+  def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
+    self.AddDirs(rootDirName, includes, excludes, **tparams)
 
-  def AddDirs(self, rootDir, includes = '*', excludes = None, **tparams):
-    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
+  def AddDirs(self, rootDirName, includes = '*', excludes = None, **tparams):
+    self.rootDirName, files = self.MakeSet(rootDirName, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
 
 class DirFileSet(FileSet):
@@ -201,11 +199,11 @@ class DirFileSet(FileSet):
     TODO: description
     
   '''
-  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
-    self.AddDirs(rootDir, includes, excludes, **tparams)
+  def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
+    self.AddDirs(rootDirName, includes, excludes, **tparams)
 
-  def AddDirs(self, rootDir, includes = '*', excludes = None, **tparams):
-    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, onlyFiles = False, **tparams)
+  def AddDirs(self, rootDirName, includes = '*', excludes = None, **tparams):
+    self.rootDirName, files = self.MakeSet(rootDirName, includes, excludes, onlyDirs = False, onlyFiles = False, **tparams)
     self.extend(files)
 
 class ExtendedFileSet(list):
@@ -230,7 +228,7 @@ class ExtendedFileSet(list):
       srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
     tparams['realPaths'] = False
-    tparams['withRootDir'] = False
+    tparams['withRootDirName'] = False
     
     # Expand all into a flat list of files.
     for src in srcs:
@@ -238,10 +236,10 @@ class ExtendedFileSet(list):
         for dname in src:
           src = FileSet(dname, '**/*', **tparams)
           for fname in src:
-            self.append((src.rootDir, fname))
+            self.append((src.rootDirName, fname))
       elif isinstance(src, FileSet):
         for fname in src:
-          self.append((src.rootDir, fname))
+          self.append((src.rootDirName, fname))
       else:
         if len(src) <= 0:
           continue

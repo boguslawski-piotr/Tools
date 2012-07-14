@@ -24,6 +24,7 @@ true = 'true'
 false = 'false'
 yes = 'yes'
 no = 'no'
+Or = 'or'
 
 #
 #
@@ -46,7 +47,7 @@ dependsOn = 'dependsOn'
 putIn = 'putIn'
 ifNotExists = 'ifNotExists'
 resultIn = 'resultIn'
-rootDir = 'rootDir'
+rootDirName = 'rootDirName'
 host = 'host'
 port = 'port'
 user = 'user'
@@ -95,6 +96,8 @@ paramLogOutput = 'logOutput'
 paramForce = 'force'
 paramClassPath = 'classPath'
 paramSourcePath = 'sourcePath'
+paramDestDirName = 'destDirName'
+paramDestFile = 'destFile'
 
 #
 # Errors

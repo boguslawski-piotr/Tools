@@ -2,9 +2,7 @@
 import os
 
 from ..tools.ZipFile import ZipFile
-from ..tasks.Zip import Zip
-from ..tools.Misc import LogLevel
-from .. import Dict
+from .. import Dict, LogLevel, Zip
 from .. import Atta
 
 class Jar(Zip):

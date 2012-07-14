@@ -9,19 +9,19 @@ class test(Target):
            force = True)
     
     Echo('Simple copy files.')
-    Copy(FileSet('JavaBasic', includes='**/*'), '_test_copy', 
+    Copy(FileSet('JavaBasic', includes='**/*'), destDirName = '_test_copy', 
          overwrite = True, force = True)
-    Copy('JavaBasic/**/*', '_test_copy2')
+    Copy('JavaBasic/**/*', destDirName = '_test_copy2')
     
     Echo()
     Echo('Copy again using the time of last modification to compare files.')
     OS.Touch('JavaBasic/version.info')
     Echo('Touch JavaBasic/version.info')
-    Copy('JavaBasic/**/*', '_test_copy2')
+    Copy('JavaBasic/**/*', destDirName = '_test_copy2')
   
     Echo()
     Echo('Copy again using SHA1-hash to compare files.')
     OS.Touch('JavaBasic/version.info')
     Echo('Touch JavaBasic/version.info')
-    Copy('JavaBasic/**/*', '_test_copy2', 
+    Copy('JavaBasic/**/*', destDirName = '_test_copy2', 
          useHash = True)
