@@ -16,27 +16,26 @@ class Echo(Task):
 
   Parameters:
   
-  * **msg** -    The message to echo. 
-    It can be any object that can be converted to string, a iterable or a file-like object. |def| `blank line`
+  * **msg** `(blank line)` - The message to echo. 
+    It can be any object that can be converted to string, a iterable or a file-like object.
   
-  * **level** -  Control the log level at which this message is reported. 
-    |def| :py:attr:`.LogLevel.INFO`
-  
-  * **expandVars** - Expand variables? |True|
+  * **expandVars** |True|  - Expand variables?
+  * **file** |None|        - The file name or a file-like object to write the message to.
+  * **append** |False|     - Append to an existing file?
+  * **force** |False|      - Overwrite read-only file?
 
-  * **file** -   The file name or a file-like object to write the message to. |None|
-  * **append** - Append to an existing file? |False|
-  * **force** -  Overwrite read-only file? |False|
+  * **level** `(`:py:attr:`.LogLevel.INFO`\ `)` - Control the log level at which this message is reported. 
   
   '''
   def __init__(self, msg = '', **tparams):
     level = tparams.get(Dict.paramLevel, LogLevel.INFO)
-    _file = tparams.get('file', None)
+    file = tparams.get('file', None)
     expandVars = tparams.get('expandVars', True)
+    
     if isinstance(msg, basestring) and expandVars:
       msg = self.ExpandVariables(msg, **tparams)
 
-    if _file is None:
+    if file is None:
       if isiterable(msg):
         for line in msg:
           if isinstance(line, basestring) and expandVars:
@@ -48,14 +47,14 @@ class Echo(Task):
       append = tparams.get('append', False)
       force = tparams.get('force', False)
 
-      if isinstance(_file, basestring):
+      if isinstance(file, basestring):
         if force:
-          OS.SetReadOnly(_file, False)
+          OS.SetReadOnly(file, False)
         if append: mode = 'a+b'
         else: mode = 'w+b'
-        _f = open(_file, mode)
+        _f = open(file, mode)
       else:
-        _f = _file
+        _f = file
         if append:
           _f.seek(0, os.SEEK_END)
 
@@ -67,5 +66,5 @@ class Echo(Task):
       else:
         _f.write(msg)
 
-      if isinstance(_file, basestring):
+      if isinstance(file, basestring):
         _f.close()

@@ -2,79 +2,172 @@
 import os
 import re
 
+from .. import Dict
 #from .Misc import Logger, LogLevel
 from . import OS
 
 class FileSet(list):
   '''       
-    Creates a set of files...
-    
-    TODO: description
-    
-    :param string rootDir:     TODO
-    :param includes:           TODO
-    :type includes:            string or path (separator :) or list of strings
-    :param excludes:           TODO
-    :type excludes:            string or path (separator :) or list of strings
-    :param boolean useRegExp:  TODO |False|
-    :param callable filter:    TODO |None|
-    :param boolean realPaths:  TODO |False|
-    :param boolean withRootDir: TODO |False|
-    :param boolean createEmpty: TODO |False|
-    
-    :return: iterable TODO
-    
+  Creates a set of files...
+  
+  TODO: description
+  
+  * **rootDir** `(.)`             - TODO
+  * **includes** `(*)`            - TODO string or path (separator :) or list of strings
+  * **excludes** |None|           - TODO string or path (separator :) or list of strings
+  * **useDefaultExcludes** |True| - TODO
+  * **useRegExp** |False|         - TODO 
+  * **filters** |None|            - TODO 
+  * **followLinks** |False|       - TODO
+  * **failOnError** |False|       - Controls whether an error while scanning files and directories raise an exception.
+  * **realPaths** |False|         - TODO 
+  * **withRootDir** |False|       - TODO
+  * **createEmpty** |False|       - TODO
+  
+  Returns: TODO
+  
   '''
   def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
     self.rootDir = None
     if not tparams.get('createEmpty', False):
       self.AddFiles(rootDir, includes, excludes, **tparams)
 
+  DEFAULT_EXCLUDES = [
+    # Miscellaneous typical temporary files
+    "**/*~",
+    "**/#*#",
+    "**/.#*",
+    "**/%*%",
+    "**/._*",
+    
+    # CVS
+    "**/CVS",
+    "**/CVS/**",
+    "**/.cvsignore",
+    
+    # SCCS
+    "**/SCCS",
+    "**/SCCS/**",
+    
+    # Visual SourceSafe
+    "**/vssver.scc",
+    
+    # Subversion
+    "**/.svn",
+    "**/.svn/**",
+    
+    # Mac
+    "**/.DS_Store",
+    
+    # Git
+    '**/.git',
+    '**/.git/**',
+    '**/.gitattributes',
+    '**/.gitignore',
+    '**/.gitmodules',
+    
+    # Mercurial
+    '**/.hg',
+    '**/.hg/**',
+    '**/.hgignore',
+    '**/.hgsub',
+    '**/.hgsubstate',
+    '**/.hgtags',
+    
+    # Baazar
+    '**/.bzr',
+    '**/.bzr/**',
+    '**/.bzrignore',
+  ]
+  '''Definitions of files/directories that are excluded by default from any FileSet (and derived classes).'''
+  
   def AddFiles(self, rootDir, includes = '*', excludes = None, **tparams):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
     # TODO: how to handle rootDir if FileSet includes files from different roots (many AddFiles called)?
 
   def MakeSet(self, rootDir, includes, excludes = None, **tparams):
-    '''Creates a set of files.
-    '''
+    '''Creates a set of files.'''
+    # Prepare parameters.
     includes = OS.Path.AsList(includes)
     excludes = OS.Path.AsList(excludes)
+    if tparams.get('useDefaultExcludes', True):
+      excludes.extend(FileSet.DEFAULT_EXCLUDES)
     useRegExp = tparams.get('useRegExp', False)
     realPaths = tparams.get('realPaths', False)
     withRootDir = tparams.get('withRootDir', False)
-    onlyDirs = tparams.get('onlyDirs', False)
-    _filter = tparams.get('filter', None)
+    filters = OS.Path.AsList(tparams.get('filters', None))
+    followLinks = tparams.get('followLinks', False)
+    failOnError = tparams.get(Dict.paramFailOnError, False)
+    
+    _onlyDirs = tparams.get('onlyDirs', False)
+    _onlyFiles = tparams.get('onlyFiles', True)
 
     rootDir = os.path.normpath(rootDir)
     rootDir += os.path.sep
+    
+    def OnError(E):
+      if failOnError:
+        raise E
+    
+    # Optimize simple calls.
+    useWalk = False
+    for pattern in includes:
+      if OS.Path.HasAntStyleWildcards(pattern) or pattern.find('/') >= 0 or pattern.find('\\') >= 0:
+        useWalk = True
+        break
+    if not useWalk:
+      # If there are no subdirectories and/or Ant-style wildcards 
+      # in includes then use the simplest directory list.
+      try:
+        tree = os.listdir(rootDir)
+      except os.error as E:
+        OnError(E)
+      dirs, nondirs = [], []
+      for name in tree:
+        if os.path.isdir(os.path.join(rootDir, name)):
+          dirs.append(name)
+        else:
+          nondirs.append(name)
+      tree = [(rootDir, dirs, nondirs)]
+    else:
+      # If includes are more bit complicated then 
+      # perform a full scan of the directory tree.
+      tree = os.walk(rootDir, onerror = OnError, followlinks = followLinks)
+        
+    # Collect files/directories.
     filesSet = []
-    for root, dirs, files in os.walk(rootDir):
+    for root, dirs, files in tree:
       root = root.replace(rootDir, '')
       if len(root) > 0 and not root.endswith(os.path.sep):
         root += os.path.sep
 
-      if onlyDirs:
+      if _onlyDirs:
         names = dirs
-      else:
+      elif _onlyFiles:
         names = files
-
+      else:
+        names = dirs + files
+        
       for name in names:
         nameToAdd = None
         name = root + name
         for pattern in includes:
-          if FileSet.Match(pattern, name, useRegExp):
+          if OS.Path.Match(pattern, name, useRegExp):
             nameToAdd = name
             break
-        for pattern in excludes:
-          if FileSet.Match(pattern, name, useRegExp):
-            nameToAdd = None
-            break
-        if nameToAdd is not None:
-          if _filter is not None:
-            if not _filter(rootDir, nameToAdd):
+        if nameToAdd:
+          for pattern in excludes:
+            if OS.Path.Match(pattern, nameToAdd, useRegExp):
               nameToAdd = None
-        if nameToAdd is not None:
+              break
+        if nameToAdd:
+          for flt in filters:
+            if not flt(rootDir, nameToAdd):
+              nameToAdd = None
+              break
+            
+        if nameToAdd:
           if realPaths:
             cwd = os.getcwd()
             os.chdir(rootDir)
@@ -86,51 +179,6 @@ class FileSet(list):
           filesSet.append(nameToAdd)
 
     return (rootDir, filesSet)
-
-  @staticmethod
-  def Match(pattern, name, useRegExp = False):
-    # Bechavior compatible with Ant:
-    # There is one "shorthand": if a pattern ends with / or \, then ** is appended.
-    if not useRegExp and (pattern.endswith('\\') or pattern.endswith('/')):
-      pattern = pattern + '**'
-
-    name = name.replace('\\', '/')
-    #Logger.Log('+++\nFileSet:Match:name: {0}'.format(name), level = LogLevel.DEBUG)
-    #Logger.Log('FileSet:Match:pattern: {0}'.format(pattern), level = LogLevel.DEBUG)
-
-    if useRegExp:
-      return re.match(pattern, name) is not None
-
-    pattern = pattern.replace('\\', '/')
-
-    DOT = '\\.'
-    ONE_CHAR = '.{1,1}'
-    pattern = pattern.replace('.', DOT)
-    pattern = pattern.replace('?', ONE_CHAR)
-
-    ANY_DIR_TMP = ':/'
-    ANY_DIR = '(.*/|\.{0,0})'
-    ANY_CHAR_TMP = '."'
-    ANY_CHAR = '.*'
-    FILE_NAME_CHAR = '[^<>:"/\\|?*]'
-    ANY_FILE_NAME_CHAR = FILE_NAME_CHAR + '*'
-
-    pattern = pattern.replace('**/**', '**//**')  # prepare for next two lines
-    pattern = pattern.replace('**/', ANY_DIR_TMP)
-    pattern = pattern.replace('/**', ANY_CHAR_TMP)
-    pattern = pattern.replace('*', ANY_FILE_NAME_CHAR)
-
-    pattern = pattern.replace(ANY_CHAR_TMP, ANY_CHAR)
-    pattern = pattern.replace(ANY_DIR_TMP, ANY_DIR)
-    pattern = '^' + pattern + '$'
-
-    #Logger.Log('FileSet:Match:regexp: {0}'.format(pattern), level = LogLevel.DEBUG)
-
-    rc = re.match(pattern, name) is not None
-
-    #Logger.Log('FileSet:Match: {0}\n+++'.format(rc), level = LogLevel.DEBUG)
-
-    return rc
 
 class DirSet(FileSet):
   ''' 
@@ -146,6 +194,20 @@ class DirSet(FileSet):
     self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = True, **tparams)
     self.extend(files)
 
+class DirFileSet(FileSet):
+  ''' 
+    Creates a set of directories and files.
+    
+    TODO: description
+    
+  '''
+  def __init__(self, rootDir = '.', includes = '*', excludes = None, **tparams):
+    self.AddDirs(rootDir, includes, excludes, **tparams)
+
+  def AddDirs(self, rootDir, includes = '*', excludes = None, **tparams):
+    self.rootDir, files = self.MakeSet(rootDir, includes, excludes, onlyDirs = False, onlyFiles = False, **tparams)
+    self.extend(files)
+
 class ExtendedFileSet(list):
   '''
     TODO: description
@@ -159,17 +221,22 @@ class ExtendedFileSet(list):
       
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
   '''
-  def __init__(self, srcs):
+  def __init__(self, srcs, **tparams):
     self.AddFiles(srcs)
 
-  def AddFiles(self, srcs):
+  def AddFiles(self, srcs, **tparams):
+    # Prepare parameters.
     if isinstance(srcs, FileSet):
       srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
+    tparams['realPaths'] = False
+    tparams['withRootDir'] = False
+    
+    # Expand all into a flat list of files.
     for src in srcs:
       if isinstance(src, DirSet):
         for dname in src:
-          src = FileSet(dname, '**/*', realPaths = False, withRootDir = False)
+          src = FileSet(dname, '**/*', **tparams)
           for fname in src:
             self.append((src.rootDir, fname))
       elif isinstance(src, FileSet):
@@ -179,11 +246,11 @@ class ExtendedFileSet(list):
         if len(src) <= 0:
           continue
         if OS.Path.HasWildcards(src):
-          for fname in FileSet('.', includes = src, realPaths = False, withRootDir = False):
+          for fname in FileSet('.', includes = src, **tparams):
             self.append(('.', fname))
         else:
           if os.path.isdir(src):
-            for fname in FileSet(src, includes = '**/*', realPaths = False, withRootDir = False):
+            for fname in FileSet(src, includes = '**/*', **tparams):
               self.append((src, fname))
           else:
             src = os.path.normpath(src)

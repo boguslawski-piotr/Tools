@@ -13,10 +13,12 @@ class Git(Interfaces.IDvcs, Task):
     self._lastRevision = None
     self._lastRemote = None
     self._tagWasSet = False
+    
+    self.output = None
     self.someChangesWereTaken = -1
 
     self.dir = dir if len(dir) > 0 else '.'
-    if params != None:
+    if params:
       self.Cmd(params, **tparams)
 
   def IsWorkingDirectoryClean(self):
@@ -99,7 +101,7 @@ class Git(Interfaces.IDvcs, Task):
     finally:
       GetProject().env.chdir(ocwd)
     self.returnCode = e.returnCode
-    self.output = self._NormalizeGitOutput(e.output)
+    self.output = self._NormalizeOutput(e.output)
 
     if self.LogLevel() <= LogLevel.VERBOSE:
       if len(self.output) > 0:
@@ -117,5 +119,5 @@ class Git(Interfaces.IDvcs, Task):
     if not Dict.paramLogOutput in tparams:
       tparams[Dict.paramLogOutput] = False
 
-  def _NormalizeGitOutput(self, output):
+  def _NormalizeOutput(self, output):
     return output.replace(chr(0x1B) + '[K', '\n')

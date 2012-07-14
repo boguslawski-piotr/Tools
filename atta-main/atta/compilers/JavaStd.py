@@ -83,9 +83,6 @@ class JavaStdCompiler(IJavaCompiler, Task):
     OS.RemoveFile(argfile.name, True, False)
     return self.returnCode
 
-  def GetOutput(self):
-    return self.output
-
   def GetExecutable(self, **tparams):
     '''TODO: description'''
     javaHome = GetProject().env.get(Dict.JAVA_HOME)

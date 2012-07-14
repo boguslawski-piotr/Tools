@@ -15,10 +15,6 @@ class ICompiler:
     '''TODO: description'''
     assert False
 
-  def GetOutput(self):
-    '''TODO: description'''
-    assert False
-
 class IJavaCompiler(ICompiler):
   '''TODO: description'''
   def Compile(self, srcFiles, destDir, **tparams):

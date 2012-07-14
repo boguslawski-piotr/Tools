@@ -13,11 +13,13 @@ class test(Target):
          overwrite = True, force = True)
     Copy('JavaBasic/**/*', '_test_copy2')
     
+    Echo()
     Echo('Copy again using the time of last modification to compare files.')
     OS.Touch('JavaBasic/version.info')
     Echo('Touch JavaBasic/version.info')
     Copy('JavaBasic/**/*', '_test_copy2')
   
+    Echo()
     Echo('Copy again using SHA1-hash to compare files.')
     OS.Touch('JavaBasic/version.info')
     Echo('Touch JavaBasic/version.info')

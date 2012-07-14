@@ -66,8 +66,11 @@ class Copy(Filter):
         os.utime(sfn, (srcATime, srcMTime))
 
   def LogStartProcessing(self, sfn, dfn):
-    self.Log(Dict.msgCopyingXToY % (sfn, dfn))
+    #self.Log(Dict.msgCopyingXToY % (sfn, dfn))
+    self.Log(Dict.msgXtoY % (sfn, dfn))
   
   def LogEnd(self):
-    self.Log(Dict.msgCopiedAndSkipped % (self.processedFiles, self.skippedFiles), level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
+    if self.processedFiles or self.skippedFiles:
+      self.Log(Dict.msgCopiedAndSkipped % (self.processedFiles, self.skippedFiles), 
+                 level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
     

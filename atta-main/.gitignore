@@ -40,3 +40,4 @@ bin
 /tests/_test_copy2
 /tests/_test_copy3
 /tests/_test_move2
+/tests/test_ver.txt

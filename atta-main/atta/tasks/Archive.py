@@ -95,7 +95,7 @@ class Archive(Task):
         for fullName, name in allFiles:
           archive.write(fullName, name)
           self.sometingWasWritten = True
-          self.Log(Dict.msgXfromY % (name, fullName), level = LogLevel.VERBOSE)
+          self.Log('  ' + Dict.msgXfromY % (name, fullName), level = LogLevel.VERBOSE)
 
     if not self.sometingWasWritten and (len(changedFiles) > 0 or recreate):
       self.Log(Dict.msgNoneHaveBeenAdded % fileName, level = LogLevel.WARNING)

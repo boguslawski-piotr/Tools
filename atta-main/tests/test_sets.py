@@ -12,7 +12,14 @@ class test(Target):
     OS.Touch('_test_filter/1.py')
     OS.Touch('_test_filter2/1.py')
     
-    # TODO: PROBLEM
     Echo(FileSet(includes = '**/*1*.py', excludes = '_test_filter/'))
-    # why this above excludes also _test_filter2?
-      
+
+    Echo()
+    Echo(len(FileSet('..', includes = '**/*')))
+    Echo(len(FileSet('..', includes = '**/*', useDefaultExcludes = False)))
+    
+    Echo()
+    Echo(DirFileSet('JavaBasic', includes = '**/src**/**'))
+    
+    Echo()
+    Echo(FileSet('..', includes = '*.*'))

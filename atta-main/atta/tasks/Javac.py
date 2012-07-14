@@ -31,8 +31,8 @@ class Javac(Task):
     
     Returns object with two attributtes:
   
-    * **returnCode** Exit code returned by :py:meth:`.IJavaCompiler.Compile`.
-    * **output**     Data returned by :py:meth:`.ICompiler.GetOutput`.
+    * **returnCode** Exit code returned by :py:meth:`.IJavaCompiler.Compile` or -1 if nothing was compiled.
+    * **output**     Data returned by :py:meth:`.IJavaCompiler.Compile`.
     
     Advanced parameters:
     
@@ -77,7 +77,7 @@ class Javac(Task):
             rootDir = '.'
           sourcePath.append(rootDir)
           srcsSet.AddFiles(rootDir, includes = includes,
-                           filter = RequiresCompile, realPaths = False, withRootDir = True)
+                           filters = RequiresCompile, realPaths = False, withRootDir = True)
         else:
           if os.path.isdir(src):
             sourcePath.append(src)
@@ -88,7 +88,7 @@ class Javac(Task):
             for srcExt in srcExts:
               includes.append('**/*' + srcExt)
             srcsSet.AddFiles(src, includes,
-                             filter = RequiresCompile, realPaths = False, withRootDir = True)
+                             filters = RequiresCompile, realPaths = False, withRootDir = True)
           else:
             src = os.path.normpath(src)
             if os.path.exists(src):
@@ -110,14 +110,9 @@ class Javac(Task):
 
     tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
     tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
+    
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDir, **tparams)
-    self.output = self._compilerImpl.GetObject().GetOutput()
-
-  def GetReturnCode(self):
-    return self.returnCode
-
-  def GetOutput(self):
-    return self.output
+    self.output = self._compilerImpl.GetObject().output
 
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
 

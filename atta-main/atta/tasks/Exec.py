@@ -48,7 +48,7 @@ class Exec(Task):
   '''
   def __init__(self, executable, params = None, **tparams):
     params = OS.Path.AsList(params, ' ')
-    failOnError = tparams.get('failOnError', True)
+    failOnError = tparams.get(Dict.paramFailOnError, True)
     self.logOutput = tparams.get(Dict.paramLogOutput, True)
     useShell = tparams.get('useShell', True)
     env = tparams.get('env', None)
@@ -85,12 +85,6 @@ class Exec(Task):
 
     self.returnCode = _rc
     self.output = _output
-
-  def GetReturnCode(self):
-    return self.returnCode
-
-  def GetOutput(self):
-    return self.output
 
   '''private section'''
 

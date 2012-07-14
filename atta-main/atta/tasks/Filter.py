@@ -15,7 +15,7 @@ class Filter(Task):
 
   Parameters:
   
-  * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
+  * **srcs** |req| -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
     TODO: allow file like object(s)
   
   * **dest** |None| - can be: None (== filter in place), directory, file name or file like object
@@ -99,7 +99,7 @@ class Filter(Task):
 
   * **failOnError** |True| -      Controls whether an error stops the build or is only reported to the log.
   * **verbose** |False|-          Whether to show the name of each processed file.
-  * **quiet** |False| -           Be extra quiet. No error is reported even with log level set to VERBOSE.
+  * **quiet** |False| -           Be extra quiet. No error is reported even with log level set to VERBOSE. Sets the `failOnError` to `False`.
  
   '''
   def __init__(self, srcs, dest = None, **tparams):
@@ -112,20 +112,23 @@ class Filter(Task):
       self.srcBinaryMode = binaryMode
       self.destBinaryMode = binaryMode
     else:
-      self.srcBinaryMode = ('b' if tparams.get('self.srcBinaryMode', False) else '')
-      self.destBinaryMode = ('b' if tparams.get('self.destBinaryMode', False) else '')
+      self.srcBinaryMode = ('b' if tparams.get('srcBinaryMode', False) else '')
+      self.destBinaryMode = ('b' if tparams.get('destBinaryMode', False) else '')
     chunkSize = tparams.get('chunkSize', 32768)
     
-    self.force = tparams.get('force', False)
+    self.force = tparams.get(Dict.paramForce, False)
     
     fileNameTransforms = OS.Path.AsList(tparams.get('fileNameTransforms', None))
     fileFilters = OS.Path.AsList(tparams.get('fileFilters', None))
     dataFilters = OS.Path.AsList(tparams.get('dataFilters', None))
     
-    self.failOnError = tparams.get('failOnError', True)
+    self.failOnError = tparams.get(Dict.paramFailOnError, True)
     self.verbose = tparams.get('verbose', False)
-    self.quiet = tparams.get('quiet', False)
-  
+    self.quiet = tparams.get(Dict.paramQuiet, False)
+    if self.quiet:
+      self.failOnError = False
+    self.errors = 0
+    
     # Setup destination.
     self.destFile = None
     self.closeDestFile = False
@@ -327,6 +330,7 @@ class Filter(Task):
   def HandleError(self, E, fileName):
     if self.failOnError:
       raise
+    self.errors += 1
     if not self.quiet or self.LogLevel() == LogLevel.DEBUG:
       err = None
       if type(E) == IOError: err = E.errno
@@ -352,9 +356,9 @@ class Filter(Task):
   def LogStartProcessing(self, sfn, dfn):
     '''TODO: description'''
     if sfn == dfn:
-      self.Log(Dict.msgProcessing % sfn)
+      self.Log(sfn)
     else:
-      self.Log(Dict.msgProcessingXToY % (sfn, dfn))
+      self.Log(Dict.msgXtoY % (sfn, dfn))
   
   def LogEndProcessing(self, sfn, dfn):
     '''TODO: description'''
@@ -362,5 +366,6 @@ class Filter(Task):
   
   def LogEnd(self):
     '''TODO: description'''
-    self.Log(Dict.msgProcessedAndSkipped % (self.processedFiles, self.skippedFiles), 
-               level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
+    if self.processedFiles or self.skippedFiles:
+      self.Log(Dict.msgProcessedAndSkipped % (self.processedFiles, self.skippedFiles), 
+                 level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))

@@ -8,7 +8,7 @@ Project.defaultTarget = 'test'
 class test(Target):
   def Run(self):
     Delete([DirSet(includes = '_test_filter*:_test_copy*:_test_move*'), '*.out'], 
-           force = True, verbose = True)
+           force = True, includeEmptyDirs = True)
   
     Echo('Simple contact files.')
     
@@ -36,7 +36,7 @@ class test(Target):
     
     class DataFilter:
       def Start(self, srcFileName, destFileName, **tparams):
-        Echo('Converting: %s to: %s' % (srcFileName, destFileName))
+        tparams['caller'].Log('Converting: %s to: %s' % (srcFileName, destFileName), level = LogLevel.INFO)
         
       def __call__(self, data, **tparams):
         return data.replace('public', 'PUBLIC')

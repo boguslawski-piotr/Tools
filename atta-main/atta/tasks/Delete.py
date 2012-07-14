@@ -15,25 +15,28 @@ class Delete(Task):
   
   Parameters:
   
-  * **srcs** -                     TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
+  * **srcs** |req| -               TODO Exactly the same as `srcs` in :py:class:`.ExtendedFileSet`
   * **force** |False| -            When set to `True` then the files with read-only attribute are also deleted.
   * **includeEmptyDirs** |False| - Whether to remove all empty directories from which files were deleted.
   * **failOnError**  |True| -      Controls whether an error stops the build or is only reported to the log.
   * **verbose** |False| -          Whether to show the name of each deleted file / directory.
-  * **quiet** |False| -            Be extra quiet. No error is reported even with log level set to VERBOSE.
+  * **quiet** |False| -            Be extra quiet. No error is reported even with log level set to VERBOSE. Sets the `failOnError` to `False`.
   '''
-  def __init__(self, srcs, force = False, **tparams):
-    self._delete(srcs, force, **tparams)
+  def __init__(self, srcs, **tparams):
+    self._delete(srcs, **tparams)
 
-  def _delete(self, srcs, force = False, **tparams):
+  def _delete(self, srcs, **tparams):
     self._DumpParams(locals())
 
     # Parameters.
-    includeEmptyDirs = tparams.get('includeEmptyDirs', False)
-    failOnError = tparams.get('failOnError', True)
-    verbose = tparams.get('verbose', False)
-    quiet = tparams.get('quiet', False)
-
+    self.force = tparams.get(Dict.paramForce, False)
+    self.includeEmptyDirs = tparams.get('includeEmptyDirs', False)
+    self.failOnError = tparams.get(Dict.paramFailOnError, True)
+    self.verbose = tparams.get('verbose', False)
+    self.quiet = tparams.get(Dict.paramQuiet, False)
+    if self.quiet:
+      self.failOnError = False
+      
     # Prepare file names/directory names.
     if isinstance(srcs, FileSet):
       srcs = [srcs]
@@ -50,6 +53,10 @@ class Delete(Task):
     dirsSet = RemoveDuplicates(tmpDirsSet)
     dirsSet.sort(reverse = True)
 
+    self.filesDeleted = 0
+    self.dirsDeleted = 0
+    self.errors = 0
+    
     # 1.
     # For each file:
     filesDirsSet = set()
@@ -57,16 +64,30 @@ class Delete(Task):
       # Collect its directory (for third step - see below) and remove it.
       f = os.path.normpath(os.path.join(r, f))
       if os.path.isdir(f):
-        self._delete(f, force, **tparams)
+        self._delete(f, **tparams)
       else:
         filesDirsSet.add(os.path.dirname(f))
-        err = OS.RemoveFile(f, force, failOnError)
-        if not quiet or self.LogLevel() == LogLevel.DEBUG:
-          if err != 0:
-            self.Log(Dict.errOSErrorForX % (err, os.strerror(err), f), level = LogLevel.ERROR)
-          else:
-            self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not verbose else LogLevel.WARNING))
+        err = OS.RemoveFile(f, self.force, self.failOnError)
+        if err:
+          self.errors += 1
+          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), f), level = LogLevel.ERROR)
+        else:
+          self.filesDeleted += 1
+          self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
 
+    def DelDirectories(dirs, ignore):
+      for d in dirs:
+        if not d: continue
+        err = OS.RemoveDir(d, False)
+        if err and not err in ignore:
+          if self.failOnError:
+            raise OSError(err, os.strerror(err), d)
+          self.errors += 1
+          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.ERROR)
+        elif not err:
+          self.dirsDeleted += 1
+          self.Log(Dict.msgDirectory % d, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
+      
     # 2.
     # For each directory:
     for d in dirsSet:
@@ -75,31 +96,34 @@ class Delete(Task):
       # Delete all files (with full control).
       for r, f in ExtendedFileSet(os.path.join(d, '**/*')):
         f = os.path.normpath(os.path.join(r, f))
-        err = OS.RemoveFile(f, force, failOnError)
-        if err != 0 and (not quiet or self.LogLevel() == LogLevel.DEBUG):
+        err = OS.RemoveFile(f, self.force, self.failOnError)
+        if err:
+          self.errors += 1
           self.Log(Dict.errOSErrorForX % (err, os.strerror(err), f), level = LogLevel.ERROR)
-
+        else:
+          self.filesDeleted += 1
+          self.Log(Dict.msgFile % f, level = (LogLevel.VERBOSE if not self.verbose else LogLevel.WARNING))
+          
       # Delete all subdirectories.
       dd = DirSet(d, '**/*', withRootDir = True)
       dd.sort(reverse = True)
-      err = OS.RemoveDirs(dd, failOnError)
-      if err == 0:
-        err = OS.RemoveDir(d, failOnError)
-      if not quiet or self.LogLevel() == LogLevel.DEBUG:
-        if err != 0:
-          self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.ERROR)
-        else:
-          self.Log(Dict.msgDirectory % d, level = (LogLevel.VERBOSE if not verbose else LogLevel.WARNING))
+      DelDirectories(dd, [])
+      
+      # Delete appropriate directory.  
+      DelDirectories([d], [])
       
     # 3.
-    if includeEmptyDirs:
+    if self.includeEmptyDirs:
       # Remove all empty directories from which files were deleted in first step.
       filesDirsSet = list(filesDirsSet)
       filesDirsSet.sort(reverse = True)
-      for d in filesDirsSet:
-        err = OS.RemoveDirs(d, False)
-        if err != 0 and err != os.errno.ENOTEMPTY:
-          if failOnError:
-            raise OSError(err, os.strerror(err), d)
-          if not quiet or self.LogLevel() == LogLevel.DEBUG:
-            self.Log(Dict.errOSErrorForX % (err, os.strerror(err), d), level = LogLevel.ERROR)
+      DelDirectories(filesDirsSet, [os.errno.ENOTEMPTY])
+          
+    if self.dirsDeleted or self.filesDeleted:
+      self.Log(Dict.msgDeletedDirsAndFiles % (self.dirsDeleted, self.filesDeleted), 
+                 level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
+      
+  def Log(self, msg = '', **args):
+    if not self.quiet or self.LogLevel() == LogLevel.DEBUG:
+      Task.Log(self, msg, **args)
+      

@@ -89,9 +89,10 @@ pom = 'pom'
 # Common tasks (and others activites) parameters
 
 paramLevel = 'level'
-
+paramQuiet = 'quiet'
+paramFailOnError = 'failOnError'
 paramLogOutput = 'logOutput'
-
+paramForce = 'force'
 paramClassPath = 'classPath'
 paramSourcePath = 'sourcePath'
 
@@ -141,10 +142,12 @@ msgCopyingXToY = 'Copying: %s to: %s'
 msgCopiedAndSkipped = 'Copied %d file(s), skipped %d file(s).'
 msgMovingXToY = 'Moving: %s to: %s'
 msgMovedAndSkipped = 'Moved %d file(s), skipped %d file(s).'
+msgDeletedDirsAndFiles = 'Deleted %d director(ies)(y), %d file(s)'
 
 msgWithManifest = 'with manifest:'
 msgWithFiles = 'with files:'
-msgXfromY = '  %s from: %s'
+msgXfromY = '%s from: %s'
+msgXtoY = '%s to: %s'
 msgChangedFromXToYInZ = 'Changed from: %s to: %s in: %s'
 msgNoneHaveBeenAdded = 'To: %s none have been added.'
 

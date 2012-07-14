@@ -17,6 +17,7 @@ __all__ = [
            'Properties',
            'FileSet',
            'DirSet',
+           'DirFileSet',
            'ExtendedFileSet',
            'OS',
            'Version',
@@ -160,7 +161,7 @@ class File:
 
 # Tools
 
-from .tools.Sets import FileSet, DirSet, ExtendedFileSet
+from .tools.Sets import FileSet, DirSet, DirFileSet, ExtendedFileSet
 from .tools.Properties import Properties
 from .tools import OS as OS
 from .tools.Ver import Version
@@ -175,6 +176,7 @@ from .tasks.Base import Task
 # All available tasks.
 
 from .tasks.Echo import Echo
+
 from .tasks.Delete import Delete
 from .tasks.Filter import Filter
 from .tasks.Copy import Copy

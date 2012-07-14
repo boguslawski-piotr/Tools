@@ -43,15 +43,237 @@ class Path:
 
   @staticmethod
   def JoinExt(fileName, ext):
+    '''TODO: description'''
     if not ext.startswith('.'):
       ext = '.' + ext
     return fileName + ext
 
   @staticmethod
-  def HasWildcards(fileName):
-    '''TODO: description'''
-    return re.search('(\?|\*)+', fileName) != None
+  def HasWildcards(path):
+    '''Tests whether or not a path include wildcard characters (\?, \*).'''
+    return re.search('(\?|\*)+', path) != None
 
+  @staticmethod
+  def HasAntStyleWildcards(path):
+    '''Tests whether or not a path include Ant-style wildcard characters (\*\*).'''
+    return path.find('**') >= 0
+
+  @staticmethod
+  def Match(pattern, path, useRegExp = False, fullMatch = True):
+    '''
+    Tests whether or not a path matches against a pattern.
+    The *path* is always converted to Unix style with ``/`` 
+    as separator even on Windows.
+    
+    If *useRegExp* is true then matching is done using the regular 
+    expression compatible with :py:mod:`re` module.
+    In the *pattern* you can pass the regular expression as a string 
+    or regular expression object.
+    
+    If *useRegExp* is `False` then this function is a implementation 
+    for Ant-style path patterns. The mapping matches paths using 
+    the following rules:
+    
+      **?**    -  matches one character,
+      
+      **\***   -  matches zero or more characters,
+      
+      **\*\*** -  matches zero or more 'directories' in a path
+      
+    Examples (borrowed from Ant):
+    
+      **\*\*/CVS/\*** - Matches all files in CVS directories that can be located anywhere in the directory tree.
+      Matches::
+      
+        CVS/Repository
+        org/apache/CVS/Entries
+        org/apache/jakarta/tools/ant/CVS/Entries
+
+      but not::
+
+        org/apache/CVS/foo/bar/Entries (foo/bar/ part does not match)
+      
+      **org/atta/tests/\*\*** - Matches all files in the org/atta/tests directory tree.
+      Matches::
+        
+        org/atta/tests/inc/inc2/something
+        org/atta/tests/test.xml
+        
+      but not::
+        
+        org/atta/xyz.java (tests/ part is missing).    
+        
+      **org/apache/\*\*/CVS/\*** - Matches all files in CVS directories that are located anywhere 
+      in the directory tree under org/apache. Matches::
+
+        org/apache/CVS/Entries
+        org/apache/jakarta/tools/ant/CVS/Entries
+      
+      but not::
+      
+        org/apache/CVS/foo/bar/Entries (foo/bar/ part does not match)
+        
+      **\*\*/test/\*\*** - Matches all files that have a test element in their path, including 
+      test as a filename. Matches::
+      
+        org/apache/test/CVS/Entries/a.a
+        test/.a
+        
+      but not::
+        
+        org/apache/CVS/Entries/test.a
+        test_move.py
+        
+      and so on.
+      
+    '''        
+    path = path.replace('\\', '/')
+    if useRegExp:
+      if isinstance(pattern, basestring):
+        return re.match(pattern, path) != None
+      else:
+        return pattern.match(path) != None
+
+    #
+    #  PathMatcher implementation for Ant-style path patterns.
+    #  Based on the Java version found here:
+    #
+    #      http://www.docjar.com/html/api/org/springframework/util/AntPathMatcher.java.html
+    #
+    #  Copyright 2002-2012 the original author or authors.
+    #
+    #  Licensed under the Apache License, Version 2.0 (the "License");
+    #  you may not use this file except in compliance with the License.
+    #  You may obtain a copy of the License at
+    #    
+    #      http://www.apache.org/licenses/LICENSE-2.0
+    #    
+    #  Unless required by applicable law or agreed to in writing, software
+    #  distributed under the License is distributed on an "AS IS" BASIS,
+    #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    #  See the License for the specific language governing permissions and
+    #  limitations under the License.
+    #
+    #  Authors: 
+    #    Alef Arendsen, Juergen Hoeller, Rob Harrop, Arjen Poutsma, Piotr Boguslawski (porting to Python) 
+    #
+      
+    pattern = pattern.replace('\\', '/')
+    if path.startswith('/') != pattern.startswith('/'):
+      return False
+
+    # Bechavior compatible with Ant:
+    # There is one "shorthand": 
+    # if a pattern ends with / or \, then ** is appended.
+    if pattern.endswith('/'):
+      pattern = pattern + '**'
+    
+    DOT = '\\.'
+    ONE_CHAR = '.{1,1}'
+    ANY_FILE_NAME_CHAR = '[^<>:"/\\|?*]' + '*'
+    
+    pattern = pattern.replace('.', DOT)
+    pattern = pattern.replace('?', ONE_CHAR)
+    
+    def match(p, s):
+      p = '^' + p.replace('*', ANY_FILE_NAME_CHAR) + '$'
+      return re.match(p, s) != None
+    
+    pattDirs = pattern.split('/')
+    pathDirs = path.split('/')
+    
+    pattIdxStart = 0;
+    pattIdxEnd = len(pattDirs) - 1;
+    pathIdxStart = 0;
+    pathIdxEnd = len(pathDirs) - 1;
+  
+    # Match all elements up to the first **
+    while pattIdxStart <= pattIdxEnd and pathIdxStart <= pathIdxEnd:
+      patDir = pattDirs[pattIdxStart];
+      if '**' == patDir:
+        break
+      if not match(patDir, pathDirs[pathIdxStart]):
+        return False
+      pattIdxStart += 1
+      pathIdxStart += 1;
+    
+    if (pathIdxStart > pathIdxEnd):
+      # Path is exhausted, only match if rest of pattern is * or **'s
+      if pattIdxStart > pattIdxEnd:
+        return path.endswith('/') if pattern.endswith('/') else not path.endswith('/')
+      if not fullMatch:
+        return True
+      if pattIdxStart == pattIdxEnd and '*' == pattDirs[pattIdxStart] and path.endswith('/'):
+        return True
+      for i in range(pattIdxStart, pattIdxEnd + 1):
+        if not '**' == pattDirs[i]:
+          return False
+      return True
+    elif pattIdxStart > pattIdxEnd:
+      # String not exhausted, but pattern is. Failure.
+      return False
+    elif not fullMatch and '**' == pattDirs[pattIdxStart]:
+      # Path start definitely matches due to "**" part in pattern.
+      return True
+    
+    # up to last '**'
+    while (pattIdxStart <= pattIdxEnd and pathIdxStart <= pathIdxEnd):
+      patDir = pattDirs[pattIdxEnd]
+      if '**' == patDir:
+        break
+      if not match(patDir, pathDirs[pathIdxEnd]):
+        return False
+      pattIdxEnd -= 1
+      pathIdxEnd -= 1
+    if pathIdxStart > pathIdxEnd:
+      # String is exhausted.
+      for i in range(pattIdxStart, pattIdxEnd + 1):
+        if not '**' == pattDirs[i]:
+          return False
+      return True
+    
+    while (pattIdxStart != pattIdxEnd and pathIdxStart <= pathIdxEnd):
+      patIdxTmp = -1
+      for i in range(pattIdxStart + 1, pattIdxEnd + 1):
+        if '**' == pattDirs[i]:
+          patIdxTmp = i
+          break
+      if (patIdxTmp == pattIdxStart + 1):
+        ## '**/**' situation, so skip one
+        pattIdxStart += 1;
+        continue;
+        
+      # Find the pattern between padIdxStart & padIdxTmp in str between
+      # strIdxStart & strIdxEnd
+      patLength = (patIdxTmp - pattIdxStart - 1);
+      strLength = (pathIdxEnd - pathIdxStart + 1);
+      foundIdx = -1;
+
+      for i in range(0, strLength - patLength + 1):
+        cont = False
+        for j in range(0, patLength):
+          subPat = pattDirs[pattIdxStart + j + 1];
+          subStr = pathDirs[pathIdxStart + i + j];
+          if not match(subPat, subStr):
+            cont = True
+            break
+        if cont:
+          continue
+        foundIdx = pathIdxStart + i;
+        break
+
+      if foundIdx == -1:
+        return False
+
+      pattIdxStart = patIdxTmp;
+      pathIdxStart = foundIdx + patLength;
+
+    for i in range(pattIdxStart, pattIdxEnd + 1):
+      if not '**' == pattDirs[i]:
+        return False
+
+    return True
+  
   @staticmethod
   def Split(path):
     '''TODO: description'''
@@ -63,6 +285,7 @@ class Path:
 
   @staticmethod
   def NormUnix(path):
+    '''TODO: description'''
     path = os.path.normpath(path).replace('\\', '/')
     return path
 
