@@ -5,25 +5,25 @@ from .. import Dict
 from . import OS
 
 class FileSet(list):
-  '''       
+  '''
   Creates a set of files...
-  
+
   TODO: description
-  
+
   * **rootDirName** `(.)`             - TODO
   * **includes** `(*)`            - TODO string or path (separator :) or list of strings
   * **excludes** |None|           - TODO string or path (separator :) or list of strings
   * **useDefaultExcludes** |True| - TODO
-  * **useRegExp** |False|         - TODO 
-  * **filters** |None|            - TODO 
+  * **useRegExp** |False|         - TODO
+  * **filters** |None|            - TODO
   * **followLinks** |False|       - TODO
   * **failOnError** |False|       - Controls whether an error while scanning files and directories raise an exception.
-  * **realPaths** |False|         - TODO 
+  * **realPaths** |False|         - TODO
   * **withRootDirName** |False|   - TODO
   * **createEmpty** |False|       - TODO
-  
+
   Returns: TODO
-  
+
   '''
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.rootDirName = None
@@ -37,33 +37,33 @@ class FileSet(list):
     "**/.#*",
     "**/%*%",
     "**/._*",
-    
+
     # CVS
     "**/CVS",
     "**/CVS/**",
     "**/.cvsignore",
-    
+
     # SCCS
     "**/SCCS",
     "**/SCCS/**",
-    
+
     # Visual SourceSafe
     "**/vssver.scc",
-    
+
     # Subversion
     "**/.svn",
     "**/.svn/**",
-    
+
     # Mac
     "**/.DS_Store",
-    
+
     # Git
     '**/.git',
     '**/.git/**',
     '**/.gitattributes',
     '**/.gitignore',
     '**/.gitmodules',
-    
+
     # Mercurial
     '**/.hg',
     '**/.hg/**',
@@ -71,14 +71,14 @@ class FileSet(list):
     '**/.hgsub',
     '**/.hgsubstate',
     '**/.hgtags',
-    
+
     # Baazar
     '**/.bzr',
     '**/.bzr/**',
     '**/.bzrignore',
   ]
   '''Definitions of files/directories that are excluded by default from any FileSet (and derived classes).'''
-  
+
   def AddFiles(self, rootDirName, includes = '*', excludes = None, **tparams):
     self.rootDirName, files = self.MakeSet(rootDirName, includes, excludes, onlyDirs = False, **tparams)
     self.extend(files)
@@ -97,17 +97,17 @@ class FileSet(list):
     filters = OS.Path.AsList(tparams.get('filters', None))
     followLinks = tparams.get('followLinks', False)
     failOnError = tparams.get(Dict.paramFailOnError, False)
-    
+
     _onlyDirs = tparams.get('onlyDirs', False)
     _onlyFiles = tparams.get('onlyFiles', True)
 
     rootDirName = os.path.normpath(rootDirName)
     rootDirName += os.path.sep
-    
+
     def OnError(E):
       if failOnError:
         raise E
-    
+
     # Optimize simple calls.
     useWalk = False
     for pattern in includes:
@@ -115,7 +115,7 @@ class FileSet(list):
         useWalk = True
         break
     if not useWalk:
-      # If there are no subdirectories and/or Ant-style wildcards 
+      # If there are no subdirectories and/or Ant-style wildcards
       # in includes then use the simplest directory list.
       try:
         tree = os.listdir(rootDirName)
@@ -129,10 +129,10 @@ class FileSet(list):
           nondirs.append(name)
       tree = [(rootDirName, dirs, nondirs)]
     else:
-      # If includes are more bit complicated then 
+      # If includes are more bit complicated then
       # perform a full scan of the directory tree.
       tree = os.walk(rootDirName, onerror = OnError, followlinks = followLinks)
-        
+
     # Collect files/directories.
     filesSet = []
     for root, dirs, files in tree:
@@ -146,7 +146,7 @@ class FileSet(list):
         names = files
       else:
         names = dirs + files
-        
+
       for name in names:
         nameToAdd = None
         name = root + name
@@ -164,7 +164,7 @@ class FileSet(list):
             if not flt(rootDirName, nameToAdd):
               nameToAdd = None
               break
-            
+
         if nameToAdd:
           if realPaths:
             cwd = os.getcwd()
@@ -179,11 +179,11 @@ class FileSet(list):
     return (rootDirName, filesSet)
 
 class DirSet(FileSet):
-  ''' 
+  '''
     Creates a set of directories...
-    
+
     TODO: description
-    
+
   '''
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.AddDirs(rootDirName, includes, excludes, **tparams)
@@ -193,11 +193,11 @@ class DirSet(FileSet):
     self.extend(files)
 
 class DirFileSet(FileSet):
-  ''' 
+  '''
     Creates a set of directories and files.
-    
+
     TODO: description
-    
+
   '''
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.AddDirs(rootDirName, includes, excludes, **tparams)
@@ -209,14 +209,14 @@ class DirFileSet(FileSet):
 class ExtendedFileSet(list):
   '''
     TODO: description
-    
+
     Parameters:
-  
+
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
       also FileSet or DirSet alone
-      
+
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
   '''
   def __init__(self, srcs, **tparams):
@@ -229,7 +229,7 @@ class ExtendedFileSet(list):
     srcs = OS.Path.AsList(srcs)
     tparams['realPaths'] = False
     tparams['withRootDirName'] = False
-    
+
     # Expand all into a flat list of files.
     for src in srcs:
       if isinstance(src, DirSet):
@@ -244,6 +244,9 @@ class ExtendedFileSet(list):
         if len(src) <= 0:
           continue
         if OS.Path.HasWildcards(src):
+          # TODO: obsluzyc inaczej sciezki typu: ../path/to/*.a
+          # czyli jezeli sciezka nie odnosi sie do aktualnego katalogu
+          # to trzeba to rozbic na root i includes
           for fname in FileSet('.', includes = src, **tparams):
             self.append(('.', fname))
         else:

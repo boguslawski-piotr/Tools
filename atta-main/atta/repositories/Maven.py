@@ -21,20 +21,22 @@ class Repository(ARepository, Task):
   '''
 
   # TODO: handle this (?):
-  '''
-<relocation>
-      <groupId>org.apache</groupId>
-      <artifactId>my-project</artifactId>
-      <version>1.0</version>
-      <message>We have moved the Project under Apache</message>
-</relocation>
-'''
+  #<relocation>
+  #      <groupId>org.apache</groupId>
+  #      <artifactId>my-project</artifactId>
+  #      <version>1.0</version>
+  #      <message>We have moved the Project under Apache</message>
+  #</relocation>
 
   def _Get(self, packageId, scope, store, resolvedPackages):
-    # Check parameters.
     self._DumpParams(locals())
+
+    # Check parameters.
+    if not bool(packageId.type):
+      packageId.type = Dict.jar
     if not packageId:
       raise AttaError(self, Dict.errNotEnoughParams)
+
     if store is None:
       from . import Local
       store = Local.Repository({Dict.style : Styles.Maven})
@@ -45,7 +47,7 @@ class Repository(ARepository, Task):
     store.SetOptionalAllowed(self.OptionalAllowed())
     filesInStore = store.Check(packageId, scope)
     if filesInStore is None:
-      # If something is obsolete then get detailed information 
+      # If something is obsolete then get detailed information
       # about the package and check store (cache) again.
       packageId.timestamp = Repository.GetArtifactTimestamp(packageId, self.Log)
       if packageId.timestamp is not None:
@@ -104,7 +106,7 @@ class Repository(ARepository, Task):
 
   def Get(self, packageId, scope, store = None):
     '''TODO: description
-     returns list (of strings: fileName) of localy available files
+     returns list (of strings: fileName) of locally available files
     '''
     return self._Get(packageId, scope, store, [])
 
@@ -131,9 +133,9 @@ class Repository(ARepository, Task):
     jsonData = json.load(f)
     response = jsonData.get('response')
     timestamp = None
-    if response is not None:
+    if response:
       docs = response.get('docs')
-      if docs is not None and len(docs) > 0:
+      if docs and len(docs) > 0:
         timestamp = docs[0]['timestamp']
     return timestamp
 
@@ -150,7 +152,7 @@ class Repository(ARepository, Task):
     except urllib2.HTTPError as E:
       if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
       if pom:
-        # When the error occurred, check the alternate place from which you can download the file. 
+        # When the error occurred, check the alternate place from which you can download the file.
         # If it is specified in the POM file.
         url = Repository.GetArtifactUrlFromPOM(pom, logFn)
         if url:
@@ -159,7 +161,8 @@ class Repository(ARepository, Task):
             return urllib2.urlopen(url)
           except urllib2.HTTPError as E:
             if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
-    return None
+      if not packageId.IsOptional():
+        raise
 
   '''POM support'''
 
@@ -175,8 +178,7 @@ class Repository(ARepository, Task):
     '''TODO: description'''
     key = Repository.GetPOMCacheKey(packageId)
     if key in Repository._pomCache:
-      if logFn != None:
-        logFn('Getting: %s from cache.' % str(packageId), level = LogLevel.DEBUG)
+      if logFn: logFn('Getting: %s from cache.' % str(packageId), level = LogLevel.DEBUG)
       return Repository._pomCache[key]
     return None
 
@@ -205,12 +207,12 @@ class Repository(ARepository, Task):
   @staticmethod
   def GetPOMEx(packageId, pom, logFn = None):
     '''Checks if the `pom` is the method/function used to download contents of a POM file.
-       If so, uses it and trying to retrieve data. If the download did not succeed then 
+       If so, uses it and trying to retrieve data. If the download did not succeed then
        try again using the Maven Central Repository.
-       Returns a tuple (`function`, `pom`) where `function` is a function/method 
+       Returns a tuple (`function`, `pom`) where `function` is a function/method
        which you can use to download next POM file and `pom` points to the contents of the file.'''
     getPOMFn = Repository.GetPOM
-    if pom != None and '__call__' in dir(pom):
+    if pom and '__call__' in dir(pom):
       getPOMFn = pom
       pom = getPOMFn(packageId, logFn = logFn)
       if pom == None and getPOMFn != Repository.GetPOM:
@@ -222,7 +224,7 @@ class Repository(ARepository, Task):
   @staticmethod
   def GetArtifactUrlFromPOM(pom, logFn = None):
     '''TODO: description'''
-    if pom != None:
+    if pom:
       if not isinstance(pom, Xml):
         pom = Xml(pom)
       url = pom.values('distributionManagement/downloadUrl', stripfn = strip)
@@ -370,7 +372,7 @@ class Repository(ARepository, Task):
     dep = pom.findall('dependencies/dependency')
     dependencies += _PreparePackagesFromDependencies(dep)
 
-    # Handle top level <packaging> section. 
+    # Handle top level <packaging> section.
     packaging = pom.values(Dict.packaging)
     if len(packaging) > 0:
       packageId.type = packaging[0][Dict.packaging]

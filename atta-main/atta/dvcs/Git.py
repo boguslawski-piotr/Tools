@@ -5,7 +5,7 @@ from ..tasks.Base import Task
 from ..tasks.Exec import Exec
 from ..tools import OS
 from .. import Dict
-from .. import LogLevel, GetProject
+from .. import LogLevel
 from . import Interfaces
 
 class Git(Interfaces.IDvcs, Task):
@@ -13,11 +13,11 @@ class Git(Interfaces.IDvcs, Task):
     self._lastRevision = None
     self._lastRemote = None
     self._tagWasSet = False
-    
+
     self.output = None
     self.someChangesWereTaken = -1
 
-    self.dirName = dirName if len(dir) > 0 else '.'
+    self.dirName = dirName if len(dirName) > 0 else '.'
     if params:
       self.Cmd(params, **tparams)
 
@@ -92,26 +92,22 @@ class Git(Interfaces.IDvcs, Task):
     params = [p for p in params if len(p) > 0]
 
     if self.LogLevel() <= LogLevel.INFO:
-      self.Log(Dict.msgDvcsRepository % os.path.realpath(self.dir), level = LogLevel.VERBOSE)
+      self.Log(Dict.msgDvcsRepository % os.path.realpath(self.dirName), level = LogLevel.VERBOSE)
       self.Log(' '.join(params))
 
-    ocwd = GetProject().env.chdir(self.dir)
-    try:
-      e = Exec(self.GetExecutable(**tparams), params, **tparams)
-    finally:
-      GetProject().env.chdir(ocwd)
+    e = Exec(self.GetExecutable(**tparams), params, dirName = self.dirName, **tparams)
     self.returnCode = e.returnCode
     self.output = self._NormalizeOutput(e.output)
 
     if self.LogLevel() <= LogLevel.VERBOSE:
-      if len(self.output) > 0:
-        self.Log(self.output)
+      if len(self.output): self.Log(self.output)
       self.Log(Dict.msgExitCode.format(self.returnCode))
 
     return self.returnCode
 
   def GetExecutable(self, **tparams):
-    return 'git'
+    executable = self.Env().which(Dict.GIT_EXE_IN_PATH)
+    return executable if executable else Dict.GIT_EXE
 
   '''private section'''
 

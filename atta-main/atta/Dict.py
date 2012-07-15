@@ -1,5 +1,7 @@
 '''TODO: description'''
 
+from .tools import OS
+
 class Scopes:
   '''TODO: description'''
   compile = 'compile'
@@ -27,9 +29,10 @@ no = 'no'
 Or = 'or'
 
 #
-#
+# Environment related
 
 defaultBuildFileName = 'build.py'
+PATH = 'PATH'
 
 #
 # Repositories related
@@ -78,6 +81,10 @@ project = 'project'
 JAVA_HOME = 'JAVA_HOME'
 JAVAC_EXE = 'javac'
 JAVAC_EXE_IN_JAVA_HOME = 'bin/javac'
+if OS.IsWindows():
+  JAVAC_EXE_IN_PATH = 'javac.exe'
+else:
+  JAVAC_EXE_IN_PATH = 'javac.exe'
 
 basicManifest = 'Manifest-Version: 1.0\nAtta-Version: %s %s\n'
 manifestFileName = 'META-INF/MANIFEST.MF'
@@ -85,6 +92,16 @@ manifestFileName = 'META-INF/MANIFEST.MF'
 jar = 'jar'
 war = 'war'
 pom = 'pom'
+
+#
+# Dvcs related
+
+GIT_HOME = 'GIT_HOME'
+GIT_EXE = 'git'
+if OS.IsWindows():
+  GIT_EXE_IN_PATH = 'git.cmd:git.exe:git.bat'
+else:
+  GIT_EXE_IN_PATH = GIT_EXE
 
 #
 # Common tasks (and others activites) parameters
@@ -98,6 +115,7 @@ paramClassPath = 'classPath'
 paramSourcePath = 'sourcePath'
 paramDestDirName = 'destDirName'
 paramDestFile = 'destFile'
+paramDirName = 'dirName'
 
 #
 # Errors
@@ -120,7 +138,7 @@ errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not sup
 errDvcsWorkingDirectoryNotClean = 'Working directory is not clean.'
 
 #
-# Others
+# Messages
 
 msgDumpParameters = '\n*** Parameters:'
 msgChecking = 'Checking: {0}'

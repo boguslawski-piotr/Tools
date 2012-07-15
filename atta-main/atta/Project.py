@@ -4,23 +4,27 @@ import os
 import types
 from datetime import datetime
 
-# Python 2.7+
-#import importlib
-
-from . import LogLevel, OS, Dependencies, Deploy, Dict, Version, Env
+from . import LogLevel, OS, Dependencies, Deploy, Dict, Version, Env, PackageId, Target
 from . import AttaError, Atta, File, GetProject, _SetProject
+import atta
 
 class Project:
   '''
   Project class
-    
+
   TODO: description
   '''
   SUCCESSFUL = 0
   FAILED = 1
 
   def __init__(self, parent = None):
+    self.groupId = ''
+    '''TODO: description'''
+
     self.name = ''
+    '''TODO: description'''
+
+    self.type = ''
     '''TODO: description'''
 
     self.displayName = ''
@@ -35,15 +39,6 @@ class Project:
     self.url = ''
     '''TODO: description'''
 
-    self.dirName = ''
-    '''TODO: description'''
-
-    self.fileName = ''
-    '''TODO: description'''
-
-    self.env = None
-    '''TODO: description'''
-
     self.dvcs = None
     '''object from class implements dvcs.IDvcs TODO: description'''
 
@@ -53,12 +48,21 @@ class Project:
     self.deployTo = []
     '''TODO: description'''
 
+    self.dirName = ''
+    '''TODO: description'''
+
+    self.fileName = ''
+    '''TODO: description'''
+
+    self.env = None
+    '''TODO: description'''
+
     self.defaultTarget = ''
     '''TODO: description'''
 
     self.targets = []
-    '''List of targets passed to Atta in the command line or 
-       in the parameters of the method :py:meth:`.Project.RunProject`.'''
+    '''List of targets passed to Atta in the command line or
+       in the parameter of the method :py:meth:`.Project.RunProject`.'''
 
     self.targetsMap = {}
     '''TODO: description'''
@@ -114,9 +118,6 @@ class Project:
         Atta.Log('---\n', level = logLevel)
 
         sys.path.insert(0, dirName)
-        # Python 2.7+
-        #module = importlib.import_module(moduleName)
-        # Python 2.3+
         __import__(moduleName)
         module = sys.modules[moduleName]
 
@@ -141,10 +142,10 @@ class Project:
 
     return (moduleName, module)
 
-  def ResolveDependencies(self, data = None, scope = Dict.Scopes.compile, returnPackages = True):
+  def ResolveDependencies(self, data = None, scope = Dict.Scopes.compile, returnPackages = True, defaultRepository = None):
     '''TODO: description'''
     resolver = Dependencies.Resolver()
-    if resolver.Resolve(self.dependsOn if data is None else data, scope):
+    if resolver.Resolve(self.dependsOn if data is None else data, scope, defaultRepository):
       return resolver.Result() if not returnPackages else (resolver.Result(), resolver.ResultPackages())
     else:
       return None if not returnPackages else (None, None)
@@ -197,12 +198,26 @@ class Project:
     project._Run(environ, fileName, (targets if targets else []))
     return project
 
-  def Deploy(self, packageId, files, baseDirName, data = None):
+  def CreatePackageId(self):
+    '''TODO: description'''
+    return PackageId(self.groupId, self.name, str(self.version), self.type)
+
+  def Deploy(self, packageId, files, baseDirName = '.', data = None):
     '''TODO: description'''
     deployer = Deploy.Deployer()
     return deployer.Deploy(packageId, files, baseDirName, self.deployTo if data is None else data)
 
   '''private section'''
+
+  def AvailableTargets(self, moduleName):
+    availableTargets = []
+    try:
+      for m in dir(sys.modules[moduleName]):
+        d = sys.modules[moduleName].__dict__[m]
+        if m != 'Target' and m != 'Project' and Dict.dependsOn in dir(d):
+          availableTargets.append(m)
+    except: pass
+    return availableTargets
 
   def _Run(self, environ, fileName, targets):
     prevDirName = os.getcwd()
@@ -222,6 +237,7 @@ class Project:
 
       self.env = Env.Env(environ)
       self.env.chdir(self.dirName)
+      self.name = os.path.basename(self.dirName)
       self.version = Version(createIfNotExists = False)
       self.targets = targets
 
@@ -233,9 +249,12 @@ class Project:
       if len(targets) <= 0 or len(targets[0]) <= 0:
         targets = [self.defaultTarget]
         if len(targets[0]) <= 0:
-          Atta.Log('You did not specify any target.',
-                project = self.fileName,
-                log = True)
+          availableTargets = self.AvailableTargets(moduleName)
+          if len(availableTargets):
+            availableTargets = '\nThe following targets are available:\n  ' + '\n  '.join(availableTargets)
+          Atta.Log('\nYou did not specify any target.' + availableTargets,
+                    project = self.fileName,
+                    log = True)
           self._End(Project.SUCCESSFUL);
           return
 
@@ -303,7 +322,7 @@ class Project:
               # Coming here we have only one component of the target, without the module name.
               if tryTargetInProject:
                 # Only once we check whether the target is in the main project file.
-                # This allows to change the default behavior of targets collections 
+                # This allows to change the default behavior of targets collections
                 # that come with of Atta (such as Java or Android).
                 targetClass = OS.Path.RemoveExt(os.path.basename(self.fileName)) + '.' + targetPackage
                 tryTargetInProject = False

@@ -6,15 +6,15 @@ from .. import LogLevel, OS, Exec
 
 class PyExec(Exec):
   '''
-  Executes Python program. 
+  Executes Python program.
 
   TODO: detailed information
 
   Parameter:
-  
+
   * **fileName** The file name of the program in Python.
-  
-  Other parameters and ... TODO are exactly the same 
+
+  Other parameters and ... TODO are exactly the same
   as in :py:class:`.Exec`.
 
   '''
@@ -31,6 +31,6 @@ class PyExec(Exec):
             fileName = _fileName
             break
 
-    _params = (params[:] if params else [])
+    _params = OS.Path.AsList(params)
     _params.insert(0, fileName)
     Exec.__init__(self, 'python', _params, **tparams)

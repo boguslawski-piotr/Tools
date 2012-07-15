@@ -13,22 +13,33 @@ from .. import LogLevel, Dict, OS
 
 class Version(Observable, Task):
   '''TODO: description
-  
+
   Parameters:
-  
+
   * **fileName** `(version.info)`
   * **format**
   * **prefix** |None|
   * **postfix** |None|
-  
+
   * **createIfNotExists** |True|
   * **quiet** |False|
   * **observers** |None|
   * **impl**
-  
+
   '''
   def __init__(self, **conf):
     self.Configure(**conf)
+
+  class Formats:
+    '''TODO: description'''
+    M = '${major}'
+    Mp = '${major}${postfix}'
+    MM = '${major}.${minor}'
+    MMp = '${major}.${minor}${postfix}'
+    MMP = '${major}.${minor}.${patch}'
+    MMPp = '${major}.${minor}.${patch}${postfix}'
+    MMPB = '${major}.${minor}.${patch}.${build}'
+    MMPBp = '${major}.${minor}.${patch}.${build}${postfix}'
 
   class Events:
     '''TODO: description'''
@@ -42,12 +53,12 @@ class Version(Observable, Task):
     BeforeUpdate = 8
     AfterUpdate = 9
     AfterConfigure = 10
-    
+
   def Configure(self, **conf):
     '''TODO: description'''
     self._impl = ObjectFromClass(conf.get('impl', Version.GetDefaultImpl()))
     self.quiet = conf.get(Dict.paramQuiet, False)
-    
+
     observers = OS.Path.AsList(conf.get('observers', None))
     for c in observers:
       self.addObserver(c)
@@ -58,7 +69,7 @@ class Version(Observable, Task):
     self.build = 0
     self.changed = False
 
-    self.format = conf.get('format', '${major}.${minor}.${patch}.${build}')
+    self.format = conf.get('format', Version.Formats.MMPB)
 
     self.prefix = conf.get('prefix', '')
     self.postfix = conf.get('postfix', '')
@@ -175,7 +186,9 @@ class Version(Observable, Task):
 
   def _Pattern(self):
     return re.compile('(\s*version_(\w+)\s*=\s*(\d+))\s*$')
-  
+  def _Pattern2(self):
+    return re.compile('(\s*version\s*=\s*(.+))\s*$')
+
   def _Read(self):
     if not os.path.exists(self.fileName):
       return False
@@ -187,7 +200,7 @@ class Version(Observable, Task):
         if m:
           setattr(self, m.group(2), int(m.group(3)))
     finally:
-      f.close
+      f.close()
     self.changed = False
     self.notifyObservers(Version.Events.AfterRead)
     return True
@@ -197,22 +210,29 @@ class Version(Observable, Task):
     fo.write('\nversion_major = %d' % self.major)
     fo.write('\nversion_minor = %d' % self.minor)
     fo.write('\nversion_patch = %d' % self.patch)
-    fo.write('\nversion_build = %d\n' % self.build)
+    fo.write('\nversion_build = %d' % self.build)
+    fo.write('\nversion = %s\n' % str(self))
     fo.seek(0)
     return fo
-  
+
   def _UpdateExisting(self):
     found = False
     fo = cStringIO.StringIO()
     f = open(self.fileName, 'r')
     try:
       pattern = self._Pattern()
+      pattern2 = self._Pattern2()
       for line in f:
         m = pattern.search(line)
         if m:
           n = m.group(1).replace(m.group(3), str(getattr(self, m.group(2))))
           line = line.replace(m.group(1), n)
           found = True
+        else:
+          m = pattern2.search(line)
+          if m:
+            n = m.group(1).replace(m.group(2), str(self))
+            line = line.replace(m.group(1), n)
         fo.write(line)
     finally:
       f.close()
@@ -220,12 +240,12 @@ class Version(Observable, Task):
       fo.write(self._CreateNew().read())
     fo.seek(0)
     return fo
-  
+
   def _Update(self):
     if not self.changed:
       return True
     self.notifyObservers(Version.Events.BeforeUpdate)
-    
+
     if os.path.exists(self.fileName):
       fo = self._UpdateExisting()
     else:
@@ -237,7 +257,7 @@ class Version(Observable, Task):
     finally:
       f.close()
       fo.close()
-    
+
     self.changed = False
     self.notifyObservers(Version.Events.AfterUpdate)
     return True

@@ -95,7 +95,6 @@ def _Dump():
 
 def Main():
   # Setup environment
-
   minPythonVersion = '2.7.0'
   if int(platform.python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
     print('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version()))
@@ -129,9 +128,12 @@ def Main():
   if args.D:
     for D in args.D:
       try:
-        name, value = D.split('=')
+        D = D.split('=')
+        name = D[0]
+        value = '1' if len(D) <= 1 else D[1]
         environ[name] = value
-      except: pass
+      except:
+        pass
 
   if args.javac:
     Javac.SetDefaultCompilerImpl(args.javac[0])

@@ -5,38 +5,38 @@ import threading
 
 from ..tools import DefaultVarsExpander
 from .. import Dict, OS, LogLevel, Task
-from .. import GetProject
 
 class Exec(Task):
   '''
-  Executes a system command. 
+  Executes a system command.
 
   TODO: detailed information
-    
+
   Parameters:
-  
+
   * **executable** |req| -   The command to execute without any command line arguments.
-  * **params** |None| -      Command line arguments. (string or list of strings) 
-    
+  * **params** |None| -      Command line arguments. (string or list of strings)
+
   General parameters available in many tasks that use internally ``Exec`` task:
-  
-  * **failOnError** |True| - Stop the buildprocess if the command exits with a return code signaling failure. 
-  * **logOutput** |True| -   TODO: Przesyla stdout and stderr do logu Atta. 
-  * **useShell** |True| -    Command will be executed through the shell. More information can be found in :py:class:`subprocess.Popen` documentation. 
-  * **env** |None| -         Environment variables. Completely replace the variables from the project. 
-                        
+
+  * **failOnError** |True| - Stop the buildprocess if the command exits with a return code signaling failure.
+  * **logOutput** |True| -   TODO: Przesyla stdout and stderr do logu Atta.
+  * **useShell** |True| -    Command will be executed through the shell. More information can be found in :py:class:`subprocess.Popen` documentation.
+  * **env** |None| -         Environment variables. Completely replace the variables from the project.
+  * **dirName** `(.)` -      The directory in which the command should be executed.
+
   Exec returns object with two attributtes:
-  
+
   * **returnCode** - Exit code returned by executed command.
   * **output** -     Captured contents of stdout and stderr.
- 
-  In **executable** parameter you can use special macros: 
-  
-    ``${bat}, ${cmd} or ${exe}`` on Windows will add ``.bat/.cmd/.exe`` to the `executable`, 
-    on other systems will not add anything 
-    
+
+  In **executable** parameter you can use special macros:
+
+    ``${bat}, ${cmd} or ${exe}`` on Windows will add ``.bat/.cmd/.exe`` to the `executable`,
+    on other systems will not add anything
+
     ``${sh}`` on non Windows systems will add ``.sh``, on Windows will add ``.bat``.
-      
+
   .. todo::
 
     - Add reading environment variables set by the executed process
@@ -49,9 +49,7 @@ class Exec(Task):
     self.logOutput = tparams.get(Dict.paramLogOutput, True)
     useShell = tparams.get('useShell', True)
     env = tparams.get('env', None)
-
-    _output = ''
-    _rc = 0
+    dirName = tparams.get(Dict.paramDirName, '.')
 
     shExt = '.sh'  if not OS.IsWindows() else '.bat'
     batExt = '.bat' if OS.IsWindows() else ''
@@ -62,15 +60,19 @@ class Exec(Task):
     _params = [executable]
     _params.extend(params)
     if env is None:
-      if GetProject() is None:
-        env = os.environ
-      else:
-        env = GetProject().env
+      env = self.Env()
 
-    process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
-                               bufsize = 1, env = env, shell = useShell)
-    _output = self._communicate(process)
-    _rc = process.poll()
+    _output = ''
+    _rc = 0
+
+    ocwd = self.Env().chdir(dirName)
+    try:
+      process = subprocess.Popen(_params, stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
+                                 bufsize = 1, env = env, shell = useShell)
+      _output = self._communicate(process)
+      _rc = process.poll()
+    finally:
+      self.Env().chdir(ocwd)
     if _rc:
       if failOnError:
         if not self.logOutput: self.Log(_output, level = LogLevel.ERROR)
@@ -121,4 +123,3 @@ class Exec(Task):
   def _LogReturnCode(self, _rc, **args):
     if _rc > 0:
       self.Log(Dict.msgExitCode.format(_rc), **args)
-

@@ -62,29 +62,29 @@ class Path:
   def Match(pattern, path, useRegExp = False, fullMatch = True):
     '''
     Tests whether or not a *path* matches against a *pattern*.
-    The *path* is always converted to Unix style with ``/`` 
+    The *path* is always converted to Unix style with ``/``
     as separator even on Windows.
-    
-    If *useRegExp* is true then matching is done using the regular 
+
+    If *useRegExp* is true then matching is done using the regular
     expression compatible with :py:mod:`re` module.
-    In the *pattern* you can pass the regular expression as a string 
+    In the *pattern* you can pass the regular expression as a string
     or regular expression object.
-    
-    If *useRegExp* is `False` then this function is a implementation 
-    for Ant-style path patterns. The mapping matches paths using 
+
+    If *useRegExp* is `False` then this function is a implementation
+    for Ant-style path patterns. The mapping matches paths using
     the following rules:
-    
+
       **?**    -  matches one character,
-      
+
       **\***   -  matches zero or more characters,
-      
+
       **\*\*** -  matches zero or more 'directories' in a path
-      
+
     Examples (borrowed from Ant):
-    
+
       **\*\*/CVS/\*** - Matches all files in CVS directories that can be located anywhere in the directory tree.
       Matches::
-      
+
         CVS/Repository
         org/apache/CVS/Entries
         org/apache/jakarta/tools/ant/CVS/Entries
@@ -92,41 +92,41 @@ class Path:
       but not::
 
         org/apache/CVS/foo/bar/Entries (foo/bar/ part does not match)
-      
+
       **org/atta/tests/\*\*** - Matches all files in the org/atta/tests directory tree.
       Matches::
-        
+
         org/atta/tests/inc/inc2/something
         org/atta/tests/test.xml
-        
+
       but not::
-        
-        org/atta/xyz.java (tests/ part is missing).    
-        
-      **org/apache/\*\*/CVS/\*** - Matches all files in CVS directories that are located anywhere 
+
+        org/atta/xyz.java (tests/ part is missing).
+
+      **org/apache/\*\*/CVS/\*** - Matches all files in CVS directories that are located anywhere
       in the directory tree under org/apache. Matches::
 
         org/apache/CVS/Entries
         org/apache/jakarta/tools/ant/CVS/Entries
-      
+
       but not::
-      
+
         org/apache/CVS/foo/bar/Entries (foo/bar/ part does not match)
-        
-      **\*\*/test/\*\*** - Matches all files that have a test element in their path, including 
+
+      **\*\*/test/\*\*** - Matches all files that have a test element in their path, including
       test as a filename. Matches::
-      
+
         org/apache/test/CVS/Entries/a.a
         test/.a
-        
+
       but not::
-        
+
         org/apache/CVS/Entries/test.a
         test_move.py
-        
+
       and so on.
-      
-    '''        
+
+    '''
     path = path.replace('\\', '/')
     if useRegExp:
       if isinstance(pattern, basestring):
@@ -145,59 +145,59 @@ class Path:
     #  Licensed under the Apache License, Version 2.0 (the "License");
     #  you may not use this file except in compliance with the License.
     #  You may obtain a copy of the License at
-    #    
+    #
     #      http://www.apache.org/licenses/LICENSE-2.0
-    #    
+    #
     #  Unless required by applicable law or agreed to in writing, software
     #  distributed under the License is distributed on an "AS IS" BASIS,
     #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     #  See the License for the specific language governing permissions and
     #  limitations under the License.
     #
-    #  Authors: 
-    #    Alef Arendsen, Juergen Hoeller, Rob Harrop, Arjen Poutsma, Piotr Boguslawski (porting to Python) 
+    #  Authors:
+    #    Alef Arendsen, Juergen Hoeller, Rob Harrop, Arjen Poutsma, Piotr Boguslawski (porting to Python)
     #
-      
+
     pattern = pattern.replace('\\', '/')
     if path.startswith('/') != pattern.startswith('/'):
       return False
 
-    # Bechavior compatible with Ant:
-    # There is one "shorthand": 
+    # Behavior compatible with Ant:
+    # There is one "shorthand":
     # if a pattern ends with / or \, then ** is appended.
     if pattern.endswith('/'):
       pattern = pattern + '**'
-    
+
     DOT = '\\.'
     ONE_CHAR = '.{1,1}'
     ANY_FILE_NAME_CHAR = '[^<>:"/\\|?*]' + '*'
-    
+
     pattern = pattern.replace('.', DOT)
     pattern = pattern.replace('?', ONE_CHAR)
-    
+
     def match(p, s):
       p = '^' + p.replace('*', ANY_FILE_NAME_CHAR) + '$'
       return re.match(p, s) != None
-    
+
     pattDirs = pattern.split('/')
     pathDirs = path.split('/')
-    
-    pattIdxStart = 0;
-    pattIdxEnd = len(pattDirs) - 1;
-    pathIdxStart = 0;
-    pathIdxEnd = len(pathDirs) - 1;
-  
+
+    pattIdxStart = 0
+    pattIdxEnd = len(pattDirs) - 1
+    pathIdxStart = 0
+    pathIdxEnd = len(pathDirs) - 1
+
     # Match all elements up to the first **
     while pattIdxStart <= pattIdxEnd and pathIdxStart <= pathIdxEnd:
-      patDir = pattDirs[pattIdxStart];
+      patDir = pattDirs[pattIdxStart]
       if '**' == patDir:
         break
       if not match(patDir, pathDirs[pathIdxStart]):
         return False
       pattIdxStart += 1
-      pathIdxStart += 1;
-    
-    if (pathIdxStart > pathIdxEnd):
+      pathIdxStart += 1
+
+    if pathIdxStart > pathIdxEnd:
       # Path is exhausted, only match if rest of pattern is * or **'s
       if pattIdxStart > pattIdxEnd:
         return path.endswith('/') if pattern.endswith('/') else not path.endswith('/')
@@ -215,9 +215,9 @@ class Path:
     elif not fullMatch and '**' == pattDirs[pattIdxStart]:
       # Path start definitely matches due to "**" part in pattern.
       return True
-    
+
     # up to last '**'
-    while (pattIdxStart <= pattIdxEnd and pathIdxStart <= pathIdxEnd):
+    while pattIdxStart <= pattIdxEnd and pathIdxStart <= pathIdxEnd:
       patDir = pattDirs[pattIdxEnd]
       if '**' == patDir:
         break
@@ -231,49 +231,49 @@ class Path:
         if not '**' == pattDirs[i]:
           return False
       return True
-    
-    while (pattIdxStart != pattIdxEnd and pathIdxStart <= pathIdxEnd):
+
+    while pattIdxStart != pattIdxEnd and pathIdxStart <= pathIdxEnd:
       patIdxTmp = -1
       for i in range(pattIdxStart + 1, pattIdxEnd + 1):
         if '**' == pattDirs[i]:
           patIdxTmp = i
           break
-      if (patIdxTmp == pattIdxStart + 1):
+      if patIdxTmp == pattIdxStart + 1:
         ## '**/**' situation, so skip one
-        pattIdxStart += 1;
-        continue;
-        
+        pattIdxStart += 1
+        continue
+
       # Find the pattern between padIdxStart & padIdxTmp in str between
       # strIdxStart & strIdxEnd
-      patLength = (patIdxTmp - pattIdxStart - 1);
-      strLength = (pathIdxEnd - pathIdxStart + 1);
-      foundIdx = -1;
+      patLength = (patIdxTmp - pattIdxStart - 1)
+      strLength = (pathIdxEnd - pathIdxStart + 1)
+      foundIdx = -1
 
       for i in range(0, strLength - patLength + 1):
         cont = False
         for j in range(0, patLength):
-          subPat = pattDirs[pattIdxStart + j + 1];
-          subStr = pathDirs[pathIdxStart + i + j];
+          subPat = pattDirs[pattIdxStart + j + 1]
+          subStr = pathDirs[pathIdxStart + i + j]
           if not match(subPat, subStr):
             cont = True
             break
         if cont:
           continue
-        foundIdx = pathIdxStart + i;
+        foundIdx = pathIdxStart + i
         break
 
       if foundIdx == -1:
         return False
 
-      pattIdxStart = patIdxTmp;
-      pathIdxStart = foundIdx + patLength;
+      pattIdxStart = patIdxTmp
+      pathIdxStart = foundIdx + patLength
 
     for i in range(pattIdxStart, pattIdxEnd + 1):
       if not '**' == pattDirs[i]:
         return False
 
     return True
-  
+
   @staticmethod
   def Split(path):
     '''TODO: description'''
@@ -311,7 +311,7 @@ class Path:
       else:
         paths = paths.split(sep)
     elif not isiterable(paths):
-      return [paths] 
+      return [paths]
     return list(paths) # return copy
 
   @staticmethod
@@ -340,9 +340,9 @@ Directories Tools
 '''
 
 def MakeDirs(dirNames):
-  '''Recursive directory creation function. The parameter *dirNames* can be a string 
+  '''Recursive directory creation function. The parameter *dirNames* can be a string
      or a list (or any iterable object type) whose individual elements are strings.
-     For each item works like :py:func:`os.makedirs` but not throwing an exception 
+     For each item works like :py:func:`os.makedirs` but not throwing an exception
      if the leaf directory already exists.
   '''
   for dir_ in Path.AsList(dirNames):
@@ -354,7 +354,7 @@ def MakeDirs(dirNames):
         raise
 
 def RemoveDir(dirName, failOnError = True):
-  '''Removes the directory *dirName*. Works like :py:func:`os.rmdir`. 
+  '''Removes the directory *dirName*. Works like :py:func:`os.rmdir`.
      When *failOnError* is set to `True` is not throwing an exception if the directory not exists.
      When *failOnError* is set to `False` returns `0` when the directory has been removed/not exists
      or :py:data:`os.errno` when an error has occurred.'''
@@ -368,7 +368,7 @@ def RemoveDir(dirName, failOnError = True):
   return 0
 
 def RemoveDirs(dirNames, failOnError = True):
-  '''Removes directories recursively. The parameter *dirNames* can be a string 
+  '''Removes directories recursively. The parameter *dirNames* can be a string
      or a list (or any iterable object type) whose individual elements are strings.
      For each item works like :py:func:`os.removedirs`.
      When *failOnError* is set to `True` is not throwing an exception if the directory not exists.
@@ -389,8 +389,8 @@ File tools
 '''
 
 def Touch(fileName, createIfNotExists = True):
-  '''Changes the time of the file *fileName* to 'now'. 
-     If the file does not exists and *createIfNotExists* 
+  '''Changes the time of the file *fileName* to 'now'.
+     If the file does not exists and *createIfNotExists*
      is set to `True` then creates an empty file.'''
   if os.path.exists(fileName):
     os.utime(fileName, None)
@@ -414,9 +414,9 @@ def SetReadOnly(fileName, v):
       os.chmod(fileName, stat.S_IMODE(st.st_mode) | stat.S_IWRITE)
     else:
       os.chmod(fileName, (stat.S_IMODE(st.st_mode) & ~stat.S_IWRITE) | stat.S_IREAD)
-    
+
 def RemoveFile(fileName, force = False, failOnError = True):
-  '''Removes the file *fileName*. 
+  '''Removes the file *fileName*.
      When *force* is set to `True` then the file is removed, even when it is read-only.
      When *failOnError* is set to `True` is not throwing an exception if the file not exists.
      When *failOnError* is set to `False` returns `0` when the file has been removed/not exists
@@ -446,7 +446,7 @@ def FileSize(fileName):
 
 def CopyFile(fileName, dest, force = False):
   '''Copies the file *fileName* to the file or directory *dest*.
-     If *dest* is a directory, a file with the same basename as 
+     If *dest* is a directory, a file with the same basename as
      *fileName* is created (or overwritten) in the directory specified.
      The parameter *force* allows overwrite files with read-only attribute.
      Uses :py:func:`shutil.copy2`.'''
@@ -456,8 +456,8 @@ def CopyFile(fileName, dest, force = False):
 
 def CopyFileIfDiffrent(fileName, dest, useHash = False, force = False, granularity = 1):
   '''Copies the file *fileName* to the file or directory *dest*
-     only if modification times or SHA1-hashs are different or *dest* not exists. 
-     If *dest* is a directory, a file with the same basename as 
+     only if modification times or SHA1-hashs are different or *dest* not exists.
+     If *dest* is a directory, a file with the same basename as
      *fileName* is created (or overwritten) in the directory specified.
      The parameter *force* allows overwrite files with read-only attribute.
      Uses :py:func:`shutil.copy2`.
@@ -479,6 +479,10 @@ def CopyFileIfDiffrent(fileName, dest, useHash = False, force = False, granulari
   if shouldCopy:
     CopyFile(fileName, dest, force)
   return shouldCopy
+
+def FileTimestamp(fileName):
+  '''Creates timestamp for file *fileName*.'''
+  return os.path.getmtime(fileName)
 
 def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
   '''Creates a hash of the file *fileName* using the selected encryption algorithm.
@@ -520,4 +524,4 @@ def LoadFile(fileName, binary = False):
     rc = f.read()
   finally:
     f.close()
-  return rc  
+  return rc

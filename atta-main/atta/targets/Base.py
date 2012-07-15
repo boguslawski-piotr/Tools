@@ -2,14 +2,13 @@
 import os
 import platform
 
-from ..tools.OS import Path
 from ..Activity import Activity
-from .. import GetProject
+from .. import OS
 
 class Target(Activity):
   '''
   Base class for all targets.
-     
+
   TODO: description
   '''
 
@@ -25,7 +24,7 @@ class Target(Activity):
     if len(self.system) > 0:
       canRun = False
       system = platform.system().lower()
-      tsystem = Path.AsList(self.system, ',')
+      tsystem = OS.Path.AsList(self.system, ',')
       for s in tsystem:
         if s.lower() in system:
           canRun = True
@@ -34,7 +33,7 @@ class Target(Activity):
 
   '''
   Method 'Prepare' maybe defined in a class that inherits from the Target. Then will start.
-  When it returns False, project will not run any targets from 
+  When it returns False, project will not run any targets from
   the section 'dependsOn' as well as the Run method.
   '''
   #def Prepare(self):
@@ -59,9 +58,9 @@ class Target(Activity):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
       self.name = self.name.replace('atta.targets.', '')
-      project = GetProject()
-      if project._parent is None:
-        self.name = self.name.replace(Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
+      project = self.Project()
+      if project and project._parent is None:
+        self.name = self.name.replace(OS.Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
     return self.name
 
   def _RunPrepare(self):

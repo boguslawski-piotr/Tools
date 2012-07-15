@@ -21,10 +21,10 @@ def MyVersion(v, event):
   if event == Version.Events.AfterConfigure:
     if SrcNewerStrategy().RequiresCompile(tmplFileName, javaFileName):
       event = Version.Events.AfterUpdate
-  
+
   if event == Version.Events.SetPostfix or event == Version.Events.AfterUpdate:
-    Filter(tmplFileName, destFile = javaFileName, append = False, 
-           dataFilters = Project.version.ExpandVars, 
+    Filter(tmplFileName, destFile = javaFileName, append = False,
+           dataFilters = Project.version.ExpandVars,
            verbose = True)
     OS.Touch('main.java')
 
@@ -73,7 +73,7 @@ Dependencies
 ------------
 '''
 
-# Below dependencies are mostly not real. 
+# Below dependencies are mostly not real.
 # It's only example of power of Atta.
 
 Project.dependsOn += [{
@@ -94,20 +94,20 @@ Project.dependsOn += [{
                       }]
 
 Project.dependsOn += [{
-                      # Calls Atta project in directory (default: build.py) or with file name specified by: groupId. 
+                      # Calls Atta project in directory (default: build.py) or with file name specified by: groupId.
                       'repository': 'atta.repositories.Project',
                       'groupId'   : '../JavaBasic',
 
-                      # You can set the following items according to the commentary, 
+                      # You can set the following items according to the commentary,
                       # or not set, and then Atta will use the default values.
 
                       # This must be the name or names of the targets separated by spaces.
                       'target'    : 'package', # default: package
 
-                      # This must be name (or list of names) of project property(ies) which may contains: 
+                      # This must be name (or list of names) of project property(ies) which may contains:
                       # string, string path (entries separated by :) or list of strings.
-                      # These values will be used in the parameter '-classpath' passed to javac compiler. 
-                      'resultIn'  : ['packageName', 'javacClassPath'] # default: packageName 
+                      # These values will be used in the parameter '-classpath' passed to javac compiler.
+                      'resultIn'  : ['packageName', 'javacClassPath'] # default: packageName
                       }]
 
 Project.dependsOn += [{
@@ -129,13 +129,7 @@ Project.dependsOn += [{
 Deploy
 '''
 
-from atta.repositories import Styles
-
-class MyStyle(Styles.Flat):
-  def DirName(self, packageId):
-    return '%s' % (str(packageId.version))
-
-Project.deployTo = [
+Project.deployTo += [
 #                    {
 #                     # into ftp repository
 #                     'repository' : 'atta.repositories.Ftp',
@@ -149,12 +143,6 @@ Project.deployTo = [
 #                     # into machine local repository
 #                     'repository' : 'atta.repositories.Local',
 #                    },
-                    {
-                     # into project subdirectory archive
-                     'repository' : 'atta.repositories.Local',
-                     'style'      : MyStyle,
-                     'rootDirName': 'archive',
-                    },
                   ]
 
 '''
@@ -167,7 +155,7 @@ See also example in build2.py.
 
 class deploy(Java.deploy):
   def TagBuild(self, tag):
-    if Project.dvcs != None:
+    if Project.dvcs:
       Project.dvcs.SetTag(tag, replace = True)
 
 class deploy_rc(deploy):

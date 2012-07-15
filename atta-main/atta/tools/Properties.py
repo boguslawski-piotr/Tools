@@ -37,7 +37,7 @@ class Properties:
 
   def Get(self, name, default = None):
     '''
-    Searches for the property with the specified `name`. 
+    Searches for the property with the specified `name`.
     The method returns the `default` value argument if the property is not found.
     '''
     try:
@@ -67,7 +67,7 @@ class Properties:
   def __exit__(self, exc_type, exc_value, traceback):
     return False
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 def mgetattr(moduleName, attrName, default):
   '''TODO: description'''

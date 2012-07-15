@@ -1,12 +1,14 @@
 '''TODO: description'''
+import os
 
 from .tools.Misc import isiterable
-from . import Dict, LogLevel, Atta
+from .Env import Env
+from . import Dict, LogLevel, Atta, GetProject
 
 class Activity:
   '''
   Base class for all targets, tasks and other executive classes.
-     
+
   TODO: description
   '''
   def LogLevel(self):
@@ -17,6 +19,16 @@ class Activity:
 
   def LogIterable(self, msg, iterable, **args):
     self._LogIterable(msg, iterable, **args)
+
+  def Project(self):
+    return GetProject()
+
+  def Env(self):
+    if not self.Project():
+      env = Env(os.environ)
+    else:
+      env = self.Project().env
+    return env
 
   '''private section'''
 
@@ -44,4 +56,3 @@ class Activity:
           else:
             self.Log('{0}: {1}'.format(name, value))
       self.Log('')
-

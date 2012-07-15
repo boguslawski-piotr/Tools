@@ -7,7 +7,6 @@ from ..tasks.Exec import Exec
 from ..tools import OS
 from .. import LogLevel
 from .. import Dict
-from .. import GetProject
 from .Interfaces import IJavaCompiler
 
 class JavaStdCompiler(IJavaCompiler, Task):
@@ -21,20 +20,20 @@ class JavaStdCompiler(IJavaCompiler, Task):
   def Compile(self, srcFileNames, destDirName, **tparams):
     '''
     TODO: description
-    
+
     Parameters:
-    
+
     * **srcFiles** TODO
     * **destDirName** (string)
     * **debug**
     * **debugLevel** (stirng)
     * **cParams**    The parameters passed directly to the compiler. (string or list of strings) |None|
-      
+
     Common parameters from :py:class:`.Exec` task are also available.
-    
-    Returns exit code returned by executed ``javac`` command. 
+
+    Returns exit code returned by executed ``javac`` command.
     the same data as :py:class:`.Exec` task.
-     
+
     '''
     # Prepare command line for java compiler.
     params = OS.Path.AsList(tparams.get('cParams', []), ' ')
@@ -74,19 +73,19 @@ class JavaStdCompiler(IJavaCompiler, Task):
       else:
         argfile.write(p + '\n')
     argfile.close()
-      
+
     # Compile.
     e = Exec(self.GetExecutable(**tparams), cparams, **tparams)
     self.returnCode = e.returnCode
     self.output = e.output
-    
+
     OS.RemoveFile(argfile.name, True, False)
     return self.returnCode
 
   def GetExecutable(self, **tparams):
     '''TODO: description'''
-    javaHome = GetProject().env.get(Dict.JAVA_HOME)
-    if javaHome is not None:
-      return os.path.normpath(os.path.join(javaHome, Dict.JAVAC_EXE_IN_JAVA_HOME))
-    return Dict.JAVAC_EXE
-
+    JAVA_HOME = self.Env().get(Dict.JAVA_HOME)
+    if JAVA_HOME:
+      return os.path.normpath(os.path.join(JAVA_HOME, Dict.JAVAC_EXE_IN_JAVA_HOME))
+    executable = self.Env().which(Dict.JAVAC_EXE_IN_PATH)
+    return executable if executable else Dict.JAVAC_EXE

@@ -6,7 +6,7 @@ import os
 import stat
 
 from ..repositories.Package import PackageId
-from ..repositories import Styles
+from ..repositories import Styles, Maven
 from .. import Dict
 
 from atta import *
@@ -22,6 +22,8 @@ class Setup:
     '''TODO: description'''
     project = GetProject()
 
+    # Java target settings.
+
     if not hasattr(project, 'groupId'):
       project.groupId = project.name
 
@@ -29,6 +31,9 @@ class Setup:
     '''TODO: description
     available values: see ProjectType
     '''
+
+    project.defaultRepository = tparams.get('defaultRepository', Maven)
+    '''TODO: description, def repo for dependencies'''
 
     project.srcBaseDir = tparams.get('srcBaseDir', 'src')
     '''TODO: description'''
@@ -41,6 +46,9 @@ class Setup:
     else:
       defInstallBaseDir = 'lib'
     project.installBaseDir = tparams.get('installBaseDir', defInstallBaseDir)
+    '''TODO: description'''
+
+    project.archiveBaseDir = tparams.get('archiveBaseDir', 'archive')
     '''TODO: description'''
 
 
@@ -88,7 +96,7 @@ class Setup:
     '''TODO: description'''
 
 
-    project.javaMainClass = tparams.get('mainClass', 'main')
+    project.javaMainClass = tparams.get('mainClass', project.name)
     '''TODO: description'''
 
 
@@ -102,10 +110,20 @@ class Setup:
     '''TODO: description'''
 
 
+    project.deployTo += [
+      {
+        # Into project subdirectory.
+        'repository' : 'atta.repositories.Local',
+        'style'      : Styles.ByVersion,
+        'rootDirName': project.archiveBaseDir,
+      },
+    ]
+    '''TODO: description'''
+
     project.deployedFiles = []
     '''TODO: description'''
 
-    # internal settings
+    # Internal settings.
 
     project.defaultTarget = 'help'
 
@@ -117,12 +135,12 @@ class Setup:
     project.targetsMap['clean'] = 'atta.targets.Java.clean'
     project.targetsMap['help'] = 'atta.targets.Java.help'
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 def ResolveDependencies(scope):
   '''TODO: description'''
   project = GetProject()
-  files, packages = project.ResolveDependencies(scope = scope, returnPackages = True)
+  files, packages = project.ResolveDependencies(scope = scope, returnPackages = True, defaultRepository = project.defaultRepository)
 
   result = []
   if files is not None:
@@ -139,7 +157,7 @@ def ResolveDependencies(scope):
 
   return result
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class prepare(Target):
   '''TODO: description'''
@@ -161,7 +179,7 @@ class prepare(Target):
         Echo('  ' + os.path.normpath(classDir))
       OS.MakeDirs(project.classDirs)
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class compile(Target):
   '''TODO: description'''
@@ -200,13 +218,13 @@ class compile(Target):
   def JavacTaskParams(self):
     '''Additional parameters for Javac task. It must be a dictionary.'''
     return {}
-    
+
   def JavaCompilerParams(self):
-    '''Additional parameters for Java compiler. 
+    '''Additional parameters for Java compiler.
        Passed as cParams to :py:meth:`.IJavaCompiler.Compile` method.'''
     return ['-deprecation', '-Xlint']
-  
-#------------------------------------------------------------------------------ 
+
+#------------------------------------------------------------------------------
 
 class package(Target):
   '''TODO: description'''
@@ -242,7 +260,7 @@ class package(Target):
     packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
     return project.packageNameStyle().FileName(packageId)
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class install(Target):
   '''TODO: Buduje caly projekt i umieszcza wszystko co potrzebne do jego uruchomienia w bin (default)'''
@@ -381,7 +399,11 @@ class install(Target):
   def GetPOMTmplFileName(self):
     return Atta.dirName + '/atta/templates/JavaPOM.tmpl'
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
+
+# TODO: run target (dependsOn install)
+
+#------------------------------------------------------------------------------
 
 class deploy(Target):
   '''Workflow:
@@ -405,12 +427,12 @@ class deploy(Target):
   def UpdateSources(self):
     '''Updates working directory from DVCS'''
     project = GetProject()
-    if project.dvcs == None:
+    if not project.dvcs:
       return
     self.CheckWorkingDirectory()
     revision = self.GetRevision()
     project.dvcs.UpdateWorkingDirectory(revision)
-    if revision != None:
+    if revision:
       self.CheckWorkingDirectory()
 
   def CheckWorkingDirectory(self):
@@ -437,13 +459,13 @@ class deploy(Target):
     self.Commit(self.GetCommitMessage(), self.GetCommitAuthor())
 
   def GetBuildTag(self):
-    return str(GetProject().version)
+    return OS.Path.RemoveExt(os.path.basename(GetProject().packageName)).replace(' ', '_')
 
   def TagBuild(self, tag):
     ''''''
     if len(tag) > 0:
       project = GetProject()
-      if project.dvcs != None:
+      if project.dvcs:
         project.dvcs.SetTag(tag)
 
   def NextVersion(self):
@@ -464,15 +486,22 @@ class deploy(Target):
   def Finalize(self):
     GetProject().RunTarget('clean', force = True)
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
+
+# TODO: zrobic porzadnie dla major, minor i patch
+class nextMinorVersion(Target):
+  def Run(self):
+    pass
+
+#------------------------------------------------------------------------------
 
 class clean(Target):
   '''TODO: description'''
   def Run(self):
     project = GetProject()
-    Delete([project.buildBaseDir, project.installBaseDir], force = True)
+    Delete([project.buildBaseDir, project.installBaseDir, '**/*.py?'], force = True)
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class help(Target):
   '''TODO: description'''

@@ -2,14 +2,14 @@
 import os
 
 from ..loggers import Compact
-from .. import Atta, AttaError, GetProject, LogLevel, Dict, OS, Task
+from .. import Atta, AttaError, LogLevel, Dict, OS, Task
 from . import Local
 
 class Repository(Local.Repository):
   '''TODO: description'''
 
   def vPrepareFileName(self, fileName):
-    return os.path.normpath(os.path.join(GetProject().dirName, fileName))
+    return os.path.normpath(os.path.join(self.Project().dirName, fileName))
 
   def Get(self, packageId, scope, store = None):
     if packageId.groupId is None:
@@ -40,10 +40,10 @@ class Repository(Local.Repository):
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
 
-        project = GetProject().RunProject(GetProject().env, projectTmpName, targetNames)
+        project = self.Project().RunProject(self.Project().env, projectTmpName, targetNames)
 
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
-        self.Log('Back in: %s' % (GetProject().fileName), level = LogLevel.VERBOSE)
+        self.Log('Back in: %s' % (self.Project().fileName), level = LogLevel.VERBOSE)
 
         # Collect produced file(s).
         result = []

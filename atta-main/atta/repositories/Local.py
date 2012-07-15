@@ -26,7 +26,7 @@ class Repository(ARepository, Task):
     return os.path.exists(fileName)
 
   def vFileTime(self, fileName):
-    '''Returns the modification time of file `fileName` 
+    '''Returns the modification time of file `fileName`
        or 'None' if the modification time is unavailable.'''
     return os.path.getmtime(fileName)
 
@@ -216,15 +216,15 @@ class Repository(ARepository, Task):
     if storedTimestamp is None:
       return None
 
-    # If the given timestamp isn't equal to the local file timestamp 
-    # (stored with the file: see Put method) then return None. 
+    # If the given timestamp isn't equal to the local file timestamp
+    # (stored with the file: see Put method) then return None.
     if packageId.timestamp is not None:
       if str(packageId.timestamp) != str(storedTimestamp):
         return None
       else:
         self.vTouch(fileName)
 
-    # If the local file was stored earlier (modification time) 
+    # If the local file was stored earlier (modification time)
     # than _LifeTime then return None.
     def _LifeTime():
       return timedelta(days = 14)
@@ -306,4 +306,3 @@ class Repository(ARepository, Task):
 
   def _InfoExt(self):
     return '.info'
-

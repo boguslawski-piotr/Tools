@@ -24,6 +24,8 @@ __all__ = [
            'Xml',
            'XmlElement',
 
+           'PackageId',
+
            # Tasks
            'Echo',
            'Delete',
@@ -61,7 +63,7 @@ class AttaError(RuntimeError):
 
 class Atta:
   '''
-  Provides basic information about Atta. 
+  Provides basic information about Atta.
   Also provides a few simple tools.
   '''
   name = 'Atta'
@@ -104,7 +106,7 @@ class Atta:
   def VarsExpander():
     '''TODO: description'''
     return Atta._varsExpander
-  
+
   @staticmethod
   def ExpandVars(data, **tparams):
     '''TODO: description'''
@@ -121,15 +123,15 @@ class Atta:
   def _SetProps(props):
     Atta._props = props
 
-# Project property 
+# Project property
 
 Project = None
 '''Provides access to data and general tools for the entire project.
-   Use it ONLY during the phase of interpreting the main build script.  
+   Use it ONLY during the phase of interpreting the main build script.
    Property Project is an instance of the class :py:class:`atta.Project`.'''
 
 def GetProject():
-  '''Provides access to data and general tools for the entire project. 
+  '''Provides access to data and general tools for the entire project.
      Returns an instance of the class :py:class:`atta.Project`.'''
   return Project
 
@@ -137,7 +139,7 @@ def _SetProject(project):
   global Project
   Project = project
 
-# File property 
+# File property
 
 class File:
   '''Describes currently interpreted build script.'''
@@ -145,9 +147,9 @@ class File:
   name = ''
   '''
   Full file name.
-  
-  Property File.name is available only during 
-  the phase of interpreting the build script. 
+
+  Property File.name is available only during
+  the phase of interpreting the build script.
   NOT when Atta performing targets & tasks.
   '''
 
@@ -171,6 +173,8 @@ from .tools.Properties import Properties
 from .tools import OS as OS
 from .tools.Ver import Version
 from .tools.Xml import Xml, XmlElement
+
+from .repositories.Package import PackageId
 
 # Base classes
 

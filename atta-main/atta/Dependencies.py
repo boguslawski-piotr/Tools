@@ -4,23 +4,26 @@ import sys
 from .tools.Misc import RemoveDuplicates
 from .repositories.Package import PackageId
 from .repositories import ArtifactNotFoundError
-from . import Dict
+from . import Dict, AttaError
 
 class Resolver:
   '''TODO: description'''
   def __init__(self):
     self.Clear()
 
-  def Resolve(self, data, scope = Dict.Scopes.compile):
+  def Resolve(self, data, scope = Dict.Scopes.compile, defaultRepository = None):
     rc = False
     for e in data:
       if Dict.dependsOn in e:
         # Recursively resolve the dependencies.
-        self.Resolve(e[Dict.dependsOn], scope)
+        self.Resolve(e[Dict.dependsOn], scope, defaultRepository)
 
       repositoryName = e.get(Dict.repository)
-      if repositoryName is None:
-        continue
+      if not repositoryName:
+        if not defaultRepository:
+          raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
+        if not isinstance(defaultRepository, basestring):
+          repositoryName = defaultRepository.__name__
 
       packageScope = e.get(Dict.scope, Dict.Scopes.compile)
       if packageScope != scope:
@@ -40,7 +43,7 @@ class Resolver:
 
       store = None
       storeName = e.get(Dict.putIn)
-      if storeName is not None:
+      if storeName:
         storeData = None
         if isinstance(storeName, dict):
           storeData = storeName
@@ -52,11 +55,11 @@ class Resolver:
         result = repository.Get(packageId, scope, store)
       except ArtifactNotFoundError:
         if Dict.ifNotExists in e:
-          rc = self.Resolve(e[Dict.ifNotExists])
+          rc = self.Resolve(e[Dict.ifNotExists], scope, defaultRepository)
         else:
           raise
       else:
-        if result is not None and len(result) > 0:
+        if result:
           self.result += result
           if not Dict.scope in dir(packageId):
             packageId.scope = scope
@@ -64,7 +67,7 @@ class Resolver:
           rc = True
         else:
           if Dict.ifNotExists in e:
-            rc = self.Resolve(e[Dict.ifNotExists])
+            rc = self.Resolve(e[Dict.ifNotExists], scope, defaultRepository)
       finally:
         repository = None
 
