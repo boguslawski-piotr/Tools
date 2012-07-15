@@ -1,4 +1,4 @@
-'''Xml tool tests.'''
+"""Xml tool tests."""
 
 from atta import *
 
@@ -58,8 +58,8 @@ def test():
       ssn1
       </ns2:subsubnode>
     </subnode>
-  </node>  
-</xml>  
+  </node>
+</xml>
 '''
   xml = Xml(xmldata)
   printv(xml, 'node')

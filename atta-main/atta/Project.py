@@ -1,4 +1,4 @@
-'''TODO: description'''
+"""TODO: description"""
 import sys
 import os
 import types
@@ -9,11 +9,11 @@ from . import AttaError, Atta, File, GetProject, _SetProject
 import atta
 
 class Project:
-  '''
+  """
   Project class
 
   TODO: description
-  '''
+  """
   SUCCESSFUL = 0
   FAILED = 1
 
@@ -73,7 +73,7 @@ class Project:
     self._parent = parent
 
   def Import(self, fileName):
-    '''TODO: description'''
+    """TODO: description"""
     moduleName = None
     module = None
     try:
@@ -143,7 +143,7 @@ class Project:
     return (moduleName, module)
 
   def ResolveDependencies(self, data = None, scope = Dict.Scopes.compile, returnPackages = True, defaultRepository = None):
-    '''TODO: description'''
+    """TODO: description"""
     resolver = Dependencies.Resolver()
     if resolver.Resolve(self.dependsOn if data is None else data, scope, defaultRepository):
       return resolver.Result() if not returnPackages else (resolver.Result(), resolver.ResultPackages())
@@ -151,7 +151,7 @@ class Project:
       return None if not returnPackages else (None, None)
 
   def GetTarget(self, targetClass):
-    '''TODO: description'''
+    """TODO: description"""
     targetClass = self._GetTargetClass(targetClass)
     if types.FunctionType == type(targetClass):
       return targetClass
@@ -159,7 +159,7 @@ class Project:
     return target
 
   def RunTarget(self, targetClass, force = False):
-    '''TODO: description'''
+    """TODO: description"""
     targetClass = self._GetTargetClass(targetClass)
     if force or not self._executedTargets.has_key(targetClass):
       if types.FunctionType == type(targetClass):
@@ -191,7 +191,7 @@ class Project:
     return None
 
   def RunProject(self, environ, fileName, targets = None):
-    '''TODO: description'''
+    """TODO: description"""
     project = Project(self)
     if environ is None:
       environ = self.env
@@ -199,11 +199,11 @@ class Project:
     return project
 
   def CreatePackageId(self):
-    '''TODO: description'''
+    """TODO: description"""
     return PackageId(self.groupId, self.name, str(self.version), self.type)
 
   def Deploy(self, packageId, files, baseDirName = '.', data = None):
-    '''TODO: description'''
+    """TODO: description"""
     deployer = Deploy.Deployer()
     return deployer.Deploy(packageId, files, baseDirName, self.deployTo if data is None else data)
 

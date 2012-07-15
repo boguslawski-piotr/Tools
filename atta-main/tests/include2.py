@@ -1,4 +1,4 @@
-'''Includes test.'''
+"""Includes test."""
 
 from atta import *
 

@@ -1,31 +1,31 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 import sys
 import re
 
 class Expander:
   def Expand(self, txt, **tparams):
-    '''
+    """
     Expand Ant like variables in given text.
-    
+
     TODO: description
     If you use ``\${var}`` then result will be ``${var}``.
-    Trying expanding 'var' will not be made. 
-    
+    Trying expanding 'var' will not be made.
+
     Example:
-    
+
     .. code-block:: python
-    
+
       >>> funny = 'funny'
       >>> txt = 'The Atta is ${what} and ${__main__.funny}.'
       >>> txt = Expand(txt, what = 'cool')
       >>> print(txt)
       The Atta is cool and funny.
-      
+
     .. todo::
-    
+
       - add posibility to expand environment variables (przekazac env do tej funkcji)
       - write it from scratch and better
-    '''
+    """
     # Expand variables except those that begin at the character '\'.
     escape = r'(^|[^\\])'
     vpattern = self.VariablePattern()

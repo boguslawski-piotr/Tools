@@ -1,4 +1,4 @@
-'''PyExec task tests.'''
+"""PyExec task tests."""
 
 from atta import *
 
@@ -11,12 +11,12 @@ def test():
   v.NextBuild(True)
   Echo('NextBuild:' + str(v))
   v.NextPatch(True)
-  Echo('NextPatch:' + str(v))  
+  Echo('NextPatch:' + str(v))
   v.NextMinor(True)
-  Echo('NextMinor:' + str(v))  
+  Echo('NextMinor:' + str(v))
   v.NextMajor(True)
   Echo('NextMajor:' + str(v))
-  
+
   # New file.
   Echo()
   v = Version(fileName = 'test_ver.log')
@@ -29,14 +29,13 @@ def test():
 Line 1
   Line 2
     Line 3
-      Line 4      ''', 
+      Line 4      ''',
     file = 'test_ver.info', force = True)
   Echo()
 
   def VObserver(v, event):
     Echo('%s sent event: %d' % (v.fileName, event))
-  
+
   v = Version(fileName = 'test_ver.info', observers = [VObserver])
   Echo(v)
   v.NextMajor(True)
-  

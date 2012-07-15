@@ -1,4 +1,4 @@
-'''.. Java related: TODO: java'''
+""".. Java related: TODO: java"""
 import os
 
 from ..tools.ZipFile import ZipFile
@@ -6,26 +6,26 @@ from .. import Dict, LogLevel, Zip
 from .. import Atta
 
 class Jar(Zip):
-  '''
+  """
     TODO: description
 
     Parameters:
-    
+
     * **fileName** (string) TODO
-    
-    * **srcs**              TODO 
+
+    * **srcs**              TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
       also FileSet or DirSet alone
-      
+
     * **manifest**          TODO (dict or string (fileName) or file-like object)
 
     * **checkCRC**          TODO
-    
+
     Returns: TODO
-    
+
     **Methods:**
-  '''
+  """
   def __init__(self, fileName, srcs, manifest = {}, **tparams):
     self._DumpParams(locals())
 
@@ -53,7 +53,7 @@ class Jar(Zip):
         zipFile.writestr(manifestFileName, manifestStr)
 
   def ManifestAsStr(self, manifest = {}, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     # TODO: obsluzyc gdy manifest: string (fileName), file-like object
     manifestStr = Dict.basicManifest % (Atta.name, Atta.version)
     for name, value in manifest.items():

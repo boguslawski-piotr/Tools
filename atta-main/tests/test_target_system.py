@@ -1,4 +1,4 @@
-'''Target.system tests.'''
+"""Target.system tests."""
 
 from atta import *
 

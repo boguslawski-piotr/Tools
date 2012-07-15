@@ -1,9 +1,9 @@
-'''TODO: description'''
+"""TODO: description"""
 
 from .tools import OS
 
 class Scopes:
-  '''TODO: description'''
+  """TODO: description"""
   compile = 'compile'
   testcompile = 'testcompile'
   install = 'install'

@@ -1,4 +1,4 @@
-'''.. Local: TODO'''
+""".. Local: TODO"""
 import os
 import hashlib
 from datetime import datetime, timedelta
@@ -17,7 +17,7 @@ def GetPOMFileContents(packageId):
   pass
 
 class Repository(ARepository, Task):
-  '''TODO: description'''
+  """TODO: description"""
 
   def vMakeDirs(self, dirName):
     OS.MakeDirs(dirName)
@@ -26,16 +26,16 @@ class Repository(ARepository, Task):
     return os.path.exists(fileName)
 
   def vFileTime(self, fileName):
-    '''Returns the modification time of file `fileName`
-       or 'None' if the modification time is unavailable.'''
+    """Returns the modification time of file `fileName`
+       or 'None' if the modification time is unavailable."""
     return os.path.getmtime(fileName)
 
   def vTouch(self, fileName):
-    '''Sets the current modification time for file `fileName`.'''
+    """Sets the current modification time for file `fileName`."""
     os.utime(fileName, None) # equivalent: touch
 
   def vGetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
-    '''Returns contents of the file `fileName`.'''
+    """Returns contents of the file `fileName`."""
     self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
     f = open(fileName, 'rb')
     try:
@@ -69,12 +69,12 @@ class Repository(ARepository, Task):
       f.close()
 
   def PrepareMarkerFileName(self, fileName):
-    '''TODO: description'''
+    """TODO: description"""
     dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
     return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
 
   def GetFileMarker(self, fileName):
-    '''TODO: description'''
+    """TODO: description"""
     try:
       markerFileName = self.PrepareMarkerFileName(fileName)
       contents = self.vGetFileContents(markerFileName)
@@ -91,7 +91,7 @@ class Repository(ARepository, Task):
       return (timestamp, sha1)
 
   def PutMarkerFile(self, fileName, fileSha1, packageId):
-    '''TODO: description'''
+    """TODO: description"""
     markerFileName = self.PrepareMarkerFileName(fileName)
     dirName = os.path.dirname(markerFileName)
     if not self.vFileExists(dirName):
@@ -99,7 +99,7 @@ class Repository(ARepository, Task):
     self.vPutFileContents(str(packageId.timestamp) + '\n' + str(fileSha1), markerFileName)
 
   def PrepareInfoFileName(self, fileName):
-    '''TODO: description'''
+    """TODO: description"""
     return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
 
   def GetInfoFile(self, fileName):
@@ -130,11 +130,11 @@ class Repository(ARepository, Task):
     return pom
 
   def vPrepareFileName(self, fileName):
-    '''TODO: description'''
+    """TODO: description"""
     return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
 
   def PrepareFileName(self, packageId, rootDirName = None):
-    '''TODO: description'''
+    """TODO: description"""
     if rootDirName is None:
       fileName = os.path.join('.repository', self._styleImpl.GetObject().FullFileName(packageId))
       return self.vPrepareFileName(fileName)
@@ -152,7 +152,7 @@ class Repository(ARepository, Task):
     return result
 
   def _Get(self, packageId, scope, store, resolvedPackages):
-    '''TODO: description'''
+    """TODO: description"""
     '''returns: list of filesNames'''
     # Get the dependencies.
     additionalFiles = []
@@ -205,7 +205,7 @@ class Repository(ARepository, Task):
 
   # TODO: uzyc wzorca Strategy do implementacji Check
   def _Check(self, packageId, scope, checkedPackages):
-    '''returns: None or list of filesNames'''
+    """returns: None or list of filesNames"""
     self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.VERBOSE)
 
     fileName = self.PrepareFileName(packageId, self._RootDirName())
@@ -255,7 +255,7 @@ class Repository(ARepository, Task):
     return self._Check(packageId, scope, [])
 
   def Put(self, f, fBaseDirName, packageId):
-    '''returns: list of filesNames'''
+    """returns: list of filesNames"""
     self.Log('Takes: %s' % packageId.AsStrWithoutType(), level = LogLevel.INFO)
 
     fileName = self.PrepareFileName(packageId, self._RootDirName())

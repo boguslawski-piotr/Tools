@@ -1,4 +1,4 @@
-'''.. Files, directories: Various other TODO: '''
+""".. Files, directories: Various other TODO: """
 import os
 import hashlib
 import re
@@ -13,7 +13,7 @@ Common Tools
 '''
 
 def IsWindows():
-  '''Returns `True` if the code is executed in Windows.'''
+  """Returns `True` if the code is executed in Windows."""
   return platform.system() == 'Windows'
 
 '''
@@ -21,10 +21,10 @@ Path Tools
 '''
 
 class Path:
-  '''TODO: description'''
+  """TODO: description"""
   @staticmethod
   def Ext(fileName, lowerCase = True):
-    '''Returns the *fileName* extension without . (dot) or empty string.'''
+    """Returns the *fileName* extension without . (dot) or empty string."""
     if fileName.rfind('.') < 0:
       return ''
     fileNameSplited = fileName.split('.')
@@ -34,7 +34,7 @@ class Path:
 
   @staticmethod
   def RemoveExt(fileName):
-    '''Returns the *fileName* without extension (the part after . (dot)).'''
+    """Returns the *fileName* without extension (the part after . (dot))."""
     d = fileName.rfind('.')
     s = fileName.rfind('/')
     if s < 0:
@@ -43,24 +43,24 @@ class Path:
 
   @staticmethod
   def JoinExt(fileName, ext):
-    '''TODO: description'''
+    """TODO: description"""
     if not ext.startswith('.'):
       ext = '.' + ext
     return fileName + ext
 
   @staticmethod
   def HasWildcards(path):
-    '''Tests whether or not a *path* include wildcard characters (\?, \*).'''
+    """Tests whether or not a *path* include wildcard characters (\?, \*)."""
     return re.search('(\?|\*)+', path) != None
 
   @staticmethod
   def HasAntStyleWildcards(path):
-    '''Tests whether or not a *path* include Ant-style wildcard characters (\*\*).'''
+    """Tests whether or not a *path* include Ant-style wildcard characters (\*\*)."""
     return path.find('**') >= 0
 
   @staticmethod
   def Match(pattern, path, useRegExp = False, fullMatch = True):
-    '''
+    """
     Tests whether or not a *path* matches against a *pattern*.
     The *path* is always converted to Unix style with ``/``
     as separator even on Windows.
@@ -126,7 +126,7 @@ class Path:
 
       and so on.
 
-    '''
+    """
     path = path.replace('\\', '/')
     if useRegExp:
       if isinstance(pattern, basestring):
@@ -276,7 +276,7 @@ class Path:
 
   @staticmethod
   def Split(path):
-    '''TODO: description'''
+    """TODO: description"""
     l, r = os.path.split(path)
     if l.endswith('**'):
       l = l[:-2]
@@ -285,13 +285,13 @@ class Path:
 
   @staticmethod
   def NormUnix(path):
-    '''TODO: description'''
+    """TODO: description"""
     path = os.path.normpath(path).replace('\\', '/')
     return path
 
   @staticmethod
   def AsList(paths, sep = ':'):
-    '''TODO: description'''
+    """TODO: description"""
     if paths == None:
       return []
     from .Misc import isiterable
@@ -316,7 +316,7 @@ class Path:
 
   @staticmethod
   def FromList(iterable):
-    '''TODO: description'''
+    """TODO: description"""
     from .Misc import isiterable
     if not isiterable(iterable):
       return iterable
@@ -324,7 +324,7 @@ class Path:
 
   @staticmethod
   def TempName(dirName, ext):
-    '''TODO: description'''
+    """TODO: description"""
     if len(ext) > 0 and not ext.startswith('.'):
       ext = '.' + ext
     for i in xrange(0, 100):
@@ -340,11 +340,11 @@ Directories Tools
 '''
 
 def MakeDirs(dirNames):
-  '''Recursive directory creation function. The parameter *dirNames* can be a string
+  """Recursive directory creation function. The parameter *dirNames* can be a string
      or a list (or any iterable object type) whose individual elements are strings.
      For each item works like :py:func:`os.makedirs` but not throwing an exception
      if the leaf directory already exists.
-  '''
+  """
   for dir_ in Path.AsList(dirNames):
     try:
       if dir_:
@@ -354,10 +354,10 @@ def MakeDirs(dirNames):
         raise
 
 def RemoveDir(dirName, failOnError = True):
-  '''Removes the directory *dirName*. Works like :py:func:`os.rmdir`.
+  """Removes the directory *dirName*. Works like :py:func:`os.rmdir`.
      When *failOnError* is set to `True` is not throwing an exception if the directory not exists.
      When *failOnError* is set to `False` returns `0` when the directory has been removed/not exists
-     or :py:data:`os.errno` when an error has occurred.'''
+     or :py:data:`os.errno` when an error has occurred."""
   try:
     if dirName:
       os.rmdir(dirName)
@@ -368,12 +368,12 @@ def RemoveDir(dirName, failOnError = True):
   return 0
 
 def RemoveDirs(dirNames, failOnError = True):
-  '''Removes directories recursively. The parameter *dirNames* can be a string
+  """Removes directories recursively. The parameter *dirNames* can be a string
      or a list (or any iterable object type) whose individual elements are strings.
      For each item works like :py:func:`os.removedirs`.
      When *failOnError* is set to `True` is not throwing an exception if the directory not exists.
      When *failOnError* is set to `False` returns `0` when the directory has been removed/not exists
-     or :py:data:`os.errno` when an error has occurred.'''
+     or :py:data:`os.errno` when an error has occurred."""
   for dn in Path.AsList(dirNames):
     try:
       if dn:
@@ -389,9 +389,9 @@ File tools
 '''
 
 def Touch(fileName, createIfNotExists = True):
-  '''Changes the time of the file *fileName* to 'now'.
+  """Changes the time of the file *fileName* to 'now'.
      If the file does not exists and *createIfNotExists*
-     is set to `True` then creates an empty file.'''
+     is set to `True` then creates an empty file."""
   if os.path.exists(fileName):
     os.utime(fileName, None)
   elif createIfNotExists:
@@ -399,15 +399,15 @@ def Touch(fileName, createIfNotExists = True):
       pass
 
 def IsReadOnly(fileName):
-  '''Checks if the file *fileName* is read-only.'''
+  """Checks if the file *fileName* is read-only."""
   if os.path.exists(fileName):
     st = os.stat(fileName)
     return stat.S_IMODE(st.st_mode) & (stat.S_IREAD | stat.S_IWRITE) != (stat.S_IREAD | stat.S_IWRITE)
   return False
 
 def SetReadOnly(fileName, v):
-  '''Sets (if *v* is `True`) or unsets (if *v* is `False`) read-only flag for file *fileName*.
-     Not throwing an exception if the file not exists.'''
+  """Sets (if *v* is `True`) or unsets (if *v* is `False`) read-only flag for file *fileName*.
+     Not throwing an exception if the file not exists."""
   if os.path.exists(fileName):
     st = os.stat(fileName)
     if not v:
@@ -416,11 +416,11 @@ def SetReadOnly(fileName, v):
       os.chmod(fileName, (stat.S_IMODE(st.st_mode) & ~stat.S_IWRITE) | stat.S_IREAD)
 
 def RemoveFile(fileName, force = False, failOnError = True):
-  '''Removes the file *fileName*.
+  """Removes the file *fileName*.
      When *force* is set to `True` then the file is removed, even when it is read-only.
      When *failOnError* is set to `True` is not throwing an exception if the file not exists.
      When *failOnError* is set to `False` returns `0` when the file has been removed/not exists
-     or :py:data:`os.errno` when an error has occurred.'''
+     or :py:data:`os.errno` when an error has occurred."""
   # TODO: if error retry once
   try:
     if force:
@@ -437,7 +437,7 @@ INVALID_FILE_SIZE = -1
 '''Constant meaning incorrect file size (usually this means an error while attempting to read file size).'''
 
 def FileSize(fileName):
-  '''Returns the file *fileName* size or INAVLID_FILE_SIZE on any error.'''
+  """Returns the file *fileName* size or INAVLID_FILE_SIZE on any error."""
   try:
     info = os.stat(fileName)
   except:
@@ -445,24 +445,24 @@ def FileSize(fileName):
   return info.st_size
 
 def CopyFile(fileName, dest, force = False):
-  '''Copies the file *fileName* to the file or directory *dest*.
+  """Copies the file *fileName* to the file or directory *dest*.
      If *dest* is a directory, a file with the same basename as
      *fileName* is created (or overwritten) in the directory specified.
      The parameter *force* allows overwrite files with read-only attribute.
-     Uses :py:func:`shutil.copy2`.'''
+     Uses :py:func:`shutil.copy2`."""
   if force and not os.path.isdir(dest):
     SetReadOnly(dest, False)
   shutil.copy2(fileName, dest)
 
 def CopyFileIfDiffrent(fileName, dest, useHash = False, force = False, granularity = 1):
-  '''Copies the file *fileName* to the file or directory *dest*
+  """Copies the file *fileName* to the file or directory *dest*
      only if modification times or SHA1-hashs are different or *dest* not exists.
      If *dest* is a directory, a file with the same basename as
      *fileName* is created (or overwritten) in the directory specified.
      The parameter *force* allows overwrite files with read-only attribute.
      Uses :py:func:`shutil.copy2`.
      Returns True if file was copied.
-  '''
+  """
   shouldCopy = True
   if os.path.exists(fileName):
     if os.path.isdir(dest):
@@ -481,14 +481,14 @@ def CopyFileIfDiffrent(fileName, dest, useHash = False, force = False, granulari
   return shouldCopy
 
 def FileTimestamp(fileName):
-  '''Creates timestamp for file *fileName*.'''
+  """Creates timestamp for file *fileName*."""
   return os.path.getmtime(fileName)
 
 def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
-  '''Creates a hash of the file *fileName* using the selected encryption algorithm.
+  """Creates a hash of the file *fileName* using the selected encryption algorithm.
      Returns file hash as a string (hexdigest) or `None` on error.
      More information about the available algorithms can be found in :py:mod:`hashlib`.
-  '''
+  """
   try:
     with open(fileName, 'rb') as f:
       for chunk in iter(lambda: f.read(chunkSize), b''):
@@ -498,9 +498,9 @@ def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
   return algo.hexdigest()
 
 def FileCRCn(fileName, chunkSize = 32768):
-  '''Creates a CRC of the file *fileName*.
+  """Creates a CRC of the file *fileName*.
      Returns CRC as a int (32bits) or `None` on error.
-  '''
+  """
   import zlib
   prev = 0
   try:
@@ -512,13 +512,13 @@ def FileCRCn(fileName, chunkSize = 32768):
   return prev & 0xFFFFFFFF
 
 def FileCRC(fileName, chunkSize = 32768):
-  '''Creates a CRC of the file *fileName*.
+  """Creates a CRC of the file *fileName*.
      Returns CRC as a string or `None` on error.
-  '''
+  """
   return "{:08x}".format(FileCRCn(fileName, chunkSize))
 
 def LoadFile(fileName, binary = False):
-  '''Loads file *fileName* into memory buffer.'''
+  """Loads file *fileName* into memory buffer."""
   f = open(fileName, 'r' + ('b' if binary else ''))
   try:
     rc = f.read()

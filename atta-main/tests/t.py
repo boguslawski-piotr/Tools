@@ -1,4 +1,4 @@
-'''Some tests.'''
+"""Some tests."""
 
 from atta import *
 
@@ -16,7 +16,7 @@ p = Properties.Open('JavaMedium/deploy.properties')
 #         'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
 #         'getOptional': True,
 #        },
-#        ] 
+#        ]
 
 #test = [{
 #       'repository' : 'atta.repositories.Maven',
@@ -43,24 +43,24 @@ test = [{
            'user'       : p.Get('user'),
            'password'   : p.Get('password'),
           },
-        }] 
+        }]
 
 r = Project.ResolveDependencies(test)
 #print r
 
 def test():
-  
+
   z = 'c:\\ala:p:\\dupa\\aaaa/sd:f:\\asewe'
   print OS.Path.AsList(z)
-      
+
   #------------------------------------------------------------------------------
-   
+
   from atta.tools.Interfaces import Observable
-  
+
   class X(Observable):
     def action(self):
       self.notifyObservers(1)
-      
+
   class o0():
     def __call__(self, c, event):
       print 'o0', event
@@ -68,10 +68,10 @@ def test():
   class o1(object):
     def __call__(self, c, event):
       print 'o1', event
-  
+
   def o2(c, event):
     print 'o2', event
-    
+
   x = X()
   x.addObserver(o0)
   x.addObserver(o1)
@@ -81,10 +81,10 @@ def test():
   x.action()
   x.removeObserver(o0)
   x.action()
-  
+
   return
 
-  #------------------------------------------------------------------------------ 
+  #------------------------------------------------------------------------------
 
   from atta.repositories.Maven import Repository
   from atta.repositories.Package import PackageId

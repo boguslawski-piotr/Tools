@@ -3,11 +3,11 @@ import os
 from .Interfaces import ILogger
 
 class Logger(ILogger):
-  '''
+  """
     Default logger.
-     
+
     TODO: description
-  '''
+  """
 
   def Log(self, msg, **args):
     _msg = self._HandleProject(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)

@@ -1,7 +1,7 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 
 class IRepositoryStyle:
-  '''TODO: description'''
+  """TODO: description"""
   def DirName(self, packageId):
     pass
   def FileName(self, packageId):

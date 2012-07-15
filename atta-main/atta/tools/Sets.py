@@ -1,11 +1,11 @@
-'''.. Files, directories: Sets TODO: sets'''
+""".. Files, directories: Sets TODO: sets"""
 import os
 
 from .. import Dict
 from . import OS
 
 class FileSet(list):
-  '''
+  """
   Creates a set of files...
 
   TODO: description
@@ -24,7 +24,7 @@ class FileSet(list):
 
   Returns: TODO
 
-  '''
+  """
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.rootDirName = None
     if not tparams.get('createEmpty', False):
@@ -85,7 +85,7 @@ class FileSet(list):
     # TODO: how to handle rootDirName if FileSet includes files from different roots (many AddFiles called)?
 
   def MakeSet(self, rootDirName, includes, excludes = None, **tparams):
-    '''Creates a set of files.'''
+    """Creates a set of files."""
     # Prepare parameters.
     includes = OS.Path.AsList(includes)
     excludes = OS.Path.AsList(excludes)
@@ -179,12 +179,12 @@ class FileSet(list):
     return (rootDirName, filesSet)
 
 class DirSet(FileSet):
-  '''
+  """
     Creates a set of directories...
 
     TODO: description
 
-  '''
+  """
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.AddDirs(rootDirName, includes, excludes, **tparams)
 
@@ -193,12 +193,12 @@ class DirSet(FileSet):
     self.extend(files)
 
 class DirFileSet(FileSet):
-  '''
+  """
     Creates a set of directories and files.
 
     TODO: description
 
-  '''
+  """
   def __init__(self, rootDirName = '.', includes = '*', excludes = None, **tparams):
     self.AddDirs(rootDirName, includes, excludes, **tparams)
 
@@ -207,7 +207,7 @@ class DirFileSet(FileSet):
     self.extend(files)
 
 class ExtendedFileSet(list):
-  '''
+  """
     TODO: description
 
     Parameters:
@@ -218,7 +218,7 @@ class ExtendedFileSet(list):
       also FileSet or DirSet alone
 
     Zwraca liste 2 elementowych krotek: (rootDirName, fileName)
-  '''
+  """
   def __init__(self, srcs, **tparams):
     self.AddFiles(srcs)
 

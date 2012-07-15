@@ -1,4 +1,4 @@
-'''.. Archives: zip TODO'''
+""".. Archives: zip TODO"""
 import os
 import zipfile
 from datetime import datetime
@@ -52,4 +52,3 @@ class ZipFile(IArchiveFile):
   def __exit__(self, type, value, traceback):
     self.zip.close()
     return False
-  

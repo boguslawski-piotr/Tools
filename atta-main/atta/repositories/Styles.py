@@ -1,9 +1,9 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 
 from .Interfaces import IRepositoryStyle
 
 class Maven(IRepositoryStyle):
-  '''TODO: description'''
+  """TODO: description"""
   def DirName(self, packageId):
     return '%s/%s/%s' % (str(packageId.groupId).replace('.', '/'), str(packageId.artifactId), str(packageId.version))
 
@@ -22,7 +22,7 @@ class Maven(IRepositoryStyle):
       return self.FileName(packageId)
 
 class Flat(Maven):
-  '''TODO: description'''
+  """TODO: description"""
   def DirName(self, packageId):
     if not packageId.groupId or packageId.groupId == packageId.artifactId:
       return '%s-%s' % (str(packageId.artifactId), str(packageId.version))
@@ -35,6 +35,6 @@ class ByVersion(Flat):
     return '%s' % (str(packageId.version))
 
 class OnlyFileName(Flat):
-  '''TODO: description'''
+  """TODO: description"""
   def DirName(self, packageId):
     return ''

@@ -1,11 +1,11 @@
 from . import Std
 
 class Logger(Std.Logger):
-  '''
+  """
     Compact logger.
-     
+
     This logger omits output of empty target output.
-  '''
+  """
   def __init__(self):
     self.targetName = ''
 
@@ -22,9 +22,9 @@ class Logger(Std.Logger):
 
     if _msg is None:
       _msg = '{0}'.format(msg)
-      
+
     if _msg and len(self.targetName) > 0:
       self._PhysicalLog(self.targetName)
       self.targetName = ''
-    
+
     self._PhysicalLog(_msg)

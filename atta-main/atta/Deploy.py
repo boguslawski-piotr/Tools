@@ -1,11 +1,11 @@
-'''TODO: description'''
+"""TODO: description"""
 import sys
 from . import Dict, OS
 
 class Deployer:
-  '''TODO: description'''
+  """TODO: description"""
   def Deploy(self, packageId, files, baseDirName, data):
-    '''Returns list of all deployed files.'''
+    """Returns list of all deployed files."""
     files = OS.Path.AsList(files)
     result = []
     for e in data:

@@ -1,29 +1,29 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 import types
 from .internal.Misc import ObjectFromClass
 
 class Observable:
-  '''The Observable class is a simple mixin class which can be used 
-     to make container objects "observable". An observable container 
-     issues events when being modified, and external "observers" 
+  """The Observable class is a simple mixin class which can be used
+     to make container objects "observable". An observable container
+     issues events when being modified, and external "observers"
      can subscribe to such events.
-  '''
+  """
   __observers = None
 
   def addObserver(self, observer):
-    '''Adds new observer. It can be class or function that implements IObserver.'''
+    """Adds new observer. It can be class or function that implements IObserver."""
     if not self.__observers:
       self.__observers = []
-    if types.FunctionType == type(observer): 
+    if types.FunctionType == type(observer):
       self.__observers.append((None, observer))
     else:
       observer = ObjectFromClass(observer)
       self.__observers.append((observer, observer.GetObject()))
-    
+
   def removeObserver(self, observer):
-    '''Removes *observer*.'''
+    """Removes *observer*."""
     try:
-      if types.FunctionType == type(observer): 
+      if types.FunctionType == type(observer):
         self.__observers.remove((None, observer))
       else:
         for i, (c, o) in enumerate(self.__observers) or ():
@@ -32,27 +32,27 @@ class Observable:
             break
     except:
       pass
-    
+
   def notifyObservers(self, event, *params, **tparams):
     for c, o in self.__observers or ():
       o(self, event, *params, **tparams)
-            
+
 def IObserver(caller, event, *params, **tparams):
-  '''TODO: description'''
+  """TODO: description"""
   pass
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class IVarsExpander:
-  '''
+  """
   IVarsExpander interface
-  
+
   TODO: description
-  '''
+  """
   def Expand(self, txt, **tparams):
     pass
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class IArchiveFile:
   def __init__(self, fileName, mode, password = None, **tparams):
@@ -78,19 +78,19 @@ class IArchiveFile:
   def FileCRC(self, fileName):
     pass
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class IVersionStrategy:
-  '''TODO: description'''
+  """TODO: description"""
   def NextMajor(self, v):
-    '''TODO: description'''
+    """TODO: description"""
     pass
   def NextMinor(self, v):
-    '''TODO: description'''
+    """TODO: description"""
     pass
   def NextPath(self, v):
-    '''TODO: description'''
+    """TODO: description"""
     pass
   def NextBuild(self, v):
-    '''TODO: description'''
+    """TODO: description"""
     pass

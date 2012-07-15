@@ -1,4 +1,4 @@
-'''PyExec task tests.'''
+"""PyExec task tests."""
 
 from atta import *
 

@@ -1,4 +1,4 @@
-'''.. Local: TODO'''
+""".. Local: TODO"""
 import os
 
 from ..loggers import Compact
@@ -6,7 +6,7 @@ from .. import Atta, AttaError, LogLevel, Dict, OS, Task
 from . import Local
 
 class Repository(Local.Repository):
-  '''TODO: description'''
+  """TODO: description"""
 
   def vPrepareFileName(self, fileName):
     return os.path.normpath(os.path.join(self.Project().dirName, fileName))

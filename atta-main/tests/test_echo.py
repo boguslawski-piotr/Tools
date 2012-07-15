@@ -1,4 +1,4 @@
-'''Echo task tests.'''
+"""Echo task tests."""
 
 from atta import *
 import os
@@ -24,7 +24,7 @@ line''')
     Echo('always', level = LogLevel.ERROR)
 
     Echo('''
-Use of variables    
+Use of variables
   var1: ${var1}
   var2 (not defined): ${var2}
   var3 (reference to var1): ${var3}

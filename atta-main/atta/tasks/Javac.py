@@ -1,4 +1,4 @@
-'''.. Java related: TODO: java'''
+""".. Java related: TODO: java"""
 import os
 
 from ..tools.internal.Misc import ObjectFromClass
@@ -8,11 +8,11 @@ from ..tools.Misc import RemoveDuplicates
 from .. import Dict, OS, FileSet, LogLevel, Task
 
 class Javac(Task):
-  '''
+  """
     TODO: description
-    
+
     Parameters:
-  
+
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
@@ -20,27 +20,27 @@ class Javac(Task):
     * **destDirName**     TODO
     * **classPath**
     * **sourcePath**
-    
+
     TODO Kiedy uzywany jest kompilator :py:class:`.JavaStdCompiler`...
-    parameters ``debug``, ``debugLevel`` and ``cParams`` described in 
+    parameters ``debug``, ``debugLevel`` and ``cParams`` described in
     :py:meth:`.JavaStdCompiler.Compile` are also available.
     Just as common parameters from :py:class:`.Exec` task.
-    
+
     Returns object with two attributtes:
-  
+
     * **returnCode** Exit code returned by :py:meth:`.IJavaCompiler.Compile` or -1 if nothing was compiled.
     * **output**     Data returned by :py:meth:`.IJavaCompiler.Compile`.
-    
+
     Advanced parameters:
-    
-    * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method. 
-      It must be class that implements :py:meth:`.IRequiresCompileStrategy`. 
-  
-    * **compilerImpl**          Implementation of wrapper to the Java compiler. 
+
+    * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method.
+      It must be class that implements :py:meth:`.IRequiresCompileStrategy`.
+
+    * **compilerImpl**          Implementation of wrapper to the Java compiler.
       It must be class that implements :py:class:`.IJavaCompiler`.
-  
+
     **Methods:**
-  '''
+  """
   def __init__(self, srcs, destDirName = '.', **tparams):
     self._DumpParams(locals())
 
@@ -56,7 +56,7 @@ class Javac(Task):
     # Collect source files.
     RequiresCompile = lambda root, name: self.RequiresCompile(destDirName, root, name, **tparams)
     self._requiresCompileImpl.GetObject().Start(destDirName, **tparams)
-    
+
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
       if len(src) <= 0:
@@ -96,7 +96,7 @@ class Javac(Task):
 
     srcsSet += self._requiresCompileImpl.GetObject().End(**tparams)
     srcsSet = RemoveDuplicates(srcsSet)
-    
+
     if len(srcsSet) <= 0:
       self.Log(Dict.msgNothingToCompile.format(' '.join(srcs)), level = LogLevel.VERBOSE)
       self.returnCode = -1
@@ -107,7 +107,7 @@ class Javac(Task):
 
     tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
     tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
-    
+
     self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDirName, **tparams)
     self.output = self._compilerImpl.GetObject().output
 
@@ -115,8 +115,8 @@ class Javac(Task):
 
   @staticmethod
   def SetDefaultRequiresCompileImpl(_class):
-    '''Sets default implementation of :py:meth:`RequiresCompile` method. 
-       It may be any class that implements :py:meth:`.IRequiresCompileStrategy`'''
+    """Sets default implementation of :py:meth:`RequiresCompile` method.
+       It may be any class that implements :py:meth:`.IRequiresCompileStrategy`"""
     Javac._defaultRequiresCompileImpl = ObjectFromClass(_class)
 
   @staticmethod
@@ -124,19 +124,19 @@ class Javac(Task):
     return Javac._defaultRequiresCompileImpl.GetClass()
 
   def RequiresCompile(self, destDirName, srcDirName, fileName, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     dest = os.path.join(destDirName, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
     src = os.path.join(srcDirName, fileName)
     rc = self._requiresCompileImpl.GetObject().RequiresCompile(src, dest, **tparams)
     #self.Log('%s: %s' % (src, ('up to date' if not rc else 'needs compile')), level = LogLevel.DEBUG)
     return rc
-  
+
   _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler)
 
   @staticmethod
   def SetDefaultCompilerImpl(_class):
-    '''Sets default Java compiler. 
-       It may be any class that implements :py:class:`.IJavaCompiler`'''
+    """Sets default Java compiler.
+       It may be any class that implements :py:class:`.IJavaCompiler`"""
     Javac._defaultCompilerImpl = ObjectFromClass(_class)
 
   @staticmethod

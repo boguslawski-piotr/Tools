@@ -1,18 +1,18 @@
-'''.. Miscellaneous: Various functions and classes'''
+""".. Miscellaneous: Various functions and classes"""
 
 from .internal.Misc import ObjectFromClass
 from .. import Dict
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 def isiterable(obj):
-  '''TODO: description'''
+  """TODO: description"""
   return not isinstance(obj, basestring) and getattr(obj, '__iter__', False)
 
 def RemoveDuplicates(iterable, preserveOrder = True):
-  '''TODO: description
+  """TODO: description
   elements must be hashable
-  '''
+  """
   if preserveOrder:
     seen = {}
     result = []
@@ -24,27 +24,27 @@ def RemoveDuplicates(iterable, preserveOrder = True):
     result = list(set(iterable))
   return result
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 def strip(str):
-  '''TODO: description'''
+  """TODO: description"""
   if str != None: return str.strip()
   return None
 
 def lstrip(str):
-  '''TODO: description'''
+  """TODO: description"""
   if str != None: return str.lstrip()
   return None
 
 def rstrip(str):
-  '''TODO: description'''
+  """TODO: description"""
   if str != None: return str.rstrip()
   return None
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class NamedFileLike:
-  '''TODO: description'''
+  """TODO: description"""
   def __init__(self, fileName, f):
     self.fileName = fileName
     self.f = f
@@ -67,20 +67,20 @@ class NamedFileLike:
     self.__del__()
     return False
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 
 class VarsExpander:
-  '''
+  """
   TODO: description
-  '''
+  """
   def __init__(self, _class):
     self._expander = ObjectFromClass(_class)
 
   def SetImpl(self, _class):
-    '''Sets variables expander class and returns previous class.'''
+    """Sets variables expander class and returns previous class."""
     return self._expander.SetClass(_class)
 
   def Expand(self, txt, **tparams):
-    '''Expand variables in given text.'''
+    """Expand variables in given text."""
     return self._expander.GetObject().Expand(txt, **tparams)
 

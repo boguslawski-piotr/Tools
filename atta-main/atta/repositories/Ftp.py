@@ -1,4 +1,4 @@
-'''.. Remote: TODO'''
+""".. Remote: TODO"""
 import ftplib
 import os
 import hashlib
@@ -16,7 +16,7 @@ from . import ArtifactNotFoundError
 from . import Local
 
 class Repository(Local.Repository):
-  '''TODO: description'''
+  """TODO: description"""
   def __init__(self, data):
     ARepository.__init__(self, data)
 
@@ -42,8 +42,8 @@ class Repository(Local.Repository):
     self.cache = None
     if data.get(Dict.useCache, True):
       # NOTE: Cache is on the local file system.
-      # Any change of this assumption will result in the need 
-      # to change the function: self.vPutFileLike(). 
+      # Any change of this assumption will result in the need
+      # to change the function: self.vPutFileLike().
       cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), '.ftpcache'))
       self.cache = Local.Repository({
                                      Dict.style   : data.get(Dict.style, ARepository.GetDefaultStyleImpl()),
@@ -255,7 +255,7 @@ class Repository(Local.Repository):
     return filesInStore
 
   def Get(self, packageId, scope, store = None):
-    '''TODO: description'''
+    """TODO: description"""
     '''returns: list of filesNames'''
     self._Get(packageId, scope, store, [])
 
@@ -268,7 +268,7 @@ class Repository(Local.Repository):
   def Check(self, packageId, scope):
     cresult = None
     if self.cache != None:
-      # First checks the local cache and if it does not have 
+      # First checks the local cache and if it does not have
       # the correct files then forces a full refresh.
       cresult = self.cache.Check(packageId, scope)
       if cresult == None:
@@ -282,8 +282,8 @@ class Repository(Local.Repository):
     return cresult if cresult != None else self._ChangeFileNamesToFtpUrls(result)
 
   def Put(self, f, fBaseDirName, packageId):
-    # Put the files on ftp at the same time (if the repository use cache) 
-    # creating an exact copy in the local cache (see also: vPutFileLike method). 
+    # Put the files on ftp at the same time (if the repository use cache)
+    # creating an exact copy in the local cache (see also: vPutFileLike method).
     result = Local.Repository.Put(self, f, fBaseDirName, packageId)
     if result != None and self.cache != None:
       # Because the cache had just been updated, we give local file names.

@@ -1,4 +1,4 @@
-'''.. Data manipulation: Support for Xml data and files: xml'''
+""".. Data manipulation: Support for Xml data and files: xml"""
 import sys
 import re
 import xml.etree.ElementTree as ET
@@ -7,9 +7,9 @@ from . import OS
 from . import Misc
 
 class XmlElement(ET.Element):
-  '''TODO: description
+  """TODO: description
   You can use any attribute and method from :py:class:`.ElementTree.Element`.
-  '''
+  """
 
   ns = None
   '''element namespace TODO: description'''
@@ -36,14 +36,14 @@ class XmlElement(ET.Element):
     ET.Element.extend(self, elements)
 
   def values(self, match, caseSensitive = True, stripfn = lambda str: str):
-    '''Returns values for tag or path as list with dicts inside...
-    It's more flexible and powerful version of Element.findtext. 
+    """Returns values for tag or path as list with dicts inside...
+    It's more flexible and powerful version of Element.findtext.
     TODO: more and better description
-    
+
     Example:
-    
+
     .. code-block:: xml
-    
+
       <xml>
         <node>
         n1
@@ -53,20 +53,20 @@ class XmlElement(ET.Element):
             ssn1
             </subsubnode>
           </subnode>
-        </node>  
+        </node>
       </xml>
-      
+
     .. code-block:: python
-    
+
       >>> xml = Xml(xmldata)
-      >>> print xml.values('node')  
+      >>> print xml.values('node')
       [{'subsubnode': 'ssn1'}, {'subnode': 'sn1'}, {'node': 'n1'}]
-      >>> print xml.values('node/subnode')  
+      >>> print xml.values('node/subnode')
       [{'subsubnode': 'ssn1'}, {'subnode': 'sn1'}]
       >>> print xml.values('node/subnode/subsubnode')
       [{'subsubnode': 'ssn1'}]
-        
-    '''
+
+    """
     values = []
 
     def _GetValues(e, d):
@@ -133,7 +133,7 @@ class XmlElement(ET.Element):
 
   @staticmethod
   def _splittag(tag):
-    '''Split `tag` on the `namespace` and `name` (supported format: ``{namespace}name)``.'''
+    """Split `tag` on the `namespace` and `name` (supported format: ``{namespace}name)``."""
     try:
       m = re.search('({(.*)})', tag)
       if m != None:
@@ -170,19 +170,19 @@ class _TreeBuilderEx(ET.TreeBuilder):
         _last._setparent(self._elem[-1])
 
 class Xml:
-  '''Extension for xml.etree.ElementTree.ElementTree. As nodes uses XmlElement.
+  """Extension for xml.etree.ElementTree.ElementTree. As nodes uses XmlElement.
   desc for:
   __getitem__
   __delitem__
   remove
   and others from Element
-  '''
+  """
   def __init__(self, src):
     self.namespaces = None
     self.read(src)
 
   def read(self, src):
-    '''src can be: xml data (as string), filename or filelike object'''
+    """src can be: xml data (as string), filename or filelike object"""
     parser = ET.XMLParser(target = _TreeBuilderEx(XmlElement))
     if isinstance(src, basestring) and src.lstrip().startswith('<'):
       self._root = ET.XML(src, parser)
@@ -192,23 +192,23 @@ class Xml:
       e._setns()
 
   def write(self, f, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     # TODO: handle namespaces...
     self._buildnamespaces()
     return ET.ElementTree(self._root).write(f, **tparams)
 
   def append(self, element):
-    '''TODO: description'''
+    """TODO: description"""
     element._setns()
     self._root.append(element)
 
   def insert(self, index, element):
-    '''TODO: description'''
+    """TODO: description"""
     element._setns()
     self._root.insert(index, element)
 
   def extend(self, elements):
-    '''TODO: description'''
+    """TODO: description"""
     for e in elements:
       e._setns()
     self._root.extend(elements)

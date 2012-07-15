@@ -1,28 +1,28 @@
-'''TODO: description'''
+"""TODO: description"""
 import sys
 import os
 
 from . import Atta, LogLevel, Dict, OS
 
 class Env(dict):
-  '''
+  """
   Env class
 
   TODO: description
-  '''
+  """
   def __init__(self, environ):
     dict.__init__(self, environ)
     self['cwd'] = os.getcwd()
 
   def chdir(self, dirName):
-    '''TODO: description'''
+    """TODO: description"""
     prevDirName = os.getcwd()
     os.chdir(dirName)
     self['cwd'] = os.getcwd()
     return prevDirName
 
   def which(self, fileNames):
-    '''TODO: description'''
+    """TODO: description"""
     sysPATH = self.get(Dict.PATH)
     if sysPATH:
       for path in OS.Path.AsList(sysPATH, os.pathsep):

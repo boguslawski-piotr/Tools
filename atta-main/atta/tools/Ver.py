@@ -1,4 +1,4 @@
-'''.. Miscellaneous: Project version management: ver'''
+""".. Miscellaneous: Project version management: ver"""
 import os
 import re
 import cStringIO
@@ -12,7 +12,7 @@ from ..tasks.Base import Task
 from .. import LogLevel, Dict, OS
 
 class Version(Observable, Task):
-  '''TODO: description
+  """TODO: description
 
   Parameters:
 
@@ -26,12 +26,12 @@ class Version(Observable, Task):
   * **observers** |None|
   * **impl**
 
-  '''
+  """
   def __init__(self, **conf):
     self.Configure(**conf)
 
   class Formats:
-    '''TODO: description'''
+    """TODO: description"""
     M = '${major}'
     Mp = '${major}${postfix}'
     MM = '${major}.${minor}'
@@ -42,7 +42,7 @@ class Version(Observable, Task):
     MMPBp = '${major}.${minor}.${patch}.${build}${postfix}'
 
   class Events:
-    '''TODO: description'''
+    """TODO: description"""
     NextMajor = 1
     NextMinor = 2
     NextPatch = 3
@@ -55,7 +55,7 @@ class Version(Observable, Task):
     AfterConfigure = 10
 
   def Configure(self, **conf):
-    '''TODO: description'''
+    """TODO: description"""
     self._impl = ObjectFromClass(conf.get('impl', Version.GetDefaultImpl()))
     self.quiet = conf.get(Dict.paramQuiet, False)
 
@@ -82,53 +82,53 @@ class Version(Observable, Task):
     self.notifyObservers(Version.Events.AfterConfigure)
 
   def AsStr(self):
-    '''TODO: description'''
+    """TODO: description"""
     return str(self)
 
   def NextMajor(self, update = True):
-    '''TODO: description'''
+    """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextMajor(self)
     self.notifyObservers(Version.Events.NextMajor)
     self._Changed(update, old)
 
   def NextMinor(self, update = True):
-    '''TODO: description'''
+    """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextMinor(self)
     self.notifyObservers(Version.Events.NextMinor)
     self._Changed(update, old)
 
   def NextPatch(self, update = True):
-    '''TODO: description'''
+    """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextPatch(self)
     self.notifyObservers(Version.Events.NextPatch)
     self._Changed(update, old)
 
   def NextBuild(self, update = True):
-    '''TODO: description'''
+    """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextBuild(self)
     self.notifyObservers(Version.Events.NextBuild)
     self._Changed(update, old)
 
   def SetPrefix(self, prefix):
-    '''TODO: description'''
+    """TODO: description"""
     old = self.prefix
     self.prefix = prefix
     self.notifyObservers(Version.Events.SetPrefix)
     return old
 
   def SetPostfix(self, postfix):
-    '''TODO: description'''
+    """TODO: description"""
     old = self.postfix
     self.postfix = postfix
     self.notifyObservers(Version.Events.SetPostfix)
     return old
 
   def ExpandVars(self, data, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     e = Expander()
     return e.Expand(data,
                     major = self.major,
@@ -144,12 +144,12 @@ class Version(Observable, Task):
 
   @staticmethod
   def SetDefaultImpl(_class):
-    '''TODO: description'''
+    """TODO: description"""
     Version._defaultImpl = ObjectFromClass(_class)
 
   @staticmethod
   def GetDefaultImpl():
-    '''TODO: description'''
+    """TODO: description"""
     return Version._defaultImpl.GetClass()
 
   '''private section'''

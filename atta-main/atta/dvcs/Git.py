@@ -1,4 +1,4 @@
-'''.. Distributed Version Control: Git'''
+""".. Distributed Version Control: Git"""
 import os
 
 from ..tasks.Base import Task
@@ -87,7 +87,7 @@ class Git(Interfaces.IDvcs, Task):
     return self.returnCode
 
   def Cmd(self, params, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     params = OS.Path.AsList(params, ' ')
     params = [p for p in params if len(p) > 0]
 

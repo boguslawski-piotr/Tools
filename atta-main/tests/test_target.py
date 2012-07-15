@@ -1,4 +1,4 @@
-'''Targets dependency tests.'''
+"""Targets dependency tests."""
 
 from atta import *
 

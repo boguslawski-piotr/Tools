@@ -1,4 +1,4 @@
-'''TODO: description'''
+"""TODO: description"""
 import os
 
 from .tools.Misc import isiterable
@@ -6,11 +6,11 @@ from .Env import Env
 from . import Dict, LogLevel, Atta, GetProject
 
 class Activity:
-  '''
+  """
   Base class for all targets, tasks and other executive classes.
 
   TODO: description
-  '''
+  """
   def LogLevel(self):
     return Atta.LogLevel()
 

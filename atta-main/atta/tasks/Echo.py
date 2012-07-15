@@ -1,35 +1,35 @@
-'''.. Miscellaneous: Echoes a message: echo'''
+""".. Miscellaneous: Echoes a message: echo"""
 import os
 
 from ..tools.Misc import isiterable
 from .. import Dict, LogLevel, Task, OS
 
 class Echo(Task):
-  '''
-  Echoes a message to the current logger. A level can be specified, 
+  """
+  Echoes a message to the current logger. A level can be specified,
   which controls at what logging level the message is filtered at.
-  The task can also echo to a file, in which case the option to 
-  append rather than overwrite the file is available, 
+  The task can also echo to a file, in which case the option to
+  append rather than overwrite the file is available,
   and the level option is ignored. |Ant|
 
   Parameters:
-  
-  * **msg** `(blank line)` - The message to echo. 
+
+  * **msg** `(blank line)` - The message to echo.
     It can be any object that can be converted to string, a iterable or a file-like object.
-  
+
   * **expandVars** |True|  - Expand variables?
   * **file** |None|        - The file name or a file-like object to write the message to.
   * **append** |False|     - Append to an existing file?
   * **force** |False|      - Overwrite read-only file?
 
-  * **level** `(`:py:attr:`.LogLevel.INFO`\ `)` - Control the log level at which this message is reported. 
-  
-  '''
+  * **level** `(`:py:attr:`.LogLevel.INFO`\ `)` - Control the log level at which this message is reported.
+
+  """
   def __init__(self, msg = '', **tparams):
     level = tparams.get(Dict.paramLevel, LogLevel.INFO)
     file = tparams.get('file', None)
     expandVars = tparams.get('expandVars', True)
-    
+
     if isinstance(msg, basestring) and expandVars:
       msg = self.ExpandVars(msg, **tparams)
 

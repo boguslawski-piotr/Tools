@@ -1,4 +1,4 @@
-'''.. Archive TODO: TODO'''
+""".. Archive TODO: TODO"""
 import os
 from datetime import datetime, timedelta
 
@@ -6,14 +6,14 @@ from ..tools.internal.Misc import ObjectFromClass
 from .. import AttaError, Dict, LogLevel, OS, FileSet, Task
 
 class Archive(Task):
-  '''TODO: description
+  """TODO: description
 
     * **srcs**        TODO
       if string: file/dir/wildcard name or path (separator :) in which each item may be: file/dir/wildcard name
       if list: each item may be: file/dir/wildcard name or FileSet or DirSet
       also FileSet or DirSet alone
-  
-  '''
+
+  """
   def __init__(self, _class, fileName, srcs, **tparams):
     self._DumpParams(locals())
 

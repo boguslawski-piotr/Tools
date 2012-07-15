@@ -1,4 +1,4 @@
-'''.. Remote: TODO'''
+""".. Remote: TODO"""
 import urllib2
 import json
 import cStringIO
@@ -17,8 +17,8 @@ from . import ArtifactNotFoundError
 from . import Styles
 
 class Repository(ARepository, Task):
-  '''TODO: description
-  '''
+  """TODO: description
+  """
 
   # TODO: handle this (?):
   #<relocation>
@@ -105,9 +105,9 @@ class Repository(ARepository, Task):
     return filesInStore
 
   def Get(self, packageId, scope, store = None):
-    '''TODO: description
+    """TODO: description
      returns list (of strings: fileName) of locally available files
-    '''
+    """
     return self._Get(packageId, scope, store, [])
 
   def Check(self, packageId, scope):
@@ -118,7 +118,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetArtifactTimestamp(packageId, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     url = 'http://search.maven.org/solrsearch/select?q=g:"%s"+AND+a:"%s"+AND+v:"%s"+AND+p:"%s"&core=gav&rows=20&wt=json' % \
                                                         (packageId.groupId, packageId.artifactId, packageId.version, packageId.type)
     if logFn: logFn('Getting timestamp for: %s from: %s' % (str(packageId), url), level = LogLevel.VERBOSE)
@@ -141,7 +141,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetArtifactFile(packageId, pom = None, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     # Try to download the file from the repository 'Maven Central'.
     url = 'http://search.maven.org/remotecontent?filepath={0}/{1}/{2}/{1}-{2}.{3}'.format(
                           packageId.groupId.replace('.', '/'), packageId.artifactId, packageId.version, packageId.type)
@@ -170,12 +170,12 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetPOMCacheKey(packageId):
-    '''TODO: description'''
+    """TODO: description"""
     return str(packageId)
 
   @staticmethod
   def GetPOMFromCache(packageId, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     key = Repository.GetPOMCacheKey(packageId)
     if key in Repository._pomCache:
       if logFn: logFn('Getting: %s from cache.' % str(packageId), level = LogLevel.DEBUG)
@@ -184,7 +184,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def PutPOMIntoCache(packageId, f, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     key = Repository.GetPOMCacheKey(packageId)
     if f != None:
       if 'read' in dir(f):
@@ -194,9 +194,9 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetPOM(packageId, logFn = None):
-    '''Gets the POM file from Maven Central Repository.
+    """Gets the POM file from Maven Central Repository.
        The function uses the local impermanent cache.
-       Returns the POM contents or None.'''
+       Returns the POM contents or None."""
     packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
     pomFile = Repository.GetPOMFromCache(packageId, logFn)
     if pomFile == None:
@@ -206,11 +206,11 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetPOMEx(packageId, pom, logFn = None):
-    '''Checks if the `pom` is the method/function used to download contents of a POM file.
+    """Checks if the `pom` is the method/function used to download contents of a POM file.
        If so, uses it and trying to retrieve data. If the download did not succeed then
        try again using the Maven Central Repository.
        Returns a tuple (`function`, `pom`) where `function` is a function/method
-       which you can use to download next POM file and `pom` points to the contents of the file.'''
+       which you can use to download next POM file and `pom` points to the contents of the file."""
     getPOMFn = Repository.GetPOM
     if pom and '__call__' in dir(pom):
       getPOMFn = pom
@@ -223,7 +223,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetArtifactUrlFromPOM(pom, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     if pom:
       if not isinstance(pom, Xml):
         pom = Xml(pom)
@@ -270,7 +270,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def GetPropertiesFromPOM(packageId, pom, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     props = Repository._GetPropertiesFromPOM(packageId, pom, logFn)
     d = {}
     for p in props:
@@ -279,7 +279,7 @@ class Repository(ARepository, Task):
 
   @staticmethod
   def _GetDependenciesFromPOM(packageId, pom, props, scopes, includeOptional = False, logFn = None):
-    '''TODO: description'''
+    """TODO: description"""
     assert scopes != None
     assert isinstance(scopes, list)
 

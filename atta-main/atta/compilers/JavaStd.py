@@ -1,4 +1,4 @@
-'''.. Java related: TODO'''
+""".. Java related: TODO"""
 import os
 import tempfile
 
@@ -10,7 +10,7 @@ from .. import Dict
 from .Interfaces import IJavaCompiler
 
 class JavaStdCompiler(IJavaCompiler, Task):
-  '''TODO: description'''
+  """TODO: description"""
   def SourceExts(self, **tparams):
     return ['.java', '.aidl']
 
@@ -18,7 +18,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     return '.class'
 
   def Compile(self, srcFileNames, destDirName, **tparams):
-    '''
+    """
     TODO: description
 
     Parameters:
@@ -34,7 +34,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     Returns exit code returned by executed ``javac`` command.
     the same data as :py:class:`.Exec` task.
 
-    '''
+    """
     # Prepare command line for java compiler.
     params = OS.Path.AsList(tparams.get('cParams', []), ' ')
 
@@ -83,7 +83,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
     return self.returnCode
 
   def GetExecutable(self, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     JAVA_HOME = self.Env().get(Dict.JAVA_HOME)
     if JAVA_HOME:
       return os.path.normpath(os.path.join(JAVA_HOME, Dict.JAVAC_EXE_IN_JAVA_HOME))

@@ -1,4 +1,4 @@
-'''Exec task and environments variables tests.'''
+"""Exec task and environments variables tests."""
 
 from atta import *
 

@@ -1,4 +1,4 @@
-'''TODO: description'''
+"""TODO: description"""
 import sys
 
 from .tools.Misc import RemoveDuplicates
@@ -7,7 +7,7 @@ from .repositories import ArtifactNotFoundError
 from . import Dict, AttaError
 
 class Resolver:
-  '''TODO: description'''
+  """TODO: description"""
   def __init__(self):
     self.Clear()
 

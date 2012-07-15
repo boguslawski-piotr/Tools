@@ -1,11 +1,11 @@
-'''.. Execution: Executes Python program: pyexec'''
+""".. Execution: Executes Python program: pyexec"""
 import sys
 import os
 
 from .. import LogLevel, OS, Exec
 
 class PyExec(Exec):
-  '''
+  """
   Executes Python program.
 
   TODO: detailed information
@@ -17,7 +17,7 @@ class PyExec(Exec):
   Other parameters and ... TODO are exactly the same
   as in :py:class:`.Exec`.
 
-  '''
+  """
   def __init__(self, fileName, params = None, **tparams):
     if len(fileName) > 0 and not fileName.startswith('-'):
       if OS.Path.Ext(fileName) == '':

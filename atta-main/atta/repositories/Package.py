@@ -1,10 +1,10 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools import OS
 from .. import Dict
 
 class PackageId:
-  '''TODO: description'''
+  """TODO: description"""
   def __init__(self, groupId = None, artifactId = None, version = None, type = None, **tparams):
     self.groupId = groupId
     self.artifactId = artifactId
@@ -20,7 +20,7 @@ class PackageId:
     #self.sha1?
 
   def IsOptional(self):
-    '''TODO: description'''
+    """TODO: description"""
     optional = getattr(self, Dict.optional, False)
     if isinstance(optional, basestring):
       optional = optional.lower().strip()
@@ -29,9 +29,9 @@ class PackageId:
       return bool(optional)
 
   def Excludes(self, packageId):
-    '''Checks if `packageId` is on the `exclusions` list
+    """Checks if `packageId` is on the `exclusions` list
        that is created when you download the dependencies
-       from POM files.'''
+       from POM files."""
     excludedPackages = getattr(self, Dict.exclusions, [])
     for e in excludedPackages:
       if packageId.groupId == e.groupId and packageId.artifactId == e.artifactId:
@@ -39,14 +39,14 @@ class PackageId:
     return False
 
   def AsStr(self):
-    '''TODO: description'''
+    """TODO: description"""
     if not self.groupId or self.groupId == self.artifactId:
       return '%s.%s:%s' % (str(self.artifactId), str(self.type), str(self.version))
     else:
       return '%s:%s.%s:%s' % (str(self.groupId), str(self.artifactId), str(self.type), str(self.version))
 
   def AsStrWithoutType(self):
-    '''TODO: description'''
+    """TODO: description"""
     if not self.groupId or self.groupId == self.artifactId:
       return '%s:%s' % (str(self.artifactId), str(self.version))
     else:
@@ -84,7 +84,7 @@ class PackageId:
 
   @staticmethod
   def FromStr(packageStrId):
-    '''TODO: description'''
+    """TODO: description"""
     groupId = artifactId = type = version = None
     try:
       items = packageStrId.split(':')
@@ -110,14 +110,14 @@ class PackageId:
 
   @staticmethod
   def FromPackageId(packageId, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     # TODO: uzyc copy!
     newPackageId = PackageId.FromStr(str(packageId))
     return PackageId.__Override(newPackageId, **tparams)
 
   @staticmethod
   def FromDict(packageDict, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     newPackageId = PackageId()
     for e in packageDict:
       setattr(newPackageId, Dict.type if e == Dict.packaging else e, packageDict[e])
@@ -136,5 +136,5 @@ class PackageId:
     return self.__nonzero__()
 
   def __str__(self):
-    '''TODO: description'''
+    """TODO: description"""
     return self.AsStr()

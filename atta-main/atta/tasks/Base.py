@@ -1,13 +1,13 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 from ..Activity import Activity
 from .. import Atta
 
 class Task(Activity):
-  '''
+  """
   Base class for all tasks.
-     
+
   TODO: description
-  '''
+  """
   def ExpandVars(self, txt, **tparams):
     return Atta.ExpandVars(txt, **tparams)
 

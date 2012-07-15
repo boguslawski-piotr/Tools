@@ -1,4 +1,4 @@
-'''.. Execution: Executes a system command: exec'''
+""".. Execution: Executes a system command: exec"""
 import os
 import subprocess
 import threading
@@ -7,7 +7,7 @@ from ..tools import DefaultVarsExpander
 from .. import Dict, OS, LogLevel, Task
 
 class Exec(Task):
-  '''
+  """
   Executes a system command.
 
   TODO: detailed information
@@ -42,7 +42,7 @@ class Exec(Task):
     - Add reading environment variables set by the executed process
     - Parameters: os and osFamily
 
-  '''
+  """
   def __init__(self, executable, params = None, **tparams):
     params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get(Dict.paramFailOnError, True)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
-'''
+"""
 Atta main
-'''
+"""
 import platform
 import sys
 import os

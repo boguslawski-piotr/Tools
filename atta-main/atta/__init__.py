@@ -53,7 +53,7 @@ from .tools import DefaultVarsExpander
 from .version import AttaVersion
 
 class AttaError(RuntimeError):
-  '''Base class for all exceptions thrown by Atta.'''
+  """Base class for all exceptions thrown by Atta."""
   def __init__(self, caller, msg):
     self.caller = caller
     self.msg = msg
@@ -62,10 +62,10 @@ class AttaError(RuntimeError):
     return '{0}:\n{1}'.format(self.caller.__class__ if self.caller else 'Atta', self.msg)
 
 class Atta:
-  '''
+  """
   Provides basic information about Atta.
   Also provides a few simple tools.
-  '''
+  """
   name = 'Atta'
   description = 'Build tool in pure Python.'
 
@@ -82,41 +82,41 @@ class Atta:
 
   @staticmethod
   def Logger():
-    '''TODO: description'''
+    """TODO: description"""
     return Atta._logger
 
   @staticmethod
   def LogLevel():
-    '''TODO: description'''
+    """TODO: description"""
     return Atta._logger.GetLevel()
 
   @staticmethod
   def Log(msg = '', **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     Atta._logger.Log(msg, **tparams)
 
   @staticmethod
   def LogIterable(msg, iterable, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     Atta._logger.LogIterable(msg, iterable, **tparams)
 
   _varsExpander = VarsExpander(DefaultVarsExpander.Expander)
 
   @staticmethod
   def VarsExpander():
-    '''TODO: description'''
+    """TODO: description"""
     return Atta._varsExpander
 
   @staticmethod
   def ExpandVars(data, **tparams):
-    '''TODO: description'''
+    """TODO: description"""
     return Atta.VarsExpander().Expand(data, **tparams)
 
   _props = None
 
   @staticmethod
   def Props():
-    '''TODO: description'''
+    """TODO: description"""
     return Atta._props
 
   @staticmethod
@@ -126,13 +126,13 @@ class Atta:
 # Project property
 
 Project = None
-'''Provides access to data and general tools for the entire project.
+"""Provides access to data and general tools for the entire project.
    Use it ONLY during the phase of interpreting the main build script.
-   Property Project is an instance of the class :py:class:`atta.Project`.'''
+   Property Project is an instance of the class :py:class:`atta.Project`."""
 
 def GetProject():
-  '''Provides access to data and general tools for the entire project.
-     Returns an instance of the class :py:class:`atta.Project`.'''
+  """Provides access to data and general tools for the entire project.
+     Returns an instance of the class :py:class:`atta.Project`."""
   return Project
 
 def _SetProject(project):
@@ -142,7 +142,7 @@ def _SetProject(project):
 # File property
 
 class File:
-  '''Describes currently interpreted build script.'''
+  """Describes currently interpreted build script."""
 
   name = ''
   '''
@@ -153,7 +153,7 @@ class File:
   NOT when Atta performing targets & tasks.
   '''
 
-  '''private section'''
+  # private section
 
   _list = []
 

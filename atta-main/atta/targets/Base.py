@@ -1,4 +1,4 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 import os
 import platform
 
@@ -6,11 +6,11 @@ from ..Activity import Activity
 from .. import OS
 
 class Target(Activity):
-  '''
+  """
   Base class for all targets.
 
   TODO: description
-  '''
+  """
 
   dependsOn = []
   '''TODO: description'''
@@ -19,7 +19,7 @@ class Target(Activity):
   '''TODO: description'''
 
   def CanRun(self):
-    '''TODO: description'''
+    """TODO: description"""
     canRun = True
     if len(self.system) > 0:
       canRun = False
@@ -40,7 +40,7 @@ class Target(Activity):
   #  return True
 
   def Run(self):
-    '''TODO: description'''
+    """TODO: description"""
     pass
 
   '''

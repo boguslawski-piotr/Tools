@@ -1,4 +1,4 @@
-'''Exec and PyExec task big output tests.'''
+"""Exec and PyExec task big output tests."""
 
 from atta import *
 

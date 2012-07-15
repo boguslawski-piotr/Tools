@@ -1,4 +1,4 @@
-'''.. no-user-reference:'''
+""".. no-user-reference:"""
 import os
 import hashlib
 
@@ -6,9 +6,9 @@ from ..tools import OS
 from .Interfaces import IRequiresCompileStrategy
 
 class SrcNewerStrategy(IRequiresCompileStrategy):
-  '''TODO: description'''
+  """TODO: description"""
   def RequiresCompile(self, srcFileName, destFileName, **tparams):
-    '''Returns `True` if `srcFileName` is newer than `destFileName`.'''
+    """Returns `True` if `srcFileName` is newer than `destFileName`."""
     if not os.path.exists(srcFileName):
       return False
     if not os.path.exists(destFileName):
@@ -16,14 +16,14 @@ class SrcNewerStrategy(IRequiresCompileStrategy):
     destTime = os.path.getmtime(destFileName)
     srcTime = os.path.getmtime(srcFileName)
     return srcTime > destTime
-  
+
   def Start(self, destDirName, **tparams): pass
   def End(self, **tparams): return []
-  
+
 class SrcHashStrategy(IRequiresCompileStrategy):
-  '''TODO: description'''
+  """TODO: description"""
   def RequiresCompile(self, srcFileName, destFileName, **tparams):
-    '''Returns `True` if SHA1-hash of `srcFileName` is not equal to the last saved.'''
+    """Returns `True` if SHA1-hash of `srcFileName` is not equal to the last saved."""
     if not os.path.exists(srcFileName):
       return False
 

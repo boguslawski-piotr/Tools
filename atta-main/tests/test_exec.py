@@ -1,4 +1,4 @@
-'''Exec task tests.'''
+"""Exec task tests."""
 
 from atta import *
 
@@ -8,7 +8,7 @@ class test(Target):
   def Run(self):
     Echo('Exec test')
 
-    # Macro: ${bat}, ${cmd} or ${exe}: On Windows will add .bat/.cmd/.exe to 
+    # Macro: ${bat}, ${cmd} or ${exe}: On Windows will add .bat/.cmd/.exe to
     # the executable name, on other systems will not add anything.
     # Macro ${sh}: on non Windows systems will add .sh, on Windows will add .bat.
     Exec('test_exec${bat}', ['1', '2', '3'], useShell = False)
