@@ -21,9 +21,9 @@ class Repository(Local.Repository):
     ARepository.__init__(self, data)
 
     self.host = data.get(Dict.host)
-    if self.host == None:
+    if not self.host:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.host))
-    if self._RootDirName() == None:
+    if not self._RootDirName():
       raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDirName))
 
     self.ftp = ftplib.FTP()
@@ -52,7 +52,7 @@ class Repository(Local.Repository):
 
   def __del__(self):
     try:
-      if self.ftp != None:
+      if self.ftp:
         self.ftp.close()
     except Exception:
       pass
@@ -200,10 +200,10 @@ class Repository(Local.Repository):
 
   # NOTE: Code for this function is very similar to the analogous function in Maven.Repository.
   # The differences are in minor details. I do not have sensible idea how to minimize the duality :(
-  def _Get(self, packageId, scope, store, resolvedPackages):
+  def _Get(self, package, scope, store, resolvedPackages):
     # Check parameters.
     self._DumpParams(locals())
-    if not packageId:
+    if not package:
       raise AttaError(self, 'Not enough parameters.')
     if store is None:
       store = self.cache
@@ -211,53 +211,53 @@ class Repository(Local.Repository):
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
 
     store.SetOptionalAllowed(self.OptionalAllowed())
-    filesInStore = store.Check(packageId, scope)
+    filesInStore = store.Check(package, scope)
     if filesInStore is None:
-      fileName = self.PrepareFileName(packageId, self._RootDirName())
+      fileName = self.PrepareFileName(package, self._RootDirName())
       if self.vFileExists(fileName):
-        packageId.timestamp, sha1 = self.GetFileMarker(fileName)
-        if packageId.timestamp is not None:
-          filesInStore = store.Check(packageId, scope)
+        package.timestamp, sha1 = self.GetFileMarker(fileName)
+        if package.timestamp is not None:
+          filesInStore = store.Check(package, scope)
 
         if filesInStore is None:
           download = True
           filesInStore = []
 
           # Get the dependencies.
-          packages = self.GetDependencies(packageId, scope)
+          packages = self.GetDependencies(package, scope)
           if packages != None:
             for p in packages:
-              if not packageId.Excludes(p):
+              if not package.Excludes(p):
                 if p not in resolvedPackages:
                   resolvedPackages.append(p)
                   filesInStore += self._Get(p, scope, store, resolvedPackages)
 
           # Get artifact.
           if download:
-            self.Log(Dict.msgSendingXToY % (packageId.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
+            self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
             filesToDownload = []
             try:
               for rFileName in self.GetAll(fileName):
                 filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName, LogLevel.VERBOSE)))
-              filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), packageId)
+              filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), package)
             finally:
               for i in range(len(filesToDownload)):
                 filesToDownload[i] = None
 
     # Check results.
-    if not packageId.IsOptional():
+    if not package.IsOptional():
       if filesInStore is None or len(filesInStore) <= 0:
-        raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+        raise ArtifactNotFoundError(self, "Can't find: " + str(package))
 
     # Return package and its dependencies files.
     filesInStore = RemoveDuplicates(filesInStore)
     self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
 
-  def Get(self, packageId, scope, store = None):
+  def Get(self, package, scope, store = None):
     """TODO: description"""
     '''returns: list of filesNames'''
-    self._Get(packageId, scope, store, [])
+    self._Get(package, scope, store, [])
 
   def _ChangeFileNamesToFtpUrls(self, fileNames):
     if fileNames != None:
@@ -265,26 +265,26 @@ class Repository(Local.Repository):
         fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
     return fileNames
 
-  def Check(self, packageId, scope):
+  def Check(self, package, scope):
     cresult = None
     if self.cache != None:
       # First checks the local cache and if it does not have
       # the correct files then forces a full refresh.
-      cresult = self.cache.Check(packageId, scope)
+      cresult = self.cache.Check(package, scope)
       if cresult == None:
         return None
     # Then check the files on ftp.
-    result = Local.Repository.Check(self, packageId, scope)
+    result = Local.Repository.Check(self, package, scope)
     if result == None:
       return None
     # Usually we give the file names from the local cache.
     # But in the case when the repository is set to not use cache we give the full urls.
     return cresult if cresult != None else self._ChangeFileNamesToFtpUrls(result)
 
-  def Put(self, f, fBaseDirName, packageId):
+  def Put(self, f, fBaseDirName, package):
     # Put the files on ftp at the same time (if the repository use cache)
     # creating an exact copy in the local cache (see also: vPutFileLike method).
-    result = Local.Repository.Put(self, f, fBaseDirName, packageId)
+    result = Local.Repository.Put(self, f, fBaseDirName, package)
     if result != None and self.cache != None:
       # Because the cache had just been updated, we give local file names.
       for i in range(len(result)):

@@ -5,9 +5,10 @@
 # If everything works well you should find a subdirectory in the build
 # subdirectory that contains the files needed to run the script without Python.
 
-from cx_Freeze import setup, Executable
-from atta.version import AttaVersion
+import cx_Freeze
 import sys
+
+from atta import Atta
 
 buildExeOptions = {
   "packages" : ["atta"],
@@ -19,11 +20,11 @@ targetExt = ''
 if sys.platform == 'win32':
   targetExt = '.exe'
 
-setup(
-  name = 'Atta',
-  version = AttaVersion,
-  description = 'Atta',
+cx_Freeze.setup(
+  name = Atta.name,
+  version = Atta.version,
+  description = Atta.description,
   options = dict(build_exe = buildExeOptions),
-  executables = [Executable('main.py', targetName = 'atta' + targetExt, base = 'Console')]
+  executables = [cx_Freeze.Executable('main.py', targetName = 'atta' + targetExt, base = 'Console')]
 )
 

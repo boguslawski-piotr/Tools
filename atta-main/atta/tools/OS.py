@@ -8,17 +8,15 @@ import stat
 from datetime import datetime, timedelta
 from time import sleep
 
-'''
-Common Tools
-'''
+#
+# Common Tools
 
 def IsWindows():
   """Returns `True` if the code is executed in Windows."""
   return platform.system() == 'Windows'
 
-'''
-Path Tools
-'''
+#
+# Path Tools
 
 class Path:
   """TODO: description"""
@@ -39,7 +37,7 @@ class Path:
     s = fileName.rfind('/')
     if s < 0:
       s = fileName.rfind('\\')
-    return fileName if d <= 0 or d < s else fileName[0:d];
+    return fileName if d <= 0 or d < s else fileName[0:d]
 
   @staticmethod
   def JoinExt(fileName, ext):
@@ -130,9 +128,9 @@ class Path:
     path = path.replace('\\', '/')
     if useRegExp:
       if isinstance(pattern, basestring):
-        return re.match(pattern, path) != None
+        return re.match(pattern, path) is not None
       else:
-        return pattern.match(path) != None
+        return pattern.match(path) is not None
 
     #
     #  PathMatcher implementation for Ant-style path patterns.
@@ -292,7 +290,7 @@ class Path:
   @staticmethod
   def AsList(paths, sep = ':'):
     """TODO: description"""
-    if paths == None:
+    if paths is None:
       return []
     from .Misc import isiterable
     if isinstance(paths, basestring):
@@ -335,9 +333,8 @@ class Path:
       sleep(0.05)
     return ''
 
-'''
-Directories Tools
-'''
+#
+# Directories Tools
 
 def MakeDirs(dirNames):
   """Recursive directory creation function. The parameter *dirNames* can be a string
@@ -384,9 +381,8 @@ def RemoveDirs(dirNames, failOnError = True):
         return e.errno
   return 0
 
-'''
-File tools
-'''
+#
+# File tools
 
 def Touch(fileName, createIfNotExists = True):
   """Changes the time of the file *fileName* to 'now'.

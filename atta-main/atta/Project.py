@@ -4,7 +4,7 @@ import os
 import types
 from datetime import datetime
 
-from . import LogLevel, OS, Dependencies, Deploy, Dict, Version, Env, PackageId, Target
+from . import LogLevel, OS, Dict, Version, Env, PackageId, Target
 from . import AttaError, Atta, File, GetProject, _SetProject
 import atta
 
@@ -106,7 +106,7 @@ class Project:
         packageFileName = os.path.join(dirName, '__init__.py')
         if not os.path.exists(packageFileName):
           try: open(packageFileName, 'w').close()
-          except: pass
+          except Exception: pass
         else:
           packageFileName = None
 
@@ -140,10 +140,11 @@ class Project:
     except:
       raise
 
-    return (moduleName, module)
+    return moduleName, module
 
   def ResolveDependencies(self, data = None, scope = Dict.Scopes.compile, returnPackages = True, defaultRepository = None):
     """TODO: description"""
+    from . import Dependencies
     resolver = Dependencies.Resolver()
     if resolver.Resolve(self.dependsOn if data is None else data, scope, defaultRepository):
       return resolver.Result() if not returnPackages else (resolver.Result(), resolver.ResultPackages())
@@ -198,14 +199,16 @@ class Project:
     project._Run(environ, fileName, (targets if targets else []))
     return project
 
-  def CreatePackageId(self):
+  def CreatePackage(self):
     """TODO: description"""
     return PackageId(self.groupId, self.name, str(self.version), self.type)
 
-  def Deploy(self, packageId, files, baseDirName = '.', data = None):
+  def Deploy(self, baseDirName, files, package, data = None, defaultRepository = None):
     """TODO: description"""
+    from . import Deploy
     deployer = Deploy.Deployer()
-    return deployer.Deploy(packageId, files, baseDirName, self.deployTo if data is None else data)
+    return deployer.Deploy(baseDirName, files, package,
+                           self.deployTo if data is None else data, defaultRepository)
 
   '''private section'''
 
@@ -216,7 +219,7 @@ class Project:
         d = sys.modules[moduleName].__dict__[m]
         if m != 'Target' and m != 'Project' and Dict.dependsOn in dir(d):
           availableTargets.append(m)
-    except: pass
+    except Exception: pass
     return availableTargets
 
   def _Run(self, environ, fileName, targets):
@@ -225,7 +228,6 @@ class Project:
     try:
       self.startTime = datetime.now()
 
-      #atta.Project = self
       _SetProject(self)
 
       if os.path.isdir(fileName):
@@ -252,10 +254,10 @@ class Project:
           availableTargets = self.AvailableTargets(moduleName)
           if len(availableTargets):
             availableTargets = '\nThe following targets are available:\n  ' + '\n  '.join(availableTargets)
-          Atta.Log('\nYou did not specify any target.' + availableTargets,
+          Atta.Log('\nYou did not specify any target.' + str(availableTargets),
                     project = self.fileName,
                     log = True)
-          self._End(Project.SUCCESSFUL);
+          self._End(Project.SUCCESSFUL)
           return
 
       self.env._Dump()
@@ -266,7 +268,7 @@ class Project:
             start = True,
             at = self.startTime)
 
-      if self.version != None:
+      if self.version is not None:
         self.version._CreateIfNotExists()
 
       for targetName in targets:
@@ -277,18 +279,17 @@ class Project:
 
       self._End(Project.SUCCESSFUL)
 
-    except Exception, e:
+    except Exception as e:
       self._End(Project.FAILED, e)
       raise
 
     finally:
-      #atta.Project = prevAttaProject
       _SetProject(prevAttaProject)
       if self.env:
         self.env.chdir(prevDirName)
 
   def _End(self, status, exception = None):
-    self.endTime = datetime.now();
+    self.endTime = datetime.now()
     if self._parent is None:
       Atta.Log(
             project = self.fileName,
@@ -301,14 +302,11 @@ class Project:
     return
 
   def _GetTargetClass(self, targetClass):
-    def _SplitClass(name):
-      return (OS.Path.RemoveExt(targetClass), OS.Path.Ext(targetClass, False))
-
     if isinstance(targetClass, basestring):
       tryTargetInProject = True
       while True:
+        targetPackage, targetClassName = OS.Path.RemoveExt(targetClass), OS.Path.Ext(targetClass, False)
         try:
-          targetPackage, targetClassName = _SplitClass(targetClass)
           targetClass = sys.modules[targetPackage].__dict__[targetClassName]
         except Exception as e:
           firstDot = targetPackage.find('.')
@@ -323,7 +321,7 @@ class Project:
               if tryTargetInProject:
                 # Only once we check whether the target is in the main project file.
                 # This allows to change the default behavior of targets collections
-                # that come with of Atta (such as Java or Android).
+                # that come with Atta (such as Java or Android).
                 targetClass = OS.Path.RemoveExt(os.path.basename(self.fileName)) + '.' + targetPackage
                 tryTargetInProject = False
               else:

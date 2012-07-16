@@ -7,11 +7,15 @@
 .settings
 .atta
 .repository
+.idea
 
 .build
 build
 dist
-bin
+/tests/bin
+/tests/*/bin
+/examples/bin
+/examples/*/bin
 
 /docs/html
 /docs/modules
@@ -24,6 +28,7 @@ bin
 
 /tests/test_Java
 /tests/JavaMedium/archive
+/tests/JavaBasic/archive
 
 /tests/JavaMedium/password.properties
 /tests/JavaMedium/deploy.properties
@@ -36,4 +41,6 @@ bin
 /tests/test_ver.txt
 /tests/_test*
 /.komodotools
+
 /examples/FtpviaHttp/archive
+/!old

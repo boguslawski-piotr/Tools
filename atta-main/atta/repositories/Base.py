@@ -14,8 +14,6 @@ class ARepository:
       _styleClass = ARepository.GetDefaultStyleImpl()
     self._styleImpl = ObjectFromClass(_styleClass)
 
-  ''''''
-
   _defaultStyleImpl = ObjectFromClass(Styles.Maven)
 
   @staticmethod
@@ -28,7 +26,7 @@ class ARepository:
     """TODO: description"""
     return ARepository._defaultStyleImpl.GetClass()
 
-  '''Properties'''
+  # Properties
 
   def SetOptionalAllowed(self, v):
     """TODO: description"""
@@ -39,25 +37,25 @@ class ARepository:
     TODO: more description"""
     return self.data.get(Dict.getOptional, False)
 
-  '''Abstract'''
+  # Abstract methods
 
-  def Get(self, packageId, scope, store = None):
+  def Get(self, package, scope, store = None):
     """TODO: description"""
-    pass
+    assert False
 
-  def Check(self, packageId, scope):
+  def Check(self, package, scope):
     """TODO: description"""
-    pass
+    assert False
 
-  def Put(self, f, fBaseDirName, packageId):
+  def Put(self, f, fBaseDirName, package):
     """TODO: description"""
-    pass
+    assert False
 
-  def Clean(self, packageId):
+  def Clean(self, package):
     """TODO: description"""
-    pass
+    assert False
 
   def _Name(self):
     """TODO: description"""
-    pass
+    assert False
 

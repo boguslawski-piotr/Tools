@@ -2,9 +2,9 @@
 
 class IRepositoryStyle:
   """TODO: description"""
-  def DirName(self, packageId):
+  def DirName(self, package):
     pass
-  def FileName(self, packageId):
+  def FileName(self, package):
     pass
-  def FullFileName(self, packageId):
+  def FullFileName(self, package):
     pass

@@ -61,7 +61,7 @@ class Version(Observable, Task):
 
     observers = OS.Path.AsList(conf.get('observers', None))
     for c in observers:
-      self.addObserver(c)
+      self.AddObserver(c)
 
     self.major = 0
     self.minor = 0
@@ -79,7 +79,7 @@ class Version(Observable, Task):
       if conf.get('createIfNotExists', True):
         self._ForceUpdate()
 
-    self.notifyObservers(Version.Events.AfterConfigure)
+    self.NotifyObservers(Version.Events.AfterConfigure)
 
   def AsStr(self):
     """TODO: description"""
@@ -89,42 +89,42 @@ class Version(Observable, Task):
     """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextMajor(self)
-    self.notifyObservers(Version.Events.NextMajor)
+    self.NotifyObservers(Version.Events.NextMajor)
     self._Changed(update, old)
 
   def NextMinor(self, update = True):
     """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextMinor(self)
-    self.notifyObservers(Version.Events.NextMinor)
+    self.NotifyObservers(Version.Events.NextMinor)
     self._Changed(update, old)
 
   def NextPatch(self, update = True):
     """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextPatch(self)
-    self.notifyObservers(Version.Events.NextPatch)
+    self.NotifyObservers(Version.Events.NextPatch)
     self._Changed(update, old)
 
   def NextBuild(self, update = True):
     """TODO: description"""
     old = self._AsStr()
     self._impl.GetObject().NextBuild(self)
-    self.notifyObservers(Version.Events.NextBuild)
+    self.NotifyObservers(Version.Events.NextBuild)
     self._Changed(update, old)
 
   def SetPrefix(self, prefix):
     """TODO: description"""
     old = self.prefix
     self.prefix = prefix
-    self.notifyObservers(Version.Events.SetPrefix)
+    self.NotifyObservers(Version.Events.SetPrefix)
     return old
 
   def SetPostfix(self, postfix):
     """TODO: description"""
     old = self.postfix
     self.postfix = postfix
-    self.notifyObservers(Version.Events.SetPostfix)
+    self.NotifyObservers(Version.Events.SetPostfix)
     return old
 
   def ExpandVars(self, data, **tparams):
@@ -202,7 +202,7 @@ class Version(Observable, Task):
     finally:
       f.close()
     self.changed = False
-    self.notifyObservers(Version.Events.AfterRead)
+    self.NotifyObservers(Version.Events.AfterRead)
     return True
 
   def _CreateNew(self):
@@ -244,7 +244,7 @@ class Version(Observable, Task):
   def _Update(self):
     if not self.changed:
       return True
-    self.notifyObservers(Version.Events.BeforeUpdate)
+    self.NotifyObservers(Version.Events.BeforeUpdate)
 
     if os.path.exists(self.fileName):
       fo = self._UpdateExisting()
@@ -259,7 +259,7 @@ class Version(Observable, Task):
       fo.close()
 
     self.changed = False
-    self.notifyObservers(Version.Events.AfterUpdate)
+    self.NotifyObservers(Version.Events.AfterUpdate)
     return True
 
   def _AsStr(self):

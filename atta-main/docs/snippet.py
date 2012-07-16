@@ -6,9 +6,9 @@
   Allow define snippets...
 """
 
-from docutils import nodes
+import docutils
 
-from sphinx.util.nodes import set_source_info
+import sphinx.util.nodes
 from sphinx.util.compat import Directive
 from sphinx.locale import l_
 
@@ -22,9 +22,9 @@ def _is_single_paragraph(node):
         return False
     elif len(node) > 1:
         for subnode in node[1:]:
-            if not isinstance(subnode, nodes.system_message):
+            if not isinstance(subnode, docutils.nodes.system_message):
                 return False
-    if isinstance(node[0], nodes.paragraph):
+    if isinstance(node[0], docutils.nodes.paragraph):
         return True
     return False
 
@@ -49,16 +49,16 @@ class Field(object):
         self.has_arg = has_arg
 
     def make_entry(self, fieldarg, content):
-        return (fieldarg, content)
+        return fieldarg, content
 
     def make_field(self, types, item):
         fieldarg, content = item
-        fieldname = nodes.field_name('', self.label)
+        fieldname = docutils.nodes.field_name('', self.label)
         if fieldarg:
-            fieldname += nodes.Text(' ')
-            fieldname += nodes.Text(fieldarg)
-        fieldbody = nodes.field_body('', nodes.paragraph('', '', *content))
-        return nodes.field('', fieldname, fieldbody)
+            fieldname += docutils.nodes.Text(' ')
+            fieldname += docutils.nodes.Text(fieldarg)
+        fieldbody = docutils.nodes.field_body('', docutils.nodes.paragraph('', '', *content))
+        return docutils.nodes.field('', fieldname, fieldbody)
 
 class GroupedField(Field):
     """
@@ -74,7 +74,7 @@ class GroupedField(Field):
        :raises ErrorClass: description when it is raised
     """
     is_grouped = True
-    list_type = nodes.bullet_list
+    list_type = docutils.nodes.bullet_list
 
     def __init__(self, name, names = (), label = None,
                  can_collapse = False):
@@ -82,18 +82,18 @@ class GroupedField(Field):
         self.can_collapse = can_collapse
 
     def make_field(self, types, items):
-        fieldname = nodes.field_name('', self.label)
+        fieldname = docutils.nodes.field_name('', self.label)
         listnode = self.list_type()
         if len(items) == 1 and self.can_collapse:
             return Field.make_field(self, items[0])
         for fieldarg, content in items:
-            par = nodes.paragraph()
+            par = docutils.nodes.paragraph()
             par += fieldarg
-            par += nodes.Text(' -- ')
+            par += docutils.nodes.Text(' -- ')
             par += content
-            listnode += nodes.list_item('', par)
-        fieldbody = nodes.field_body('', listnode)
-        return nodes.field('', fieldname, fieldbody)
+            listnode += docutils.nodes.list_item('', par)
+        fieldbody = docutils.nodes.field_body('', listnode)
+        return docutils.nodes.field('', fieldname, fieldbody)
 
 
 class TypedField(GroupedField):
@@ -122,36 +122,36 @@ class TypedField(GroupedField):
 
     def make_field(self, types, items):
         def handle_item(fieldarg, content):
-            par = nodes.paragraph()
-            par += nodes.Text(fieldarg)
+            par = docutils.nodes.paragraph()
+            par += docutils.nodes.Text(fieldarg)
             if fieldarg in types:
-                par += nodes.Text(' (')
+                par += docutils.nodes.Text(' (')
                 # NOTE: using .pop() here to prevent a single type node to be
                 # inserted twice into the doctree, which leads to
                 # inconsistencies later when references are resolved
                 fieldtype = types.pop(fieldarg)
-                if len(fieldtype) == 1 and isinstance(fieldtype[0], nodes.Text):
+                if len(fieldtype) == 1 and isinstance(fieldtype[0], docutils.nodes.Text):
                     typename = u''.join(n.astext() for n in fieldtype)
-                    par += nodes.Text(typename)
+                    par += docutils.nodes.Text(typename)
                 else:
                     par += fieldtype
-                par += nodes.Text(')')
-            par += nodes.Text(' -- ')
+                par += docutils.nodes.Text(')')
+            par += docutils.nodes.Text(' -- ')
             par += content
             return par
 
-        fieldname = nodes.field_name('', self.label)
+        fieldname = docutils.nodes.field_name('', self.label)
         if len(items) == 1 and self.can_collapse:
             fieldarg, content = items[0]
             bodynode = handle_item(fieldarg, content)
         else:
             bodynode = self.list_type()
             for fieldarg, content in items:
-                bodynode += nodes.list_item('', handle_item(fieldarg, content))
-        fieldbody = nodes.field_body('', bodynode)
-        return nodes.field('', fieldname, fieldbody)
+                bodynode += docutils.nodes.list_item('', handle_item(fieldarg, content))
+        fieldbody = docutils.nodes.field_body('', bodynode)
+        return docutils.nodes.field('', fieldname, fieldbody)
 
-class snippet(nodes.Element):
+class snippet(docutils.nodes.Element):
     doc_field_types = [
         TypedField('parameter', label = l_('Parameters'),
                    names = ('param', 'parameter', 'arg', 'argument',
@@ -186,7 +186,7 @@ class snippet(nodes.Element):
         # don't traverse, only handle field lists that are immediate children
         self.typemap = self.preprocess_fieldtypes(snippet.doc_field_types)
         for child in node:
-            if isinstance(child, nodes.field_list):
+            if isinstance(child, docutils.nodes.field_list):
                 #print child
                 self.transform(child)
 
@@ -214,7 +214,7 @@ class snippet(nodes.Element):
                 # either the field name is unknown, or the argument doesn't
                 # match the spec; capitalize field name and be done with it
                 new_fieldname = fieldtype.capitalize() + ' ' + fieldarg
-                fieldname[0] = nodes.Text(new_fieldname)
+                fieldname[0] = docutils.nodes.Text(new_fieldname)
                 entries.append(field)
                 continue
 
@@ -231,8 +231,8 @@ class snippet(nodes.Element):
                 # filter out only inline nodes; others will result in invalid
                 # markup being written out
                 content = filter(
-                    lambda n: isinstance(n, nodes.Inline) or
-                              isinstance(n, nodes.Text),
+                    lambda n: isinstance(n, docutils.nodes.Inline) or
+                              isinstance(n, docutils.nodes.Text),
                     content)
                 if content:
                     types.setdefault(typename, {})[fieldarg] = content
@@ -246,7 +246,7 @@ class snippet(nodes.Element):
                     pass
                 else:
                     types.setdefault(typename, {})[argname] = \
-                                               [nodes.Text(argtype)]
+                                               [docutils.nodes.Text(argtype)]
                     fieldarg = argname
 
             # grouped entries need to be collected in one entry, while others
@@ -264,9 +264,9 @@ class snippet(nodes.Element):
                                 typedesc.make_entry(fieldarg, content)])
 
         # step 2: all entries are collected, construct the new field list
-        new_list = nodes.field_list()
+        new_list = docutils.nodes.field_list()
         for entry in entries:
-            if isinstance(entry, nodes.field):
+            if isinstance(entry, docutils.nodes.field):
                 # pass-through old field
                 new_list += entry
             else:
@@ -291,7 +291,7 @@ class Snippet(Directive):
     def run(self):
         node = snippet()
         node.document = self.state.document
-        set_source_info(self, node)
+        sphinx.util.nodes.set_source_info(self, node)
 
         node['name'] = self.arguments[0]
         self.state.nested_parse(self.content, self.content_offset,
@@ -300,7 +300,7 @@ class Snippet(Directive):
         #node.transform_all(node)
         return [node]
 
-class snippetref(nodes.Element): pass
+class snippetref(docutils.nodes.Element): pass
 
 class SnippetRef(Directive):
     has_content = True
@@ -312,7 +312,7 @@ class SnippetRef(Directive):
     def run(self):
         node = snippetref()
         node.document = self.state.document
-        set_source_info(self, node)
+        sphinx.util.nodes.set_source_info(self, node)
 
         node['name'] = self.arguments[0]
         self.state.nested_parse(self.content, self.content_offset,

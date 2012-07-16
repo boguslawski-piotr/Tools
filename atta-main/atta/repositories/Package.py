@@ -19,22 +19,34 @@ class PackageId:
     #self.exclusions
     #self.sha1?
 
+  def GetAttr(self, name, default = None):
+    """TODO: description"""
+    return getattr(self, name, default)
+
+  def SetAttr(self, name, value):
+    """TODO: description"""
+    setattr(self, name, value)
+
+  def __setattr__(self, name, value):
+    name = Dict.type if name == Dict.packaging else name
+    self.__dict__[name] = value
+
   def IsOptional(self):
     """TODO: description"""
-    optional = getattr(self, Dict.optional, False)
+    optional = self.GetAttr(Dict.optional, False)
     if isinstance(optional, basestring):
       optional = optional.lower().strip()
       return optional == Dict.true or optional == Dict.yes
     else:
       return bool(optional)
 
-  def Excludes(self, packageId):
-    """Checks if `packageId` is on the `exclusions` list
-       that is created when you download the dependencies
+  def Excludes(self, package):
+    """Checks if *package* is on the *exclusions* list
+       that is usually created when you download the dependencies
        from POM files."""
-    excludedPackages = getattr(self, Dict.exclusions, [])
+    excludedPackages = self.GetAttr(Dict.exclusions, [])
     for e in excludedPackages:
-      if packageId.groupId == e.groupId and packageId.artifactId == e.artifactId:
+      if package.groupId == e.groupId and package.artifactId == e.artifactId:
         return True
     return False
 
@@ -78,6 +90,8 @@ class PackageId:
       else:
         scope = self.scope
       xml = xml + OneLine(Dict.scope, scope)
+    if self.IsOptional():
+      xml = xml + OneLine(Dict.optional, Dict.true)
 
     xml = xml + Dict.dependencyEndTag + Dict.newLine
     return xml
@@ -100,28 +114,27 @@ class PackageId:
     return PackageId(groupId, artifactId, version, type)
 
   @staticmethod
-  def __Override(packageId, **tparams):
-    if Dict.groupId in tparams: packageId.groupId = tparams.get(Dict.groupId)
-    if Dict.artifactId in tparams: packageId.artifactId = tparams.get(Dict.artifactId)
-    if not packageId.groupId: packageId.groupId = packageId.artifactId
-    if Dict.version in tparams: packageId.version = tparams.get(Dict.version)
-    if Dict.type in tparams: packageId.type = tparams.get(Dict.type)
-    return packageId
+  def __Override(package, **tparams):
+    if Dict.groupId in tparams: package.groupId = tparams.get(Dict.groupId)
+    if Dict.artifactId in tparams: package.artifactId = tparams.get(Dict.artifactId)
+    if not package.groupId: package.groupId = package.artifactId
+    if Dict.version in tparams: package.version = tparams.get(Dict.version)
+    if Dict.type in tparams: package.type = tparams.get(Dict.type)
+    return package
 
   @staticmethod
-  def FromPackageId(packageId, **tparams):
+  def FromPackage(package, **tparams):
     """TODO: description"""
-    # TODO: uzyc copy!
-    newPackageId = PackageId.FromStr(str(packageId))
-    return PackageId.__Override(newPackageId, **tparams)
+    newPackage = PackageId.FromStr(str(package))
+    return PackageId.__Override(newPackage, **tparams)
 
   @staticmethod
-  def FromDict(packageDict, **tparams):
+  def FromDict(packageData, **tparams):
     """TODO: description"""
-    newPackageId = PackageId()
-    for e in packageDict:
-      setattr(newPackageId, Dict.type if e == Dict.packaging else e, packageDict[e])
-    return PackageId.__Override(newPackageId, **tparams)
+    newPackage = PackageId()
+    for name in packageData:
+      setattr(newPackage, name, packageData[name])
+    return PackageId.__Override(newPackage, **tparams)
 
   def __eq__(self, other):
     return str(self) == str(other)

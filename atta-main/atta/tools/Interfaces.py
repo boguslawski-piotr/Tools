@@ -2,16 +2,53 @@
 import types
 from .internal.Misc import ObjectFromClass
 
+def AbstractMethod(method):
+  """TODO: description"""
+  method.__abstract = True
+  return method
+
+def IsAbstractMethod(method):
+  """TODO: description"""
+  return '__abstract' in dir(method)
+
 class Observable:
   """The Observable class is a simple mixin class which can be used
      to make container objects "observable". An observable container
      issues events when being modified, and external "observers"
      can subscribe to such events.
-  """
-  __observers = None
 
-  def addObserver(self, observer):
-    """Adds new observer. It can be class or function that implements IObserver."""
+     Example:
+
+     .. code-block:: python
+
+      class o0():
+        def __call__(self, c, event):
+          print 'o0', event
+
+      class o1(object):
+        def __call__(self, c, event):
+          print 'o1', event
+
+      def o2(c, event):
+        print 'o2', event
+
+      class X(Observable):
+        def action(self):
+          self.NotifyObservers(1)
+
+      x = X()
+      io0 = x.AddObserver(o0)
+      io1 = x.AddObserver(o1)
+      io2 = x.AddObserver(o2)
+      x.action()
+      x.RemoveObserver(io2)
+      x.action()
+      x.RemoveObserver(io0)
+      x.action()
+  """
+  def AddObserver(self, observer):
+    """Adds new *observer*. It can be class or function that implements IObserver.
+       Returns object that can be used as parameter in :py:meth:`.RemoveObserver`."""
     if not self.__observers:
       self.__observers = []
     if types.FunctionType == type(observer):
@@ -19,27 +56,32 @@ class Observable:
     else:
       observer = ObjectFromClass(observer)
       self.__observers.append((observer, observer.GetObject()))
+    return observer
 
-  def removeObserver(self, observer):
+  def RemoveObserver(self, observer):
     """Removes *observer*."""
     try:
       if types.FunctionType == type(observer):
         self.__observers.remove((None, observer))
       else:
         for i, (c, o) in enumerate(self.__observers) or ():
-          if observer == c.GetClass():
+          if observer == c:
             del self.__observers[i]
             break
-    except:
+    except Exception:
       pass
 
-  def notifyObservers(self, event, *params, **tparams):
+  def NotifyObservers(self, event, *params, **tparams):
+    """TODO: description"""
     for c, o in self.__observers or ():
       o(self, event, *params, **tparams)
 
+  #: Only as safeguard.
+  __observers = None
+
 def IObserver(caller, event, *params, **tparams):
   """TODO: description"""
-  pass
+  assert False
 
 #------------------------------------------------------------------------------
 

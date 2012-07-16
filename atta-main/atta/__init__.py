@@ -50,7 +50,7 @@ __all__ = [
 from .tools.Misc import VarsExpander
 from .loggers import LogLevel, Logger, Std
 from .tools import DefaultVarsExpander
-from .version import AttaVersion
+from . import version
 
 class AttaError(RuntimeError):
   """Base class for all exceptions thrown by Atta."""
@@ -69,14 +69,14 @@ class Atta:
   name = 'Atta'
   description = 'Build tool in pure Python.'
 
-  version = AttaVersion
-  '''TODO: description'''
+  #: DOCTODO: description
+  version = version.__version__
 
-  versionInt = int(AttaVersion.replace('.', ''))
-  '''TODO: description'''
+  #: DOCTODO: description
+  versionInt = int(version.replace('.', ''))
 
+  #: DOCTODO: description
   dirName = None
-  '''TODO: description'''
 
   _logger = Logger(Std.Logger)
 
@@ -109,14 +109,14 @@ class Atta:
 
   @staticmethod
   def ExpandVars(data, **tparams):
-    """TODO: description"""
+    """DOCTODO: description"""
     return Atta.VarsExpander().Expand(data, **tparams)
 
   _props = None
 
   @staticmethod
   def Props():
-    """TODO: description"""
+    """All Atta settings (properties) as dictionary. DOCTODO: more description"""
     return Atta._props
 
   @staticmethod
@@ -125,10 +125,10 @@ class Atta:
 
 # Project property
 
+#: Provides access to data and general tools for the entire project.
+#: Use it ONLY during the phase of interpreting the main build script.
+#: Property Project is an instance of the class :py:class:`atta.Project`.
 Project = None
-"""Provides access to data and general tools for the entire project.
-   Use it ONLY during the phase of interpreting the main build script.
-   Property Project is an instance of the class :py:class:`atta.Project`."""
 
 def GetProject():
   """Provides access to data and general tools for the entire project.
@@ -144,14 +144,10 @@ def _SetProject(project):
 class File:
   """Describes currently interpreted build script."""
 
+  #: Full file name. Available only during
+  #: the phase of interpreting the build script.
+  #: NOT when Atta performing targets & tasks.
   name = ''
-  '''
-  Full file name.
-
-  Property File.name is available only during
-  the phase of interpreting the build script.
-  NOT when Atta performing targets & tasks.
-  '''
 
   # private section
 

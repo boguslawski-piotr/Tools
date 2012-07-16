@@ -13,6 +13,7 @@ while [ -h "$PRG" ]; do
   fi
 done
 ATTA_HOME=`dirname "$PRG"`
+ATTA_HOME=$ATTA_HOME/..
 
 # Absolutize dir.
 oldpwd=`pwd`

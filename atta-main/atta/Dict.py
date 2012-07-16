@@ -6,14 +6,14 @@ class Scopes:
   """TODO: description"""
   compile = 'compile'
   testcompile = 'testcompile'
-  install = 'install'
-  testrun = 'testrun'
+  runtime = 'runtime'
+  testruntime = 'testruntime'
 
   map2POM = {
              compile     : ['compile'],
-             testcompile : ['compile'],
-             install     : ['compile', 'runtime'],
-             testrun     : ['compile', 'runtime']
+             testcompile : ['compile', 'test'],
+             runtime     : ['runtime'],
+             testruntime : ['runtime', 'test']
             }
   '''TODO: description'''
 
@@ -31,7 +31,9 @@ Or = 'or'
 #
 # Environment related
 
+attaPropsFileName = 'atta.properties'
 defaultBuildFileName = 'build.py'
+
 PATH = 'PATH'
 
 #
@@ -104,7 +106,7 @@ else:
   GIT_EXE_IN_PATH = GIT_EXE
 
 #
-# Common tasks (and others activites) parameters
+# Common tasks (and others activities) parameters
 
 paramLevel = 'level'
 paramQuiet = 'quiet'
@@ -175,7 +177,7 @@ msgNoneHaveBeenAdded = 'To: %s none have been added.'
 msgNothingToCompile = 'Nothing to compile in: {0}'
 msgCompilingTo = 'Compiling %d source file(s) to: %s'
 
-msgLoadingPropertiesForX = 'Loading properties for: %s'
+msgLoadedPropertiesForX = 'Loaded properties for: %s'
 msgCollectingDependenciesForX = 'Collecting dependencies for: %s'
 
 msgDvcsRepository = 'Repository: %s'

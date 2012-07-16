@@ -11,11 +11,11 @@ class XmlElement(ET.Element):
   You can use any attribute and method from :py:class:`.ElementTree.Element`.
   """
 
+  #: element namespace DOCTODO: description
   ns = None
-  '''element namespace TODO: description'''
 
+  #: DOCTODO: description
   parent = None
-  '''TODO: description'''
 
   def __init__(self, tag, attrib = {}, ns = '', **extra):
     self.ns = ns
@@ -137,10 +137,10 @@ class XmlElement(ET.Element):
     try:
       m = re.search('({(.*)})', tag)
       if m != None:
-        return (m.group(2), tag.replace(m.group(1), ''))
+        return m.group(2), tag.replace(m.group(1), '')
     except:
       pass
-    return ('', tag)
+    return '', tag
 
   def _setparent(self, parent):
     self._parent = parent

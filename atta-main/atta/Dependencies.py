@@ -12,8 +12,12 @@ class Resolver:
     self.Clear()
 
   def Resolve(self, data, scope = Dict.Scopes.compile, defaultRepository = None):
+    """TODO: description"""
     rc = False
     for e in data:
+      if isinstance(e, basestring):
+        e = dict(package = e)
+
       if Dict.dependsOn in e:
         # Recursively resolve the dependencies.
         self.Resolve(e[Dict.dependsOn], scope, defaultRepository)
@@ -22,21 +26,19 @@ class Resolver:
       if not repositoryName:
         if not defaultRepository:
           raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
-        if not isinstance(defaultRepository, basestring):
-          repositoryName = defaultRepository.__name__
-
-      packageScope = e.get(Dict.scope, Dict.Scopes.compile)
-      if packageScope != scope:
-        continue
+        repositoryName = defaultRepository
+      if not isinstance(repositoryName, basestring):
+        repositoryName = repositoryName.__name__
 
       packageStrId = e.get(Dict.package)
-      if packageStrId is not None:
-        packageId = PackageId.FromStr(packageStrId)
+      if packageStrId:
+        package = PackageId.FromStr(packageStrId)
       else:
-        packageId = PackageId(e.get(Dict.groupId),
-                              e.get(Dict.artifactId),
-                              e.get(Dict.version),
-                              e.get(Dict.type))
+        package = PackageId(e.get(Dict.groupId), e.get(Dict.artifactId), e.get(Dict.version), e.get(Dict.type))
+      package.optional = e.get(Dict.optional, False)
+      package.scope = e.get(Dict.scope, Dict.Scopes.compile)
+      if package.scope != scope:
+        continue
 
       __import__(repositoryName)
       repository = sys.modules[repositoryName].Repository(e)
@@ -52,7 +54,7 @@ class Resolver:
         store = sys.modules[storeName].Repository(storeData)
 
       try:
-        result = repository.Get(packageId, scope, store)
+        result = repository.Get(package, scope, store)
       except ArtifactNotFoundError:
         if Dict.ifNotExists in e:
           rc = self.Resolve(e[Dict.ifNotExists], scope, defaultRepository)
@@ -60,11 +62,9 @@ class Resolver:
           raise
       else:
         if result:
-          self.result += result
-          if not Dict.scope in dir(packageId):
-            packageId.scope = scope
-          self.resultPackages.append(packageId)
           rc = True
+          self.result += result
+          self.resultPackages.append(package)
         else:
           if Dict.ifNotExists in e:
             rc = self.Resolve(e[Dict.ifNotExists], scope, defaultRepository)

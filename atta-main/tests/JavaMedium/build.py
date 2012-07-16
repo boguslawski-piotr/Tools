@@ -94,9 +94,9 @@ Project.dependsOn += [{
                       }]
 
 Project.dependsOn += [{
-                      # Calls Atta project in directory (default: build.py) or with file name specified by: groupId.
+                      # Calls Atta project in directory (default: build.py) or with file name specified by: project.
                       'repository': 'atta.repositories.Project',
-                      'groupId'   : '../JavaBasic',
+                      'project'   : '../JavaBasic',
 
                       # You can set the following items according to the commentary,
                       # or not set, and then Atta will use the default values.
@@ -106,18 +106,23 @@ Project.dependsOn += [{
 
                       # This must be name (or list of names) of project property(ies) which may contains:
                       # string, string path (entries separated by :) or list of strings.
-                      # These values will be used in the parameter '-classpath' passed to javac compiler.
+                      # These values will be used in the parameter '-classpath' passed
+                      # to javac if scope is 'compile' (default) or, if scope is 'runtime',
+                      # in '-classpath' passed to java.
                       'resultIn'  : ['packageName', 'javacClassPath'] # default: packageName
                       }]
 
+import atta.repositories.Local
+
 Project.dependsOn += [{
-                       'repository' : 'atta.repositories.Local',
+                       'repository' : atta.repositories.Local,
                        'style'      : 'atta.repositories.Styles.Flat',
-                       'scope'      : 'install',
+                       'scope'      : 'runtime',
                        'package'    : 'javax.mail:mail.jar:1.4.5',
                        'ifNotExists': [{
                                         'repository' : 'atta.repositories.Maven',
                                         'package'    : 'javax.mail:mail.jar:1.4.5',
+                                        'scope'      : 'runtime',
                                         'putIn'      : {
                                                         'repository' : 'atta.repositories.Local',
                                                         'style'      : 'atta.repositories.Styles.Flat',
@@ -139,10 +144,8 @@ Project.deployTo += [
 #                     'password'   : p.Get('password'),
 #                     'useCache'   : False,
 #                    },
-#                    {
 #                     # into machine local repository
-#                     'repository' : 'atta.repositories.Local',
-#                    },
+#                     'atta.repositories.Local',
                   ]
 
 '''

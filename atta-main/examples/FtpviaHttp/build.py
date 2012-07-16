@@ -9,10 +9,7 @@ Project.version.Configure(fileName = 'version.number',
 
 Java.Setup()
 
-Project.dependsOn = [
-  {'package' : 'com.beust:jcommander:1.26'   },
-  {'package' : 'commons-net:commons-net:3.1' },
-]
+Project.dependsOn = ['com.beust:jcommander:1.26', 'commons-net:commons-net:3.1']
 
 Project.packageAdditionalFiles += [Project.version.fileName]
 

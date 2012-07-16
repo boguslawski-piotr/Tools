@@ -45,10 +45,37 @@ test = [{
           },
         }]
 
-r = Project.ResolveDependencies(test)
+#r = Project.ResolveDependencies(test)
 #print r
 
+class Z(object):
+  _p = None
+
+  def GetP(self):
+    print 'ZZZ', Z._p
+    return Z._p
+
+  def _SetP(self, project):
+    Z._p = project
+    print 'XXX', Z._p
+
+  P = property(GetP, _SetP)
+
 def test():
+
+  print Project.env.get('ATTA_TESTS')
+
+  class ZZ: pass
+
+  z = Z()
+  z.P = '1'
+  print z.P
+
+  #z.P.X = 10
+#  print z.P.X
+  print z._p
+
+  #------------------------------------------------------------------------------
 
   z = 'c:\\ala:p:\\dupa\\aaaa/sd:f:\\asewe'
   print OS.Path.AsList(z)
@@ -57,30 +84,6 @@ def test():
 
   from atta.tools.Interfaces import Observable
 
-  class X(Observable):
-    def action(self):
-      self.notifyObservers(1)
-
-  class o0():
-    def __call__(self, c, event):
-      print 'o0', event
-
-  class o1(object):
-    def __call__(self, c, event):
-      print 'o1', event
-
-  def o2(c, event):
-    print 'o2', event
-
-  x = X()
-  x.addObserver(o0)
-  x.addObserver(o1)
-  x.addObserver(o2)
-  x.action()
-  x.removeObserver(o2)
-  x.action()
-  x.removeObserver(o0)
-  x.action()
 
   return
 
@@ -89,10 +92,10 @@ def test():
   from atta.repositories.Maven import Repository
   from atta.repositories.Package import PackageId
 
-  packageId = PackageId.FromStr('asm:asm-util.jar:2.2.3')
-  #packageId = PackageId.FromStr('com.thoughtworks.xstream:xstream.jar:1.3.1')
-  #packageId = PackageId.FromStr('ant.jar:1.6.2')
-  #packageId = PackageId.FromStr('commons-jelly:commons-jelly-tags-xml.jar:1.1')
+  package = PackageId.FromStr('asm:asm-util.jar:2.2.3')
+  #package = PackageId.FromStr('com.thoughtworks.xstream:xstream.jar:1.3.1')
+  #package = PackageId.FromStr('ant.jar:1.6.2')
+  #package = PackageId.FromStr('commons-jelly:commons-jelly-tags-xml.jar:1.1')
   r = Repository({'getOptional' : False})
-  r.Get(packageId, 'compile')
+  r.Get(package, 'compile')
 

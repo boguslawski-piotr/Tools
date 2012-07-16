@@ -4,37 +4,38 @@ from .Interfaces import IRepositoryStyle
 
 class Maven(IRepositoryStyle):
   """TODO: description"""
-  def DirName(self, packageId):
-    return '%s/%s/%s' % (str(packageId.groupId).replace('.', '/'), str(packageId.artifactId), str(packageId.version))
+  def DirName(self, package):
+    return '%s/%s/%s' % (str(package.groupId).replace('.', '/'), str(package.artifactId), str(package.version))
 
-  def FileName(self, packageId):
-    fn = str(packageId.artifactId) + '-' + str(packageId.version)
-    if bool(packageId.type):
-      fn = fn + '.' + str(packageId.type)
+  def FileName(self, package):
+    fn = str(package.artifactId) + '-' + str(package.version)
+    if bool(package.type):
+      fn = fn + '.' + str(package.type)
     return fn
-    #return '%s-%s.%s' % (str(packageId.artifactId), str(packageId.version), str(packageId.type))
+    #return '%s-%s.%s' % (str(package.artifactId), str(package.version), str(package.type))
 
-  def FullFileName(self, packageId):
-    dirName = self.DirName(packageId).strip()
+  def FullFileName(self, package):
+    dirName = self.DirName(package).strip()
     if dirName:
-      return dirName + '/' + self.FileName(packageId)
+      return dirName + '/' + self.FileName(package)
     else:
-      return self.FileName(packageId)
+      return self.FileName(package)
 
 class Flat(Maven):
   """TODO: description"""
-  def DirName(self, packageId):
-    if not packageId.groupId or packageId.groupId == packageId.artifactId:
-      return '%s-%s' % (str(packageId.artifactId), str(packageId.version))
+  def DirName(self, package):
+    if not package.groupId or package.groupId == package.artifactId:
+      return '%s-%s' % (str(package.artifactId), str(package.version))
     else:
-      return '%s.%s-%s' % (str(packageId.groupId), str(packageId.artifactId), str(packageId.version))
+      return '%s.%s-%s' % (str(package.groupId), str(package.artifactId), str(package.version))
 
 # TODO: lepsza nazwa?
 class ByVersion(Flat):
-  def DirName(self, packageId):
-    return '%s' % (str(packageId.version))
+  """TODO: description"""
+  def DirName(self, package):
+    return '%s' % (str(package.version))
 
 class OnlyFileName(Flat):
   """TODO: description"""
-  def DirName(self, packageId):
+  def DirName(self, package):
     return ''

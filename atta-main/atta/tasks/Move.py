@@ -28,7 +28,7 @@ class Move(Copy):
         try:
           os.rmdir(d)
           self.dirsDeleted.add(d)
-          self.Log(Dict.msgDelDirectory % (d))
+          self.Log(Dict.msgDelDirectory % d)
         except os.error as E:
           if E.errno != os.errno.ENOTEMPTY and E.errno != os.errno.ENOENT:
             self.HandleError(E, d)
@@ -40,7 +40,7 @@ class Move(Copy):
           if not head in self.dirsDeleted:
             os.rmdir(head)
             self.dirsDeleted.add(head)
-            self.Log(Dict.msgDelDirectory % (head))
+            self.Log(Dict.msgDelDirectory % head)
         except os.error:
           break
         head, tail = os.path.split(head)
@@ -49,9 +49,6 @@ class Move(Copy):
     Copy.EndProcessing(self, sfn, dfn)
     OS.RemoveFile(sfn, self.force)
     self.dirsToDelete.add(os.path.dirname(sfn))
-
-#  def LogStartProcessing(self, sfn, dfn):
-#    self.Log(Dict.msgMovingXToY % (sfn, dfn))
 
   def LogEnd(self):
     if self.processedFiles or self.skippedFiles:

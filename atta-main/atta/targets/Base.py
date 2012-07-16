@@ -4,6 +4,7 @@ import platform
 
 from ..Activity import Activity
 from .. import OS
+from ..tools.Interfaces import AbstractMethod, IsAbstractMethod
 
 class Target(Activity):
   """
@@ -12,11 +13,11 @@ class Target(Activity):
   TODO: description
   """
 
+  #: DOCTODO: description
   dependsOn = []
-  '''TODO: description'''
 
+  #: DOCTODO: description
   system = []
-  '''TODO: description'''
 
   def CanRun(self):
     """TODO: description"""
@@ -31,25 +32,25 @@ class Target(Activity):
           break
     return canRun
 
-  '''
-  Method 'Prepare' maybe defined in a class that inherits from the Target. Then will start.
-  When it returns False, project will not run any targets from
-  the section 'dependsOn' as well as the Run method.
-  '''
-  #def Prepare(self):
-  #  return True
+  @AbstractMethod
+  def Prepare(self):
+    """Method 'Prepare' can be defined in a class that inherits from the Target.
+       Then will start. When it returns False, project will not run any targets from
+       the section 'dependsOn' as well as the Run method."""
+    assert False
 
+  @AbstractMethod
   def Run(self):
     """TODO: description"""
-    pass
+    assert False
 
-  '''
-  Method 'Finalize' maybe defined in a class that inherits from the Target. Then will start.
-  '''
-  #def Finalize(self):
-  #  pass
+  @AbstractMethod
+  def Finalize(self):
+    """Method 'Finalize' can be defined in a class that inherits from the Target.
+       Then will start right after a successful finish the Run method."""
+    assert False
 
-  '''private section'''
+  # private section
 
   def _Type(self):
     return 'target'
@@ -64,7 +65,7 @@ class Target(Activity):
     return self.name
 
   def _RunPrepare(self):
-    if 'Prepare' in dir(self):
+    if not IsAbstractMethod(self.Prepare):
       self._Log(prepare = True)
       return self.Prepare()
     return True
@@ -77,6 +78,6 @@ class Target(Activity):
     self.wasExecuted = True
 
   def _RunFinalize(self):
-    if 'Finalize' in dir(self):
+    if not IsAbstractMethod(self.Finalize):
       self._Log(finalize = True)
       self.Finalize()

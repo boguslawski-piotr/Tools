@@ -8,6 +8,7 @@ import stat
 from ..repositories.Package import PackageId
 from ..repositories import Styles, Maven
 from .. import Dict
+from ..Activity import Activity
 
 from atta import *
 
@@ -16,116 +17,115 @@ class ProjectType:
   jar = Dict.jar
   war = Dict.war
 
-class Setup:
+class Setup(Activity):
   """TODO: description"""
   def __init__(self, type = ProjectType.app, **tparams):
-    """TODO: description"""
-    project = GetProject()
+    project = self.Project()
 
     # Java target settings.
 
-    if not hasattr(project, 'groupId'):
+    if not project.groupId:
       project.groupId = project.name
 
-    project.type = type
-    '''TODO: description
-    available values: see ProjectType
-    '''
+    #: DOCTODO: description; available values: see ProjectType
+    # TODO: w project jest tez i razem to troche nie gra ze soba - przemyslec
+    self.type = type
 
-    project.defaultRepository = tparams.get('defaultRepository', Maven)
-    '''TODO: description, def repo for dependencies'''
+    #: DOCTODO: description, def repo for dependencies
+    self.defaultRepository = tparams.get('defaultRepository', Maven)
 
-    project.srcBaseDir = tparams.get('srcBaseDir', 'src')
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.srcBaseDir = tparams.get('srcBaseDir', 'src')
 
-    project.buildBaseDir = tparams.get('buildBaseDir', 'build')
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.buildBaseDir = tparams.get('buildBaseDir', 'build')
 
-    if project.type == ProjectType.app:
+    if self.type == ProjectType.app:
       defInstallBaseDir = 'bin'
     else:
       defInstallBaseDir = 'lib'
-    project.installBaseDir = tparams.get('installBaseDir', defInstallBaseDir)
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.installBaseDir = tparams.get('installBaseDir', defInstallBaseDir)
 
-    project.archiveBaseDir = tparams.get('archiveBaseDir', 'archive')
-    '''TODO: description'''
-
-
-    project.javaDirs = [project.srcBaseDir + '/main/java']
-    '''TODO: description'''
-
-    project.javaTestDirs = [project.srcBaseDir + '/test/java']
-    '''TODO: description'''
-
-    project.classDirs = [project.buildBaseDir + '/classes/main']
-    '''TODO: description'''
-
-    project.classTestDirs = [project.buildBaseDir + '/classes/test']
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.archiveBaseDir = tparams.get('archiveBaseDir', 'archive')
 
 
-    project.javacClassPathAllowedExts = ['class', 'jar', 'war']
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.javaDirs = [self.srcBaseDir + '/main/java']
 
-    project.javacClassPath = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.javaTestDirs = [self.srcBaseDir + '/test/java']
 
-    project.javacSourcePath = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.classDirs = [self.buildBaseDir + '/classes/main']
 
-    project.debug = False
-    '''TODO: description'''
-
-    project.debugLevel = None
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.classTestDirs = [self.buildBaseDir + '/classes/test']
 
 
-    project.packageNameStyle = Styles.Maven
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.javacClassPathAllowedExts = ['class', 'jar', 'war']
 
-    if project.type == ProjectType.app:
-      project.packageExt = Dict.jar
-    else:
-      project.packageExt = project.type
+    #: DOCTODO: description
+    self.javacClassPath = []
 
-    project.packageName = ''
-    '''result package file name set in package target TODO: description'''
+    #: DOCTODO: description
+    self.javacSourcePath = []
 
-    project.packageAdditionalFiles = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.debug = False
 
-
-    project.javaMainClass = tparams.get('mainClass', project.name)
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.debugLevel = None
 
 
-    project.installAdditionalFiles = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.packageNameStyle = Styles.Maven
 
-    project.installedFiles = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.packageExt = self.type
+    if self.type == ProjectType.app:
+      self.packageExt = Dict.jar
 
-    project.neededPackages = []
-    '''TODO: description'''
+    #: result package file name set in package target DOCTODO: description
+    self.packageName = ''
+
+    #: DOCTODO: description
+    self.packageAdditionalFiles = []
+
+    #: DOCTODO: description
+    self.javaMainClass = tparams.get('mainClass', project.name)
 
 
-    project.deployTo += [
+    #: DOCTODO: description
+    self.installAdditionalFiles = []
+
+    #: DOCTODO: description
+    self.installedFiles = []
+
+    #: DOCTODO: description
+    self.neededPackages = []
+
+
+    #: DOCTODO: description
+    self.deployTo = project.deployTo + [
       {
         # Into project subdirectory.
         'repository' : 'atta.repositories.Local',
         'style'      : Styles.ByVersion,
-        'rootDirName': project.archiveBaseDir,
+        'rootDirName': self.archiveBaseDir,
       },
     ]
-    '''TODO: description'''
 
-    project.deployedFiles = []
-    '''TODO: description'''
+    #: DOCTODO: description
+    self.deployedFiles = []
 
     # Internal settings.
 
-    project.defaultTarget = 'help'
+    for p in dir(self):
+      if not p.startswith('__'):
+        setattr(project, p, getattr(self, p))
 
     project.targetsMap['prepare'] = 'atta.targets.Java.prepare'
     project.targetsMap['compile'] = 'atta.targets.Java.compile'
@@ -135,13 +135,14 @@ class Setup:
     project.targetsMap['clean'] = 'atta.targets.Java.clean'
     project.targetsMap['help'] = 'atta.targets.Java.help'
 
+    project.defaultTarget = 'help'
+
 #------------------------------------------------------------------------------
 
 def ResolveDependencies(scope):
-  """TODO: description"""
   project = GetProject()
-  files, packages = project.ResolveDependencies(scope = scope, returnPackages = True, defaultRepository = project.defaultRepository)
-
+  files, packages = project.ResolveDependencies(scope = scope, returnPackages = True,
+                                                defaultRepository = project.defaultRepository)
   result = []
   if files is not None:
     # Leave only the files that make sense for the Java compiler or/and Java runtime.
@@ -152,7 +153,7 @@ def ResolveDependencies(scope):
       if append:
         result.append(p)
 
-  if packages != None:
+  if packages:
     project.neededPackages += packages
 
   return result
@@ -162,12 +163,11 @@ def ResolveDependencies(scope):
 class prepare(Target):
   """TODO: description"""
   def Run(self):
-    """TODO: description"""
     self.PrepareEnvironment()
 
   def PrepareEnvironment(self):
     """Create the necessary directories."""
-    project = GetProject()
+    project = self.Project()
     create = False
     for classDir in project.classDirs:
       if not os.path.exists(classDir):
@@ -186,9 +186,9 @@ class compile(Target):
   dependsOn = ['prepare']
 
   def Run(self):
-    """TODO: description"""
-    project = GetProject()
+    project = self.Project()
     self.ResolveDependencies()
+
     i = 0
     for srcDirName in project.javaDirs:
       if not project.classDirs[i] in project.javacClassPath:
@@ -212,7 +212,7 @@ class compile(Target):
 
   def ResolveDependencies(self):
     """TODO: description"""
-    project = GetProject()
+    project = self.Project()
     project.javacClassPath += ResolveDependencies(scope = Dict.Scopes.compile)
 
   def JavacTaskParams(self):
@@ -231,8 +231,7 @@ class package(Target):
   dependsOn = ['compile']
 
   def Run(self):
-    """Create package."""
-    project = GetProject()
+    project = self.Project()
     classDirs = project.classDirs[:]
     self.ExtendClassDirs(classDirs)
     project.packageName = os.path.join(project.buildBaseDir, self.GetPackageName())
@@ -240,11 +239,11 @@ class package(Target):
 
   def ExtendClassDirs(self, classDirs):
     """TODO: description"""
-    classDirs.extend(GetProject().packageAdditionalFiles)
+    classDirs.extend(self.Project().packageAdditionalFiles)
 
   def GetManifest(self):
     """Creates basic manifest."""
-    project = GetProject()
+    project = self.Project()
     manifest = {
                 'Implementation-Title'  : project.name,
                 'Implementation-Version': str(project.version),
@@ -254,11 +253,11 @@ class package(Target):
 
   def GetPackageName(self):
     """Creates package (base) file name."""
-    project = GetProject()
+    project = self.Project()
     if len(project.name) <= 0:
       raise AttaError(self, Dict.errNotSpecified.format('Project.name'))
-    packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
-    return project.packageNameStyle().FileName(packageId)
+    package = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
+    return project.packageNameStyle().FileName(package)
 
 #------------------------------------------------------------------------------
 
@@ -267,9 +266,8 @@ class install(Target):
   dependsOn = ['package']
 
   def Run(self):
-    """TODO: description"""
     # Create install directory (if needed).
-    project = GetProject()
+    project = self.Project()
     if not os.path.exists(project.installBaseDir):
       Echo('Creating directory: ' + os.path.normpath(project.installBaseDir))
       OS.MakeDirs(project.installBaseDir)
@@ -287,7 +285,7 @@ class install(Target):
 
   def CopyPackage(self):
     """Copy package. TODO: more... """
-    project = GetProject()
+    project = self.Project()
     destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageName))
     if OS.CopyFileIfDiffrent(project.packageName, destFileName, useHash = True, force = True):
       Echo('Installed: ' + destFileName)
@@ -295,18 +293,18 @@ class install(Target):
 
   def ResolveDependencies(self):
     """TODO: description"""
-    return ResolveDependencies(scope = Dict.Scopes.install)
+    return ResolveDependencies(scope = Dict.Scopes.runtime)
 
   def CopyDependencies(self):
     """Copy dependencies. TODO: more..."""
-    project = GetProject()
+    project = self.Project()
     filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
     filesCopied += self.CopyDependenciesFiles(self.ResolveDependencies())
     return filesCopied
 
   def CopyDependenciesFiles(self, files):
     """TODO: description"""
-    project = GetProject()
+    project = self.Project()
     filesCopied = []
     for name in files:
       if os.path.exists(name) and not os.path.isdir(name):
@@ -318,7 +316,7 @@ class install(Target):
 
   def CopyAdditionalFiles(self):
     """TODO: description"""
-    project = GetProject()
+    project = self.Project()
     installedFiles = []
     for rootDirName, fileName in ExtendedFileSet(project.installAdditionalFiles):
       srcFileName = os.path.join(rootDirName, fileName)
@@ -331,7 +329,7 @@ class install(Target):
 
   def CreateStartupScripts(self, javaClassPath):
     """Create shell scripts. TODO: more..."""
-    project = GetProject()
+    project = self.Project()
 
     javaClassPathStr = ''
     for name in javaClassPath:
@@ -375,7 +373,7 @@ class install(Target):
     return Atta.dirName + '/atta/templates/JavaApp.sh.tmpl'
 
   def CreatePOM(self):
-    project = GetProject()
+    project = self.Project()
 
     dependencies4POM = [p.AsDependencyInPOM() for p in project.neededPackages]
     dependencies4POM = list(set(dependencies4POM))
@@ -421,12 +419,12 @@ class deploy(Target):
   def Prepare(self):
     """TODO: description"""
     self.UpdateSources()
-    GetProject().RunTarget('clean')
+    self.Project().RunTarget('clean')
     return True
 
   def UpdateSources(self):
     """Updates working directory from DVCS"""
-    project = GetProject()
+    project = self.Project()
     if not project.dvcs:
       return
     self.CheckWorkingDirectory()
@@ -436,7 +434,7 @@ class deploy(Target):
       self.CheckWorkingDirectory()
 
   def CheckWorkingDirectory(self):
-    project = GetProject()
+    project = self.Project()
     if not project.dvcs.IsWorkingDirectoryClean():
       Echo(Dict.msgDvcsOutputTitle, level = LogLevel.VERBOSE)
       Echo(project.dvcs.output, level = LogLevel.VERBOSE)
@@ -448,28 +446,28 @@ class deploy(Target):
 
   def Run(self):
     """TODO: description"""
-    project = GetProject()
+    project = self.Project()
 
-    packageId = PackageId(project.groupId, project.name, str(project.version), project.packageExt,
-                          timestamp = os.path.getmtime(project.packageName))
-    project.deployedFiles = project.Deploy(packageId, project.installedFiles, project.installBaseDir)
+    package = PackageId(project.groupId, project.name, str(project.version), project.packageExt,
+                        timestamp = os.path.getmtime(project.packageName))
+    project.deployedFiles = project.Deploy(project.installBaseDir, project.installedFiles, package)
 
     self.TagBuild(self.GetBuildTag())
     self.NextVersion()
     self.Commit(self.GetCommitMessage(), self.GetCommitAuthor())
 
   def GetBuildTag(self):
-    return OS.Path.RemoveExt(os.path.basename(GetProject().packageName)).replace(' ', '_')
+    return OS.Path.RemoveExt(os.path.basename(self.Project().packageName)).replace(' ', '_')
 
   def TagBuild(self, tag):
     """"""
     if len(tag) > 0:
-      project = GetProject()
+      project = self.Project()
       if project.dvcs:
         project.dvcs.SetTag(tag)
 
   def NextVersion(self):
-    GetProject().version.NextBuild()
+    self.Project().version.NextBuild()
 
   def GetCommitMessage(self):
     return Dict.msgDvcsNextBuildNumber
@@ -479,12 +477,12 @@ class deploy(Target):
 
   def Commit(self, msg, author):
     if len(msg) > 0:
-      project = GetProject()
+      project = self.Project()
       if project.dvcs != None:
         project.dvcs.CommitAndPublishAllChanges(msg, author)
 
   def Finalize(self):
-    GetProject().RunTarget('clean', force = True)
+    self.Project().RunTarget('clean', force = True)
 
 #------------------------------------------------------------------------------
 
@@ -498,7 +496,7 @@ class nextMinorVersion(Target):
 class clean(Target):
   """TODO: description"""
   def Run(self):
-    project = GetProject()
+    project = self.Project()
     Delete([project.buildBaseDir, project.installBaseDir, '**/*.py?'], force = True)
 
 #------------------------------------------------------------------------------

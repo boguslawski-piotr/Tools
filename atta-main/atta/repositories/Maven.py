@@ -28,13 +28,13 @@ class Repository(ARepository, Task):
   #      <message>We have moved the Project under Apache</message>
   #</relocation>
 
-  def _Get(self, packageId, scope, store, resolvedPackages):
+  def _Get(self, package, scope, store, resolvedPackages):
     self._DumpParams(locals())
 
     # Check parameters.
-    if not bool(packageId.type):
-      packageId.type = Dict.jar
-    if not packageId:
+    if not bool(package.type):
+      package.type = Dict.jar
+    if not package:
       raise AttaError(self, Dict.errNotEnoughParams)
 
     if store is None:
@@ -45,13 +45,13 @@ class Repository(ARepository, Task):
 
     # First, see in store (cache) if the required files (for package and its dependencies) are all up to date.
     store.SetOptionalAllowed(self.OptionalAllowed())
-    filesInStore = store.Check(packageId, scope)
+    filesInStore = store.Check(package, scope)
     if filesInStore is None:
       # If something is obsolete then get detailed information
       # about the package and check store (cache) again.
-      packageId.timestamp = Repository.GetArtifactTimestamp(packageId, self.Log)
-      if packageId.timestamp is not None:
-        filesInStore = store.Check(packageId, scope)
+      package.timestamp = Repository.GetArtifactTimestamp(package, self.Log)
+      if package.timestamp is not None:
+        filesInStore = store.Check(package, scope)
 
       if filesInStore is None:
         # Store still says that something is missing or out of date.
@@ -59,69 +59,69 @@ class Repository(ARepository, Task):
         filesInStore = []
 
         # Get the dependencies.
-        pom = Repository.GetPOM(packageId, self.Log)
+        pom = Repository.GetPOM(package, self.Log)
         if pom:
           packages = Repository.GetDependenciesFromPOM(
-                        packageId, pom, Dict.Scopes.map2POM.get(scope, []), self.OptionalAllowed(), logFn = self.Log)
+                        package, pom, Dict.Scopes.map2POM.get(scope, []), self.OptionalAllowed(), logFn = self.Log)
           for p in packages:
-            if not packageId.Excludes(p):
+            if not package.Excludes(p):
               if p not in resolvedPackages:
                 resolvedPackages.append(p)
                 filesInStore += self._Get(p, scope, store, resolvedPackages)
           if len(packages) > 0:
             # After downloading all the dependencies, check the store third time.
             # This is intended to minimize the amount of downloads.
-            filesInStore2 = store.Check(packageId, scope)
+            filesInStore2 = store.Check(package, scope)
             if filesInStore2:
               download = False
               filesInStore = filesInStore2
 
         # Get artifact.
         if download:
-          self.Log(Dict.msgSendingXToY % (packageId.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
+          self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
           filesToDownload = []
-          if packageId.type != Dict.pom or not pom:
-            f = Repository.GetArtifactFile(packageId, pom, self.Log)
-            if f != None:
-              filesToDownload.append(NamedFileLike(Styles.Maven().FileName(packageId), f))
+          if package.type != Dict.pom or not pom:
+            f = Repository.GetArtifactFile(package, pom, self.Log)
+            if f is not None:
+              filesToDownload.append(NamedFileLike(Styles.Maven().FileName(package), f))
           if pom:
             filesToDownload.append(
-              NamedFileLike(Styles.Maven().FileName(PackageId.FromPackageId(packageId, type = Dict.pom)), cStringIO.StringIO(pom)))
+              NamedFileLike(Styles.Maven().FileName(PackageId.FromPackage(package, type = Dict.pom)), cStringIO.StringIO(pom)))
           try:
             if len(filesToDownload) > 0:
-              filesInStore += store.Put(filesToDownload, '', packageId)
+              filesInStore += store.Put(filesToDownload, '', package)
           finally:
             for i in range(len(filesToDownload)):
               filesToDownload[i] = None
 
     # Check results.
-    if not packageId.IsOptional():
+    if not package.IsOptional():
       if filesInStore is None or len(filesInStore) <= 0:
-        raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+        raise ArtifactNotFoundError(self, "Can't find: " + str(package))
 
     # Return package and its dependencies files.
     filesInStore = RemoveDuplicates(filesInStore)
     self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
 
-  def Get(self, packageId, scope, store = None):
+  def Get(self, package, scope, store = None):
     """TODO: description
      returns list (of strings: fileName) of locally available files
     """
-    return self._Get(packageId, scope, store, [])
+    return self._Get(package, scope, store, [])
 
-  def Check(self, packageId, scope):
+  def Check(self, package, scope):
     raise AttaError(self, Dict.errNotImplemented.format('Check'))
 
-  def Put(self, f, fBaseDirName, packageId):
+  def Put(self, f, fBaseDirName, package):
     raise AttaError(self, Dict.errNotImplemented.format('Put'))
 
   @staticmethod
-  def GetArtifactTimestamp(packageId, logFn = None):
+  def GetArtifactTimestamp(package, logFn = None):
     """TODO: description"""
     url = 'http://search.maven.org/solrsearch/select?q=g:"%s"+AND+a:"%s"+AND+v:"%s"+AND+p:"%s"&core=gav&rows=20&wt=json' % \
-                                                        (packageId.groupId, packageId.artifactId, packageId.version, packageId.type)
-    if logFn: logFn('Getting timestamp for: %s from: %s' % (str(packageId), url), level = LogLevel.VERBOSE)
+                                                        (package.groupId, package.artifactId, package.version, package.type)
+    if logFn: logFn('Getting timestamp for: %s from: %s' % (str(package), url), level = LogLevel.VERBOSE)
     try:
       f = urllib2.urlopen(url)
     except urllib2.HTTPError as E:
@@ -140,17 +140,17 @@ class Repository(ARepository, Task):
     return timestamp
 
   @staticmethod
-  def GetArtifactFile(packageId, pom = None, logFn = None):
+  def GetArtifactFile(package, pom = None, logFn = None):
     """TODO: description"""
     # Try to download the file from the repository 'Maven Central'.
     url = 'http://search.maven.org/remotecontent?filepath={0}/{1}/{2}/{1}-{2}.{3}'.format(
-                          packageId.groupId.replace('.', '/'), packageId.artifactId, packageId.version, packageId.type)
+                          package.groupId.replace('.', '/'), package.artifactId, package.version, package.type)
     if logFn:
       logFn(Dict.msgDownloadingFile % url, level = LogLevel.VERBOSE)
     try:
       return urllib2.urlopen(url)
     except urllib2.HTTPError as E:
-      if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
+      if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(package), url), level = LogLevel.ERROR)
       if pom:
         # When the error occurred, check the alternate place from which you can download the file.
         # If it is specified in the POM file.
@@ -160,66 +160,65 @@ class Repository(ARepository, Task):
           try:
             return urllib2.urlopen(url)
           except urllib2.HTTPError as E:
-            if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(packageId), url), level = LogLevel.ERROR)
-      if not packageId.IsOptional():
-        raise
+            if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(package), url), level = LogLevel.ERROR)
+    return None
 
-  '''POM support'''
+  # POM support
 
   _pomCache = {}
 
   @staticmethod
-  def GetPOMCacheKey(packageId):
+  def GetPOMCacheKey(package):
     """TODO: description"""
-    return str(packageId)
+    return str(package)
 
   @staticmethod
-  def GetPOMFromCache(packageId, logFn = None):
+  def GetPOMFromCache(package, logFn = None):
     """TODO: description"""
-    key = Repository.GetPOMCacheKey(packageId)
+    key = Repository.GetPOMCacheKey(package)
     if key in Repository._pomCache:
-      if logFn: logFn('Getting: %s from cache.' % str(packageId), level = LogLevel.DEBUG)
+      if logFn: logFn('Getting: %s from cache.' % str(package), level = LogLevel.DEBUG)
       return Repository._pomCache[key]
     return None
 
   @staticmethod
-  def PutPOMIntoCache(packageId, f, logFn = None):
+  def PutPOMIntoCache(package, f, logFn = None):
     """TODO: description"""
-    key = Repository.GetPOMCacheKey(packageId)
-    if f != None:
+    key = Repository.GetPOMCacheKey(package)
+    if f is not None:
       if 'read' in dir(f):
         Repository._pomCache[key] = f.read()
       else:
         Repository._pomCache[key] = f
 
   @staticmethod
-  def GetPOM(packageId, logFn = None):
+  def GetPOM(package, logFn = None):
     """Gets the POM file from Maven Central Repository.
        The function uses the local impermanent cache.
        Returns the POM contents or None."""
-    packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
-    pomFile = Repository.GetPOMFromCache(packageId, logFn)
-    if pomFile == None:
-      Repository.PutPOMIntoCache(packageId,
-                                 Repository.GetArtifactFile(packageId, None, logFn), logFn)
-    return Repository.GetPOMFromCache(packageId, logFn)
+    package = PackageId.FromPackage(package, type = Dict.pom)
+    pomFile = Repository.GetPOMFromCache(package, logFn)
+    if pomFile is None:
+      Repository.PutPOMIntoCache(package,
+                                 Repository.GetArtifactFile(package, None, logFn), logFn)
+    return Repository.GetPOMFromCache(package, logFn)
 
   @staticmethod
-  def GetPOMEx(packageId, pom, logFn = None):
-    """Checks if the `pom` is the method/function used to download contents of a POM file.
+  def GetPOMEx(package, pom, logFn = None):
+    """Checks if the *pom* is the callable used to download contents of a POM file.
        If so, uses it and trying to retrieve data. If the download did not succeed then
        try again using the Maven Central Repository.
-       Returns a tuple (`function`, `pom`) where `function` is a function/method
-       which you can use to download next POM file and `pom` points to the contents of the file."""
+       Returns a tuple (*function*, *pom*) where *function* is a callable
+       which you can use to download next POM file and *pom* points to the
+       contents of the file or is None."""
     getPOMFn = Repository.GetPOM
     if pom and '__call__' in dir(pom):
       getPOMFn = pom
-      pom = getPOMFn(packageId, logFn = logFn)
-      if pom == None and getPOMFn != Repository.GetPOM:
+      pom = getPOMFn(package, logFn = logFn)
+      if pom is None and getPOMFn != Repository.GetPOM:
         getPOMFn = Repository.GetPOM
-        pom = getPOMFn(packageId, logFn = logFn)
-
-    return (getPOMFn, pom)
+        pom = getPOMFn(package, logFn = logFn)
+    return getPOMFn, pom
 
   @staticmethod
   def GetArtifactUrlFromPOM(pom, logFn = None):
@@ -233,10 +232,10 @@ class Repository(ARepository, Task):
     return None
 
   @staticmethod
-  def _GetPropertiesFromPOM(packageId, pom, logFn = None):
+  def _GetPropertiesFromPOM(package, pom, logFn = None):
     # Prepare POM contents.
-    getPOMFn, pom = Repository.GetPOMEx(packageId, pom, logFn)
-    if pom == None:
+    getPOMFn, pom = Repository.GetPOMEx(package, pom, logFn)
+    if pom is None:
       return []
     if not isinstance(pom, Xml):
       pom = Xml(pom)
@@ -248,8 +247,8 @@ class Repository(ARepository, Task):
       for p in parent:
         if not Dict.relativePath in p:
           # Recursively process the entire tree.
-          parentPackageId = PackageId.FromDict(p, type = Dict.pom)
-          props += Repository._GetPropertiesFromPOM(parentPackageId, getPOMFn, logFn)
+          parentPackage = PackageId.FromDict(p, type = Dict.pom)
+          props += Repository._GetPropertiesFromPOM(parentPackage, getPOMFn, logFn)
 
     # Handle <properties> section.
     props += pom.values(Dict.properties, stripfn = strip)
@@ -265,27 +264,27 @@ class Repository(ARepository, Task):
     props += _ProjectProps(Dict.packaging)
     props += _ProjectProps(Dict.version)
 
-    if logFn: logFn(Dict.msgLoadingPropertiesForX % packageId.AsStrWithoutType(), level = LogLevel.DEBUG)
+    if logFn: logFn(Dict.msgLoadedPropertiesForX % package.AsStrWithoutType(), level = LogLevel.DEBUG)
     return props
 
   @staticmethod
-  def GetPropertiesFromPOM(packageId, pom, logFn = None):
+  def GetPropertiesFromPOM(package, pom, logFn = None):
     """TODO: description"""
-    props = Repository._GetPropertiesFromPOM(packageId, pom, logFn)
+    props = Repository._GetPropertiesFromPOM(package, pom, logFn)
     d = {}
     for p in props:
       d.update(p)
     return d
 
   @staticmethod
-  def _GetDependenciesFromPOM(packageId, pom, props, scopes, includeOptional = False, logFn = None):
+  def _GetDependenciesFromPOM(package, pom, props, scopes, includeOptional = False, logFn = None):
     """TODO: description"""
-    assert scopes != None
+    assert scopes is not None
     assert isinstance(scopes, list)
 
     # Prepare POM contents.
-    getPOMFn, pom = Repository.GetPOMEx(packageId, pom, logFn = logFn)
-    if pom == None:
+    getPOMFn, pom = Repository.GetPOMEx(package, pom, logFn = logFn)
+    if pom is None:
       return []
     if not isinstance(pom, Xml):
       pom = Xml(pom)
@@ -299,11 +298,11 @@ class Repository(ARepository, Task):
       for p in parent:
         if not Dict.relativePath in p:
           # Recursively collect dependencies from the entire tree.
-          parentPackageId = PackageId.FromDict(p, type = Dict.pom)
-          parentDependencies, parentDmDependencies = Repository._GetDependenciesFromPOM(parentPackageId,
-                                                                                          getPOMFn, props, scopes, includeOptional, logFn)
+          parentPackage = PackageId.FromDict(p, type = Dict.pom)
+          parentDependencies, parentDmDependencies = Repository._GetDependenciesFromPOM(parentPackage,
+                                                            getPOMFn, props, scopes, includeOptional, logFn)
           dependencies += parentDependencies
-          dependencies += [parentPackageId]
+          dependencies += [parentPackage]
           dmDependencies += parentDmDependencies
 
     expander = DefaultVarsExpander.Expander()
@@ -312,61 +311,58 @@ class Repository(ARepository, Task):
       depDest = []
       for d in depSrc:
         # Collect package information from <dependency> section.
-        dependPackageId = PackageId(type = 'jar')
+        dependPackage = PackageId(type = Dict.jar)
         for i in list(d):
           ltag = i.tag.lower()
           if ltag == Dict.exclusions:
-            dependPackageId.exclusions = []
+            # Handle <exclusions> section.
+            dependPackage.exclusions = []
             for es in list(i):
-              excludePackageId = PackageId()
+              excludedPackage = PackageId()
               for e in list(es):
                 text = expander.Expand(e.text, **props)
-                setattr(excludePackageId, e.tag, text)
-              dependPackageId.exclusions.append(excludePackageId)
+                excludedPackage.SetAttr(e.tag, text)
+              dependPackage.exclusions.append(excludedPackage)
           else:
             if not includeOptional:
               if ltag == Dict.optional:
                 if i.text.lower().strip() == Dict.true:
-                  dependPackageId = None
+                  dependPackage = None
                   break
             text = expander.Expand(i.text, **props)
-            setattr(dependPackageId, i.tag, text)
+            dependPackage.SetAttr(i.tag, text)
 
-        if dependPackageId is None:
+        if dependPackage is None:
           continue
 
         # Search for the missing properties in the definitions from parents.
-        for pd in reversed(dmDependencies):
-          if pd.groupId == dependPackageId.groupId and pd.artifactId == dependPackageId.artifactId:
-            if dependPackageId.version == None:
-              if Dict.version in dir(pd):
-                dependPackageId.version = pd.version
-            if not Dict.scope in dir(dependPackageId) or dependPackageId.scope == None:
-              if Dict.scope in dir(pd):
-                dependPackageId.scope = pd.scope
-            if Dict.exclusions in dir(pd):
-              if not Dict.exclusions in dir(dependPackageId):
-                dependPackageId.exclusions = []
-              dependPackageId.exclusions += pd.exclusions
+        for parent in reversed(dmDependencies):
+          if parent.groupId == dependPackage.groupId and parent.artifactId == dependPackage.artifactId:
+            if not dependPackage.version:
+              dependPackage.version = parent.version
+            if not dependPackage.GetAttr(Dict.scope):
+              dependPackage.scope = parent.GetAttr(Dict.scope)
+            if Dict.exclusions in dir(parent):
+              if not Dict.exclusions in dir(dependPackage):
+                dependPackage.exclusions = []
+              dependPackage.exclusions += parent.exclusions
 
         # Add the default scope, if missing.
-        if not Dict.scope in dir(dependPackageId):
-          dependPackageId.scope = Dict.Scopes.compile
+        if not dependPackage.GetAttr(Dict.scope):
+          dependPackage.scope = Dict.Scopes.compile
 
         # If the package definition is OK and affects processed scopes add it to the returned list.
-        if ignoreScopes or dependPackageId.scope in scopes:
-          if dependPackageId:
-            depDest.append(dependPackageId)
+        if ignoreScopes or dependPackage.scope in scopes:
+          if dependPackage:
+            depDest.append(dependPackage)
           else:
-            raise AttaError(None, 'Incomplete package: %s' % str(dependPackageId))
+            raise AttaError(None, 'Incomplete package: %s' % str(dependPackage))
 
       return depDest
 
     # Handle <dependencyManagement> section.
     dmDep = pom.findall('dependencyManagement/dependencies/dependency')
     dmDependencies += _PreparePackagesFromDependencies(dmDep, True)
-#    for z in dmDependencies:
-#      print z
 
     # Handle <dependencies> section.
     dep = pom.findall('dependencies/dependency')
@@ -375,15 +371,15 @@ class Repository(ARepository, Task):
     # Handle top level <packaging> section.
     packaging = pom.values(Dict.packaging)
     if len(packaging) > 0:
-      packageId.type = packaging[0][Dict.packaging]
+      package.type = packaging[0][Dict.packaging]
 
-    if logFn: logFn(Dict.msgCollectingDependenciesForX % packageId.AsStr(), level = LogLevel.DEBUG)
-    return (dependencies, dmDependencies)
+    if logFn: logFn(Dict.msgCollectingDependenciesForX % package.AsStr(), level = LogLevel.DEBUG)
+    return dependencies, dmDependencies
 
   @staticmethod
-  def GetDependenciesFromPOM(packageId, pom, scopes, includeOptional = False, logFn = None):
-    props = Repository.GetPropertiesFromPOM(packageId, pom, logFn)
-    dependencies, dmDependencies = Repository._GetDependenciesFromPOM(packageId, pom, props, scopes, includeOptional, logFn)
+  def GetDependenciesFromPOM(package, pom, scopes, includeOptional = False, logFn = None):
+    props = Repository.GetPropertiesFromPOM(package, pom, logFn)
+    dependencies, dmDependencies = Repository._GetDependenciesFromPOM(package, pom, props, scopes, includeOptional, logFn)
     return dependencies
 
   def _Name(self):

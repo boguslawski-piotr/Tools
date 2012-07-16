@@ -122,7 +122,7 @@ class FileSet(list):
       except os.error as E:
         OnError(E)
       dirs, nondirs = [], []
-      for name in tree:
+      for name in tree or ():
         if os.path.isdir(os.path.join(rootDirName, name)):
           dirs.append(name)
         else:
@@ -176,7 +176,7 @@ class FileSet(list):
               nameToAdd = os.path.join(rootDirName, nameToAdd)
           filesSet.append(nameToAdd)
 
-    return (rootDirName, filesSet)
+    return rootDirName, filesSet
 
 class DirSet(FileSet):
   """

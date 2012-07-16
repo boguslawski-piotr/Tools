@@ -13,7 +13,7 @@ from .Base import ARepository
 from .Package import PackageId
 from . import ArtifactNotFoundError
 
-def GetPOMFileContents(packageId):
+def GetPOMFileContents(package):
   pass
 
 class Repository(ARepository, Task):
@@ -86,17 +86,17 @@ class Repository(ARepository, Task):
         sha1 = contents[1]
     except Exception as E:
       self.Log("Error '%s' while processing the file: %s" % (str(E), markerFileName), level = LogLevel.ERROR)
-      return (None, None)
+      return None, None
     else:
-      return (timestamp, sha1)
+      return timestamp, sha1
 
-  def PutMarkerFile(self, fileName, fileSha1, packageId):
+  def PutMarkerFile(self, fileName, fileSha1, package):
     """TODO: description"""
     markerFileName = self.PrepareMarkerFileName(fileName)
     dirName = os.path.dirname(markerFileName)
     if not self.vFileExists(dirName):
       self.vMakeDirs(dirName)
-    self.vPutFileContents(str(packageId.timestamp) + '\n' + str(fileSha1), markerFileName)
+    self.vPutFileContents(str(package.timestamp) + '\n' + str(fileSha1), markerFileName)
 
   def PrepareInfoFileName(self, fileName):
     """TODO: description"""
@@ -114,32 +114,32 @@ class Repository(ARepository, Task):
   def PutInfoFile(self, fileName, storedFileNames):
     self.vPutFileContents('\n'.join(storedFileNames), self.PrepareInfoFileName(fileName))
 
-  def GetPOMFileContents(self, packageId, **tparams):
+  def GetPOMFileContents(self, package, **tparams):
     from . import Maven
-    packageId = PackageId.FromPackageId(packageId, type = Dict.pom)
-    pom = Maven.Repository.GetPOMFromCache(packageId, self.Log)
+    package = PackageId.FromPackage(package, type = Dict.pom)
+    pom = Maven.Repository.GetPOMFromCache(package, self.Log)
     if pom != None:
       return pom
 
-    fileName = self.PrepareFileName(packageId, self._RootDirName())
+    fileName = self.PrepareFileName(package, self._RootDirName())
     if not self.vFileExists(fileName):
       return None
 
     pom = self.vGetFileContents(fileName)
-    Maven.Repository.PutPOMIntoCache(packageId, pom, self.Log)
+    Maven.Repository.PutPOMIntoCache(package, pom, self.Log)
     return pom
 
   def vPrepareFileName(self, fileName):
     """TODO: description"""
     return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
 
-  def PrepareFileName(self, packageId, rootDirName = None):
+  def PrepareFileName(self, package, rootDirName = None):
     """TODO: description"""
     if rootDirName is None:
-      fileName = os.path.join('.repository', self._styleImpl.GetObject().FullFileName(packageId))
+      fileName = os.path.join('.repository', self._styleImpl.GetObject().FullFileName(package))
       return self.vPrepareFileName(fileName)
     else:
-      return os.path.join(rootDirName, self._styleImpl.GetObject().FullFileName(packageId))
+      return os.path.join(rootDirName, self._styleImpl.GetObject().FullFileName(package))
 
   def GetAll(self, fileName):
     infoFile = self.GetInfoFile(fileName)
@@ -151,38 +151,38 @@ class Repository(ARepository, Task):
       result = [fileName]
     return result
 
-  def _Get(self, packageId, scope, store, resolvedPackages):
+  def _Get(self, package, scope, store, resolvedPackages):
     """TODO: description"""
     '''returns: list of filesNames'''
     # Get the dependencies.
     additionalFiles = []
-    packages = self.GetDependencies(packageId, scope)
+    packages = self.GetDependencies(package, scope)
     if packages != None:
       for p in packages:
-        if not packageId.Excludes(p):
+        if not package.Excludes(p):
           if p not in resolvedPackages:
             resolvedPackages.append(p)
             additionalFiles += self._Get(p, scope, store, resolvedPackages)
 
     # Check and prepare artifact files.
-    fileName = self.PrepareFileName(packageId, self._RootDirName())
+    fileName = self.PrepareFileName(package, self._RootDirName())
     if not self.vFileExists(fileName):
-      raise ArtifactNotFoundError(self, "Can't find: " + str(packageId))
+      raise ArtifactNotFoundError(self, "Can't find: " + str(package))
 
     dirName = os.path.dirname(fileName)
     result = self.GetAll(fileName)
 
     if store is not None:
       # Put artifact files into store.
-      packageId.timestamp, sha1 = self.GetFileMarker(fileName)
+      package.timestamp, sha1 = self.GetFileMarker(fileName)
       store.SetOptionalAllowed(self.OptionalAllowed())
-      filesInStore = store.Check(packageId, scope)
+      filesInStore = store.Check(package, scope)
       if filesInStore is None:
-        self.Log(Dict.msgSendingXToY % (packageId.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
-        store.Put(result, dirName, packageId)
+        self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
+        store.Put(result, dirName, package)
       else:
         if fileName in filesInStore:
-          self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(packageId), level = LogLevel.WARNING)
+          self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(package), level = LogLevel.WARNING)
 
     result += additionalFiles
     result = RemoveDuplicates(result)
@@ -190,25 +190,25 @@ class Repository(ARepository, Task):
     self.Log(Dict.msgReturns % OS.Path.FromList(result), level = LogLevel.DEBUG)
     return result
 
-  def Get(self, packageId, scope, store = None):
-    return self._Get(packageId, scope, store, [])
+  def Get(self, package, scope, store = None):
+    return self._Get(package, scope, store, [])
 
-  def GetDependencies(self, packageId, scope):
+  def GetDependencies(self, package, scope):
     # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
     # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
     from . import Maven
-    return Maven.Repository.GetDependenciesFromPOM(packageId,
+    return Maven.Repository.GetDependenciesFromPOM(package,
                                                    self.GetPOMFileContents,
                                                    Dict.Scopes.map2POM.get(scope, []),
                                                    self.OptionalAllowed(),
                                                    logFn = self.Log)
 
   # TODO: uzyc wzorca Strategy do implementacji Check
-  def _Check(self, packageId, scope, checkedPackages):
+  def _Check(self, package, scope, checkedPackages):
     """returns: None or list of filesNames"""
-    self.Log(Dict.msgCheckingWithX.format(str(packageId), packageId.timestamp), level = LogLevel.VERBOSE)
+    self.Log(Dict.msgCheckingWithX.format(str(package), package.timestamp), level = LogLevel.VERBOSE)
 
-    fileName = self.PrepareFileName(packageId, self._RootDirName())
+    fileName = self.PrepareFileName(package, self._RootDirName())
     if not self.vFileExists(fileName):
       return None
 
@@ -218,8 +218,8 @@ class Repository(ARepository, Task):
 
     # If the given timestamp isn't equal to the local file timestamp
     # (stored with the file: see Put method) then return None.
-    if packageId.timestamp is not None:
-      if str(packageId.timestamp) != str(storedTimestamp):
+    if package.timestamp is not None:
+      if str(package.timestamp) != str(storedTimestamp):
         return None
       else:
         self.vTouch(fileName)
@@ -237,10 +237,10 @@ class Repository(ARepository, Task):
 
     # Check dependencies.
     additionalFiles = []
-    packages = self.GetDependencies(packageId, scope)
+    packages = self.GetDependencies(package, scope)
     if packages != None:
       for p in packages:
-        if not packageId.Excludes(p):
+        if not package.Excludes(p):
           if p not in checkedPackages:
             checkedPackages.append(p)
             pfiles = self._Check(p, scope, checkedPackages)
@@ -251,14 +251,14 @@ class Repository(ARepository, Task):
 
     return additionalFiles + self.GetAll(fileName)
 
-  def Check(self, packageId, scope):
-    return self._Check(packageId, scope, [])
+  def Check(self, package, scope):
+    return self._Check(package, scope, [])
 
-  def Put(self, f, fBaseDirName, packageId):
+  def Put(self, f, fBaseDirName, package):
     """returns: list of filesNames"""
-    self.Log('Takes: %s' % packageId.AsStrWithoutType(), level = LogLevel.INFO)
+    self.Log('Takes: %s' % package.AsStrWithoutType(), level = LogLevel.INFO)
 
-    fileName = self.PrepareFileName(packageId, self._RootDirName())
+    fileName = self.PrepareFileName(package, self._RootDirName())
     dirName = os.path.normpath(os.path.dirname(fileName))
     self.vMakeDirs(dirName)
 
@@ -266,7 +266,7 @@ class Repository(ARepository, Task):
 
     if 'read' in dir(f):
       sha1 = self.vPutFileLike(f, fileName)
-      self.PutMarkerFile(fileName, sha1, packageId)
+      self.PutMarkerFile(fileName, sha1, package)
       return [fileName]
     else:
       rnames = []
@@ -281,7 +281,7 @@ class Repository(ARepository, Task):
             rFileName = os.path.join(dirName, os.path.basename(fFileName))
           sha1 = self.vPutFile(fFileName, rFileName)
 
-        self.PutMarkerFile(rFileName, sha1, packageId)
+        self.PutMarkerFile(rFileName, sha1, package)
 
         rnames.append(rFileName)
         lnames.append(os.path.relpath(rFileName, dirName))
