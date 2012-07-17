@@ -1,6 +1,5 @@
 """Includes 2 test."""
 
-import sys
 import os
 from atta import *
 

@@ -41,7 +41,7 @@ class Expander:
           v = paramName.split('.')
           moduleName = ''
           for i in range(0, len(v) - 1):
-            if len(moduleName) > 0: moduleName = moduleName + '.'
+            if len(moduleName) > 0: moduleName += '.'
             moduleName = moduleName + v[i]
             try:
               _module = sys.modules[moduleName]
@@ -52,9 +52,9 @@ class Expander:
                 param = getattr(_object, v[i + 2], param)
               param = '{0}'.format(param)
               break
-            except:
+            except Exception:
               pass
-        except:
+        except Exception:
           pass
       vpatternl = vpattern.split('(')[0]
       vpatternr = vpattern.split(')')[1]
@@ -65,7 +65,7 @@ class Expander:
     vpattern = escape + self.VariablePattern()
     while True:
       m = re.search(vpattern, txt)
-      if m == None:
+      if not m:
         break
       txt = txt.replace(m.group(0), m.group(0)[1:])
 

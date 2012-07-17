@@ -1,6 +1,5 @@
 import unittest
 import sys
-import os
 
 sys.path.insert(0, '../..')
 import atta.tools.OS as OS
@@ -64,12 +63,12 @@ class OSTests(unittest.TestCase):
 
     self.assertTrue(OS.Path.Match('_test_filter/**', '_test_filter/.build'))
     self.assertFalse(OS.Path.Match('_test_filter/**', '_test_filter2/.build'))
-    
+
     self.assertTrue(OS.Path.Match('**/CVS/*', 'CVS/Repository'))
     self.assertTrue(OS.Path.Match('**/CVS/*', 'org/apache/CVS/Entries'))
     self.assertTrue(OS.Path.Match('**/CVS/*', 'org/apache/jakarta/tools/ant/CVS/Entries'))
     self.assertFalse(OS.Path.Match('**/CVS/*', 'org/apache/CVS/foo/bar/Entries'))
-    
+
     self.assertTrue(OS.Path.Match('org/apache/jakarta/**', 'org/apache/jakarta/tools/ant/docs/index.html'))
     self.assertTrue(OS.Path.Match('org/apache/jakarta/**', 'org/apache/jakarta/test.xml'))
     self.assertFalse(OS.Path.Match('org/apache/jakarta/**', 'org/apache/xyz.java'))
@@ -90,10 +89,10 @@ class OSTests(unittest.TestCase):
 
     self.assertFalse(OS.Path.Match('te.+/.*a.{1,1}', 'test/.a', True))
     self.assertTrue(OS.Path.Match('te.{1,1}.{1,1}/.*', 'test/.a', True))
-    
-    self.assertTrue(OS.Path.Match('org/atta/tests/**', 'org/atta/tests/inc/inc2/something')) 
-    self.assertTrue(OS.Path.Match('org/atta/tests/**', 'org/atta/tests/test.xml')) 
-    self.assertFalse(OS.Path.Match('org/atta/tests/**', 'org/atta/xyz.java')) 
-                                   
+
+    self.assertTrue(OS.Path.Match('org/atta/tests/**', 'org/atta/tests/inc/inc2/something'))
+    self.assertTrue(OS.Path.Match('org/atta/tests/**', 'org/atta/tests/test.xml'))
+    self.assertFalse(OS.Path.Match('org/atta/tests/**', 'org/atta/xyz.java'))
+
 if __name__ == '__main__':
   unittest.main

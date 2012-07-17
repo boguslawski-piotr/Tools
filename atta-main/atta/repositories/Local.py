@@ -3,14 +3,9 @@ import os
 import hashlib
 from datetime import datetime, timedelta
 
-from ..tasks.Base import Task
 from ..tools.Misc import RemoveDuplicates, NamedFileLike
-from ..tools import OS
-from .. import AttaError
-from .. import Dict
-from .. import LogLevel
+from .. import Dict, LogLevel, OS, Task, PackageId
 from .Base import ARepository
-from .Package import PackageId
 from . import ArtifactNotFoundError
 
 def GetPOMFileContents(package):
@@ -118,7 +113,7 @@ class Repository(ARepository, Task):
     from . import Maven
     package = PackageId.FromPackage(package, type = Dict.pom)
     pom = Maven.Repository.GetPOMFromCache(package, self.Log)
-    if pom != None:
+    if pom:
       return pom
 
     fileName = self.PrepareFileName(package, self._RootDirName())
@@ -156,13 +151,11 @@ class Repository(ARepository, Task):
     '''returns: list of filesNames'''
     # Get the dependencies.
     additionalFiles = []
-    packages = self.GetDependencies(package, scope)
-    if packages != None:
-      for p in packages:
-        if not package.Excludes(p):
-          if p not in resolvedPackages:
-            resolvedPackages.append(p)
-            additionalFiles += self._Get(p, scope, store, resolvedPackages)
+    for p in self.GetDependencies(package, scope) or ():
+      if not package.Excludes(p):
+        if p not in resolvedPackages:
+          resolvedPackages.append(p)
+          additionalFiles += self._Get(p, scope, store, resolvedPackages)
 
     # Check and prepare artifact files.
     fileName = self.PrepareFileName(package, self._RootDirName())
@@ -179,7 +172,7 @@ class Repository(ARepository, Task):
       filesInStore = store.Check(package, scope)
       if filesInStore is None:
         self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
-        store.Put(result, dirName, package)
+        store.Put(dirName, result, package)
       else:
         if fileName in filesInStore:
           self.Log("Unable to store: %s in the same repository, from which it is pulled." % str(package), level = LogLevel.WARNING)
@@ -237,24 +230,22 @@ class Repository(ARepository, Task):
 
     # Check dependencies.
     additionalFiles = []
-    packages = self.GetDependencies(package, scope)
-    if packages != None:
-      for p in packages:
-        if not package.Excludes(p):
-          if p not in checkedPackages:
-            checkedPackages.append(p)
-            pfiles = self._Check(p, scope, checkedPackages)
-            if self.OptionalAllowed() or not p.IsOptional():
-              if pfiles is None:
-                return None
-            if pfiles: additionalFiles += pfiles
+    for p in self.GetDependencies(package, scope) or ():
+      if not package.Excludes(p):
+        if p not in checkedPackages:
+          checkedPackages.append(p)
+          pfiles = self._Check(p, scope, checkedPackages)
+          if self.OptionalAllowed() or not p.optional:
+            if pfiles is None:
+              return None
+          if pfiles: additionalFiles += pfiles
 
     return additionalFiles + self.GetAll(fileName)
 
   def Check(self, package, scope):
     return self._Check(package, scope, [])
 
-  def Put(self, f, fBaseDirName, package):
+  def Put(self, fBaseDirName, files, package):
     """returns: list of filesNames"""
     self.Log('Takes: %s' % package.AsStrWithoutType(), level = LogLevel.INFO)
 
@@ -264,14 +255,15 @@ class Repository(ARepository, Task):
 
     self.Log('to:\n  %s' % dirName, level = LogLevel.DEBUG)
 
-    if 'read' in dir(f):
-      sha1 = self.vPutFileLike(f, fileName)
+    if 'read' in dir(files):
+      sha1 = self.vPutFileLike(files, fileName)
       self.PutMarkerFile(fileName, sha1, package)
       return [fileName]
+
     else:
       rnames = []
       lnames = []
-      for fFileName in OS.Path.AsList(f):
+      for fFileName in OS.Path.AsList(files):
         if isinstance(fFileName, NamedFileLike):
           rFileName = os.path.join(dirName, os.path.relpath(fFileName.fileName, fBaseDirName))
           sha1 = self.vPutFileLike(fFileName.f, rFileName)

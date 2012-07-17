@@ -2,7 +2,7 @@ import unittest
 import sys
 
 sys.path.insert(0, '../..')
-from atta.tools.Misc import VarsExpander
+from atta.tools.VarsExpander import VarsExpander
 from atta.tools.DefaultVarsExpander import Expander
 
 funny = 'funny'

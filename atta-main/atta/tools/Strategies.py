@@ -1,8 +1,4 @@
 """.. no-user-reference:"""
-import os
-import hashlib
-import OS
-
 from Interfaces import IVersionStrategy
 
 class VersionDefaultStrategy(IVersionStrategy):

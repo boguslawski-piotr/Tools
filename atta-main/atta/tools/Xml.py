@@ -1,10 +1,8 @@
 """.. Data manipulation: Support for Xml data and files: xml"""
-import sys
 import re
 import xml.etree.ElementTree as ET
 
 from . import OS
-from . import Misc
 
 class XmlElement(ET.Element):
   """TODO: description
@@ -133,12 +131,12 @@ class XmlElement(ET.Element):
 
   @staticmethod
   def _splittag(tag):
-    """Split `tag` on the `namespace` and `name` (supported format: ``{namespace}name)``."""
+    """Split `tag` to the `namespace` and `name` (supported format: ``{namespace}name)``."""
     try:
       m = re.search('({(.*)})', tag)
-      if m != None:
+      if m:
         return m.group(2), tag.replace(m.group(1), '')
-    except:
+    except Exception:
       pass
     return '', tag
 
@@ -152,7 +150,7 @@ class XmlElement(ET.Element):
 
   @staticmethod
   def __repr(parent, ident):
-    if parent == None:
+    if parent is None:
       return 'None'
     return "<XmlElement: ns: %s tag: %s text: %s attrib: %s\n" % \
        (repr(parent.ns), repr(parent.tag), repr(parent.text), str(parent.attrib)) \
@@ -165,7 +163,7 @@ class XmlElement(ET.Element):
 class _TreeBuilderEx(ET.TreeBuilder):
   def end(self, tag):
     _last = ET.TreeBuilder.end(self, tag)
-    if _last != None:
+    if _last is not None:
       if len(self._elem):
         _last._setparent(self._elem[-1])
 

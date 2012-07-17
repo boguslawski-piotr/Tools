@@ -1,5 +1,4 @@
 """Filter task tests."""
-import os
 import re
 from atta import *
 

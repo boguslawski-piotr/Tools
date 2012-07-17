@@ -9,12 +9,14 @@ class Repository(Local.Repository):
   """TODO: description"""
 
   def vPrepareFileName(self, fileName):
-    return os.path.normpath(os.path.join(self.Project().dirName, fileName))
+    return os.path.normpath(os.path.join(self.Project.dirName, fileName))
 
   def Get(self, package, scope, store = None):
     projectName = self.data.get(Dict.project)
     if not projectName:
       raise AttaError(self, 'Not given name / directory of the project.')
+
+    failOnError = self.data.get(Dict.paramFailOnError)
 
     if os.path.isdir(projectName):
       dirName = projectName
@@ -22,16 +24,21 @@ class Repository(Local.Repository):
     else:
       dirName = os.path.dirname(projectName)
     if not os.path.exists(projectName):
-      raise AttaError(self, Dict.errFileNotExists % projectName)
+      msg = Dict.errFileNotExists % projectName
+      if failOnError:
+        raise AttaError(self, msg)
+      else:
+        self.Log(msg, level = LogLevel.ERROR)
+        return []
 
     targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
-    resultProperties = self.data.get(Dict.resultIn, ['packageName'])
+    resultProperties = self.data.get(Dict.resultIn, ['packageFileName'])
     result = None
 
     projectTmpName = OS.Path.TempName(dirName, 'py')
     try:
       OS.CopyFile(projectName, projectTmpName)
-    except:
+    except Exception:
       pass
     else:
       prevLoggerClass = Atta.Logger().SetImpl(Compact.Logger)
@@ -40,32 +47,40 @@ class Repository(Local.Repository):
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
 
-        project = self.Project().RunProject(self.Project().env, projectTmpName, targetNames)
+        project = None
+        try:
+          project = self.Project.RunProject(self.Project.env, projectTmpName, targetNames)
+        except Exception as E:
+          if failOnError:
+            raise
+          else:
+            self.Log(E, level = LogLevel.ERROR)
 
         Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
-        self.Log('Back in: %s' % self.Project().fileName, level = LogLevel.VERBOSE)
+        self.Log('Back in: %s' % self.Project.fileName, level = LogLevel.VERBOSE)
 
         # Collect produced file(s).
         result = []
-        resultProperties = OS.Path.AsList(resultProperties)
-        for propertyName in resultProperties:
-          r = getattr(project, propertyName, None)
-          if r:
-            r = OS.Path.AsList(r)
-            for i in range(0, len(r)):
-              if not os.path.exists(r[i]):
-                r[i] = os.path.join(dirName, r[i])
-            result += r
+        if project:
+          resultProperties = OS.Path.AsList(resultProperties)
+          for propertyName in resultProperties:
+            r = getattr(project, propertyName, None)
+            if r:
+              r = OS.Path.AsList(r)
+              for i in range(0, len(r)):
+                if not os.path.exists(r[i]):
+                  r[i] = os.path.join(dirName, r[i])
+              result += r
 
-        # Prepare valid package if it's possible.
-        package.groupId = getattr(project, Dict.groupId, None)
-        package.artifactId = getattr(project, Dict.name, None)
-        package.version = str(getattr(project, Dict.version, None))
-        #package.type = str(getattr(project, Dict.type, None)) # TODO: ?
-        package.type = None
-        if result:
-          package.systemPath = '\\${pathTo' + (package.artifactId if package.artifactId else '') + '}'
-          package.scope = Dict.system
+          # Prepare valid package if it's possible.
+          package.groupId = getattr(project, Dict.groupId, None)
+          package.artifactId = getattr(project, Dict.name, None)
+          package.version = str(getattr(project, Dict.version, None))
+          #package.type = str(getattr(project, Dict.type, None)) # TODO: ?
+          package.type = None
+          if result:
+            package.systemPath = '\\${pathTo' + (package.artifactId if package.artifactId else '') + '}'
+            package.scope = Dict.system
 
       finally:
         Atta.Logger().SetImpl(prevLoggerClass)
@@ -75,7 +90,7 @@ class Repository(Local.Repository):
 
     if not result:
       msg = 'Target(s): %s in: %s returned no information in: %s' % (' '.join(targetNames), projectName, resultProperties)
-      if not package.IsOptional():
+      if not package.optional:
         raise AttaError(self, msg)
       else:
         self.Log(msg, level = LogLevel.WARNING)

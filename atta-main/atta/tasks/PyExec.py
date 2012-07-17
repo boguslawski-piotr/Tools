@@ -2,7 +2,8 @@
 import sys
 import os
 
-from .. import LogLevel, OS, Exec
+from .. import LogLevel, OS
+from .Exec import Exec
 
 class PyExec(Exec):
   """
@@ -21,7 +22,7 @@ class PyExec(Exec):
   def __init__(self, fileName, params = None, **tparams):
     if len(fileName) > 0 and not fileName.startswith('-'):
       if OS.Path.Ext(fileName) == '':
-        fileName = fileName + '.py'
+        fileName += '.py'
 
       if fileName.find(os.path.sep) == -1:
         for dirName in sys.path:

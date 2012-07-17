@@ -4,9 +4,8 @@ import os
 import types
 from datetime import datetime
 
-from . import LogLevel, OS, Dict, Version, Env, PackageId, Target
-from . import AttaError, Atta, File, GetProject, _SetProject
-import atta
+from . import LogLevel, OS, Dict, Version, Env, PackageId
+from . import AttaError, Atta, File, _GetProject, _SetProject
 
 class Project:
   """
@@ -18,56 +17,57 @@ class Project:
   FAILED = 1
 
   def __init__(self, parent = None):
+    #: DOCTODO: description
     self.groupId = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description; defaults to project directory name
     self.name = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.type = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.displayName = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.description = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.version = None
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.url = ''
-    '''TODO: description'''
 
-    self.dvcs = None
-    '''object from class implements dvcs.IDvcs TODO: description'''
+    #: object from class implements vcs.IVcs DOCTODO: description
+    self.vcs = None
 
+    #: DOCTODO: description
     self.dependsOn = []
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.deployTo = []
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.dirName = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.fileName = ''
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.env = None
-    '''TODO: description'''
 
+    #: DOCTODO: description
     self.defaultTarget = ''
-    '''TODO: description'''
 
+    #: List of targets passed to Atta in the command line or in the
+    #: parameter *targets* of the method :py:meth:`.Project.RunProject`.
     self.targets = []
-    '''List of targets passed to Atta in the command line or
-       in the parameter of the method :py:meth:`.Project.RunProject`.'''
 
+    #: DOCTODO: description
     self.targetsMap = {}
-    '''TODO: description'''
 
-    self._executedTargets = {} #collections.OrderedDict()
+    # Private stuff.
+    self._executedTargets = {}
     self._executedTargetsList = []
     self._targetsLevel = 0
     self._parent = parent
@@ -81,7 +81,7 @@ class Project:
       fileName = OS.Path.RemoveExt(os.path.normpath(os.path.realpath(fileName)))
       dirName = os.path.dirname(fileName)
       moduleName = os.path.basename(fileName)
-      fileName = fileName + '.py'
+      fileName += '.py'
       if not os.path.exists(fileName):
         raise IOError(os.errno.ENOENT, Dict.errFileNotExists % fileName)
 
@@ -132,6 +132,7 @@ class Project:
 
       except:
         raise
+
       finally:
         File._Unset()
         if prevDirName is not None:
@@ -176,7 +177,7 @@ class Project:
         Atta.Log(end = True, target = targetClass.__name__)
         self._targetsLevel -= 1
       else:
-        # Target is a class (and we assume that iherits from atta.targets.Base.Target)
+        # Target is a class (and we assume that inherits from (or implements) atta.targets.Base.Target)
         target = targetClass()
         if target.CanRun():
           self._executedTargetsList.append([target, self._targetsLevel])
@@ -224,7 +225,7 @@ class Project:
 
   def _Run(self, environ, fileName, targets):
     prevDirName = os.getcwd()
-    prevAttaProject = GetProject()
+    prevAttaProject = _GetProject()
     try:
       self.startTime = datetime.now()
 
@@ -326,11 +327,11 @@ class Project:
                 tryTargetInProject = False
               else:
                 key = targetPackage
-            if key is not None:
+            if key:
               if self.targetsMap.has_key(key):
                 targetClass = self.targetsMap[key]
               else:
-                raise AttaError(self, 'Can not find the %s.%s target.' % (targetPackage, targetClassName))
+                raise AttaError(self, 'Can not find: %s target.' % targetClassName)
         else:
           break
     return targetClass

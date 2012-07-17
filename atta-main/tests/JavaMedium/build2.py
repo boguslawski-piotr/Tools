@@ -1,13 +1,12 @@
 from atta import *
-from atta.targets import Java
+from atta.targets.Java import Javac, clean as JavaClean
 from atta.compilers.Strategies import SrcHashStrategy
 
-import build
-
+Project.Import('build')
 Javac.SetDefaultRequiresCompileImpl(SrcHashStrategy)
 
-class clean(Java.clean):
+class clean(JavaClean):
   def Run(self):
-    Java.clean.Run(self)
+    JavaClean.Run(self)
     Delete('.atta/srchash', force = True)
 

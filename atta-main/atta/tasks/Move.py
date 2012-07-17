@@ -1,7 +1,8 @@
 """.. Files, directories: Moves files: move"""
 import os
 
-from .. import Dict, OS, LogLevel, Copy
+from .. import Dict, OS, LogLevel
+from .Copy import Copy
 
 class Move(Copy):
   """

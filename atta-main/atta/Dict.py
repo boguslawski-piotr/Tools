@@ -9,6 +9,8 @@ class Scopes:
   runtime = 'runtime'
   testruntime = 'testruntime'
 
+  default = compile
+
   map2POM = {
              compile     : ['compile'],
              testcompile : ['compile', 'test'],
@@ -70,6 +72,10 @@ dependencies = 'dependencies'
 dependencyStartTag = '<dependency>'
 dependencyEndTag = '</dependency>'
 exclusions = 'exclusions'
+exclusionsStartTag = '<exclusions>'
+exclusionsEndTag = '</exclusions>'
+exclusionStartTag = '<exclusion>'
+exclusionEndTag = '</exclusion>'
 optional = 'optional'
 relativePath = 'relativePath'
 parent = 'parent'

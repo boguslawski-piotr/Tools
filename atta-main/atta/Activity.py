@@ -3,7 +3,7 @@ import os
 
 from .tools.Misc import isiterable
 from .Env import Env
-from . import Dict, LogLevel, Atta, GetProject
+from . import Dict, LogLevel, Atta, _GetProject
 
 class Activity:
   """
@@ -20,14 +20,15 @@ class Activity:
   def LogIterable(self, msg, iterable, **args):
     self._LogIterable(msg, iterable, **args)
 
+  @property
   def Project(self):
-    return GetProject()
+    return _GetProject()
 
   def Env(self):
-    if not self.Project():
+    if not self.Project:
       env = Env(os.environ)
     else:
-      env = self.Project().env
+      env = self.Project.env
     return env
 
   '''private section'''

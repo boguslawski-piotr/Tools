@@ -49,7 +49,7 @@ class Path:
   @staticmethod
   def HasWildcards(path):
     """Tests whether or not a *path* include wildcard characters (\?, \*)."""
-    return re.search('(\?|\*)+', path) != None
+    return re.search('(\?|\*)+', path) is not None
 
   @staticmethod
   def HasAntStyleWildcards(path):
@@ -164,7 +164,7 @@ class Path:
     # There is one "shorthand":
     # if a pattern ends with / or \, then ** is appended.
     if pattern.endswith('/'):
-      pattern = pattern + '**'
+      pattern += '**'
 
     DOT = '\\.'
     ONE_CHAR = '.{1,1}'
@@ -175,7 +175,7 @@ class Path:
 
     def match(p, s):
       p = '^' + p.replace('*', ANY_FILE_NAME_CHAR) + '$'
-      return re.match(p, s) != None
+      return re.match(p, s) is not None
 
     pattDirs = pattern.split('/')
     pathDirs = path.split('/')
@@ -436,7 +436,7 @@ def FileSize(fileName):
   """Returns the file *fileName* size or INAVLID_FILE_SIZE on any error."""
   try:
     info = os.stat(fileName)
-  except:
+  except Exception:
     return INVALID_FILE_SIZE
   return info.st_size
 
@@ -489,7 +489,7 @@ def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
     with open(fileName, 'rb') as f:
       for chunk in iter(lambda: f.read(chunkSize), b''):
         algo.update(chunk)
-  except:
+  except Exception:
     return None
   return algo.hexdigest()
 
@@ -503,7 +503,7 @@ def FileCRCn(fileName, chunkSize = 32768):
     with open(fileName, 'rb') as f:
       for chunk in iter(lambda: f.read(chunkSize), b''):
         prev = zlib.crc32(chunk, prev)
-  except:
+  except Exception:
     return None
   return prev & 0xFFFFFFFF
 

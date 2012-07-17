@@ -1,5 +1,4 @@
 """TODO: description"""
-import sys
 import os
 
 from . import Atta, LogLevel, Dict, OS

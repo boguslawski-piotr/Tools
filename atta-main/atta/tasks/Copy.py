@@ -4,7 +4,8 @@ import shutil
 import hashlib
 from datetime import datetime, timedelta
 
-from .. import AttaError, LogLevel, OS, Dict, Filter
+from .. import AttaError, LogLevel, OS, Dict
+from .Filter import Filter
 
 class Copy(Filter):
   """

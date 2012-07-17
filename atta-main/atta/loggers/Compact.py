@@ -21,7 +21,7 @@ class Logger(Std.Logger):
       self.targetName = ''
 
     if _msg is None:
-      _msg = '{0}'.format(msg)
+      _msg = '%s' % msg
 
     if _msg and len(self.targetName) > 0:
       self._PhysicalLog(self.targetName)

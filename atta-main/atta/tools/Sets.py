@@ -244,11 +244,13 @@ class ExtendedFileSet(list):
         if len(src) <= 0:
           continue
         if OS.Path.HasWildcards(src):
-          # TODO: obsluzyc inaczej sciezki typu: ../path/to/*.a
-          # czyli jezeli sciezka nie odnosi sie do aktualnego katalogu
-          # to trzeba to rozbic na root i includes
-          for fname in FileSet('.', includes = src, **tparams):
-            self.append(('.', fname))
+          if src.startswith('..'):
+            l = src.rfind('../')
+            rname, incls = src[:l + 3], src[l + 3:]
+          else:
+            rname, incls = '.', src
+          for fname in FileSet(rname, includes = incls, **tparams):
+            self.append((rname, fname))
         else:
           if os.path.isdir(src):
             for fname in FileSet(src, includes = '**/*', **tparams):

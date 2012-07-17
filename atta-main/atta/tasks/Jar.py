@@ -39,7 +39,7 @@ class Jar(Zip):
         storedManifestStr = zipFile.read(manifestFileName)
         if manifestStr == storedManifestStr:
           manifestChanged = False
-    except:
+    except Exception:
       pass
 
     Zip.__init__(self, fileName, srcs, **tparams)
@@ -57,5 +57,5 @@ class Jar(Zip):
     # TODO: obsluzyc gdy manifest: string (fileName), file-like object
     manifestStr = Dict.basicManifest % (Atta.name, Atta.version)
     for name, value in manifest.items():
-      manifestStr = manifestStr + '{0}: {1}\n'.format(name, value)
+      manifestStr += '{0}: {1}\n'.format(name, value)
     return manifestStr

@@ -1,5 +1,4 @@
 import sys
-import os
 
 x = 0
 max = int(sys.argv[1])

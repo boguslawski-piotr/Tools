@@ -5,7 +5,7 @@ Project.groupId = 'pl.aqurat'
 Project.version.Configure(fileName = 'version.number',
                           format = Version.Formats.MM)
 
-#Project.dvcs = Git()
+#Project.vcs = Git()
 
 Java.Setup()
 

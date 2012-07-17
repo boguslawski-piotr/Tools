@@ -5,7 +5,6 @@ __all__ = [
            'Atta',
            'AttaError',
            'Project',
-           'GetProject',
            'File',
 
            # Enums & Classes
@@ -39,18 +38,15 @@ __all__ = [
            'Archive',
            'Zip',
 
-           'Javac',
-           'Jar',
-
            'Git',
           ]
 
 # Atta
 
-from .tools.Misc import VarsExpander
-from .loggers import LogLevel, Logger, Std
-from .tools import DefaultVarsExpander
-from . import version
+from .tools import DefaultVarsExpander as DVE
+from .tools import VarsExpander as VE
+from .loggers import Logger as _Logger, Std
+from . import version as _version
 
 class AttaError(RuntimeError):
   """Base class for all exceptions thrown by Atta."""
@@ -70,7 +66,7 @@ class Atta:
   description = 'Build tool in pure Python.'
 
   #: DOCTODO: description
-  version = version.__version__
+  version = _version.__version__
 
   #: DOCTODO: description
   versionInt = int(version.replace('.', ''))
@@ -78,7 +74,7 @@ class Atta:
   #: DOCTODO: description
   dirName = None
 
-  _logger = Logger(Std.Logger)
+  _logger = _Logger(Std.Logger)
 
   @staticmethod
   def Logger():
@@ -100,7 +96,7 @@ class Atta:
     """TODO: description"""
     Atta._logger.LogIterable(msg, iterable, **tparams)
 
-  _varsExpander = VarsExpander(DefaultVarsExpander.Expander)
+  _varsExpander = VE.VarsExpander(DVE.Expander)
 
   @staticmethod
   def VarsExpander():
@@ -127,12 +123,11 @@ class Atta:
 
 #: Provides access to data and general tools for the entire project.
 #: Use it ONLY during the phase of interpreting the main build script.
+#: Inside classes that inherits from :py:class:`.Target` please use the *self.Project*.
 #: Property Project is an instance of the class :py:class:`atta.Project`.
 Project = None
 
-def GetProject():
-  """Provides access to data and general tools for the entire project.
-     Returns an instance of the class :py:class:`atta.Project`."""
+def _GetProject():
   return Project
 
 def _SetProject(project):
@@ -162,37 +157,59 @@ class File:
   def _Unset():
     File.name = File._list.pop()
 
+# Quite strange constructions for the following reasons:
+# - ide PyCharm not report warnings :)
+# - it will be easier in the future to change the implementation
+
 # Tools
 
-from .tools.Sets import FileSet, DirSet, DirFileSet, ExtendedFileSet
-from .tools.Properties import Properties
-from .tools import OS as OS
-from .tools.Ver import Version
-from .tools.Xml import Xml, XmlElement
+from . import loggers
+LogLevel = loggers.LogLevel
 
-from .repositories.Package import PackageId
+from .tools import Sets
+FileSet = Sets.FileSet
+DirSet = Sets.DirSet
+DirFileSet = Sets.DirFileSet
+ExtendedFileSet = Sets.ExtendedFileSet
+
+from .tools import Properties
+Properties = Properties.Properties
+
+from .tools import OS
+
+from .tools import Ver
+Version = Ver.Version
+
+from .tools import Xml
+XmlElement = Xml.XmlElement
+Xml = Xml.Xml
+
+from .repositories import Package
+PackageId = Package.PackageId
 
 # Base classes
 
-from .targets.Base import Target
-from .tasks.Base import Task
+from .targets import Base as TargetB
+Target = TargetB.Target
+from .tasks import Base as TaskB
+Task = TaskB.Task
 
-# All available tasks.
+# All core tasks.
 
-from .tasks.Echo import Echo
+from .tasks import Echo, Delete, Filter, Copy, Move
+Echo = Echo.Echo
+Delete = Delete.Delete
+Filter = Filter.Filter
+Copy = Copy.Copy
+Move = Move.Move
 
-from .tasks.Delete import Delete
-from .tasks.Filter import Filter
-from .tasks.Copy import Copy
-from .tasks.Move import Move
+from .tasks import Exec, PyExec
+Exec = Exec.Exec
+PyExec = PyExec.PyExec
 
-from .tasks.Exec import Exec
-from .tasks.PyExec import PyExec
+from .tasks import Archive, Zip
+Archive = Archive.Archive
+Zip = Zip.Zip
 
-from .tasks.Archive import Archive
-from .tasks.Zip import Zip
-
-from .tasks.Javac import Javac
-from .tasks.Jar import Jar
-
-from .dvcs.Git import Git
+from .vcs import Git
+Git = Git.Git

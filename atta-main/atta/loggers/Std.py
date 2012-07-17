@@ -12,7 +12,7 @@ class Logger(ILogger):
   def Log(self, msg, **args):
     _msg = self._HandleProject(msg, **args) or self._HandleTarget(msg, **args) or self._HandleTask(msg, **args)
     if _msg is None:
-      _msg = '{0}'.format(msg)
+      _msg = '%s' % msg
     self._PhysicalLog(_msg)
     return
 
@@ -27,14 +27,14 @@ class Logger(ILogger):
       if 'start' in args:
         pass
       if 'end' in args:
-        _msg = '\nBuild: {0}'.format(args['status'])
-        _msg = _msg + '\n   At: {0}'.format(args['at'].isoformat())
-        _msg = _msg + '\n Time: {0}'.format(args['time'])
+        _msg =  '\nBuild: {0}'.format(args['status'])
+        _msg += '\n   At: {0}'.format(args['at'].isoformat())
+        _msg += '\n Time: {0}'.format(args['time'])
         if 'exception' in args:
-          _msg = _msg + '\n'
+          _msg += '\n'
         return _msg
       if 'log' in args:
-        _msg = '{0}'.format(msg)
+        _msg = '%s' % msg
         return _msg
     return None
 
@@ -47,19 +47,20 @@ class Logger(ILogger):
         _msg = os.linesep + args['target'] + ':'
         return _msg
       if 'log' in args:
-        _msg = os.linesep + args['target'] + ': {0}'.format(msg)
+        _msg = os.linesep + args['target'] + ': %s' % msg
         return _msg
     return None
 
   def _HandleTask(self, msg, **args):
     if 'task' in args:
-      _msg = '{0}'.format(msg)
+      #_msg = '{0}'.format(msg)
+      _msg = '%s' % msg
       lines = _msg.replace('\r', '').split('\n')
       _msg = ''
       for line in lines:
         if len(_msg) > 0:
           _msg = _msg + os.linesep
-        _msg = _msg + "{0:>8}: {1}".format(args['task'], line)
+        _msg += "{0:>8}: {1}".format(args['task'], line)
       return _msg
     return None
 

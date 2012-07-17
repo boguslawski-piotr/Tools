@@ -1,6 +1,9 @@
 """Some tests."""
+import sys
 
 from atta import *
+
+#print dir(sys.modules['t'])
 
 Project.defaultTarget = 'test'
 p = Properties.Open('JavaMedium/deploy.properties')
@@ -48,54 +51,20 @@ test = [{
 #r = Project.ResolveDependencies(test)
 #print r
 
-class Z(object):
-  _p = None
+class test(Target):
+  def Run(self):
+#    p = PackageId(artifactId='a')
+#    p.exclusions += ['a']
+#    print p.exclusions
 
-  def GetP(self):
-    print 'ZZZ', Z._p
-    return Z._p
+    #------------------------------------------------------------------------------
 
-  def _SetP(self, project):
-    Z._p = project
-    print 'XXX', Z._p
+    from atta.repositories.Maven import Repository
 
-  P = property(GetP, _SetP)
-
-def test():
-
-  print Project.env.get('ATTA_TESTS')
-
-  class ZZ: pass
-
-  z = Z()
-  z.P = '1'
-  print z.P
-
-  #z.P.X = 10
-#  print z.P.X
-  print z._p
-
-  #------------------------------------------------------------------------------
-
-  z = 'c:\\ala:p:\\dupa\\aaaa/sd:f:\\asewe'
-  print OS.Path.AsList(z)
-
-  #------------------------------------------------------------------------------
-
-  from atta.tools.Interfaces import Observable
-
-
-  return
-
-  #------------------------------------------------------------------------------
-
-  from atta.repositories.Maven import Repository
-  from atta.repositories.Package import PackageId
-
-  package = PackageId.FromStr('asm:asm-util.jar:2.2.3')
-  #package = PackageId.FromStr('com.thoughtworks.xstream:xstream.jar:1.3.1')
-  #package = PackageId.FromStr('ant.jar:1.6.2')
-  #package = PackageId.FromStr('commons-jelly:commons-jelly-tags-xml.jar:1.1')
-  r = Repository({'getOptional' : False})
-  r.Get(package, 'compile')
+    #package = PackageId.FromStr('asm:asm-util.jar:2.2.3')
+    package = PackageId.FromStr('com.thoughtworks.xstream:xstream.jar:1.3.1')
+    #package = PackageId.FromStr('ant.jar:1.6.2')
+    #package = PackageId.FromStr('commons-jelly:commons-jelly-tags-xml.jar:1.1')
+    r = Repository({'getOptional' : True})
+    r.Get(package, 'compile')
 

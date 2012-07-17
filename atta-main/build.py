@@ -3,32 +3,29 @@ Atta build module.
 
 TODO: description
 """
-import sys
 import os
-import re
 
 from atta import *
 
 if Project is not None:
   Project.version.Configure(fileName = 'atta/version.py', format = Version.Formats.MMP)
-  Project.dvcs = Git()
+  Project.vcs = Git()
 
 #------------------------------------------------------------------------------
 
 class nextBuild(Target):
   def Run(self):
-    if Project.dvcs:
-      if not Project.dvcs.IsWorkingDirectoryClean():
+    if Project.vcs:
+      if not Project.vcs.IsWorkingDirectoryClean():
         raise AttaError(self, 'Working directory is not clean.')
-      Project.dvcs.SetTag('v' + Atta.version, logOutput = True)
+      Project.vcs.SetTag('v' + Atta.version)
       Project.version.NextPatch()
-      Project.dvcs.CommitAndPublishAllChanges('Next build number', logOutput = True)
-      Project.dvcs.Cmd('push sf', logOutput = True)
+      Project.vcs.CommitAndPublishAllChanges('Next build number', remotes = 'origin sf')
 
 #------------------------------------------------------------------------------
 
 class cleanDocs(Target):
-  """ Clean auto generated documentation files, dist and build directories and many more."""
+  """ Clean auto generated documentation files."""
   def Run(self):
     Delete(DirSet(includes = ['docs/html', 'docs/modules*']), includeEmptyDirs = True)
     Delete(FileSet(includes = ['docs/*_user.rst', 'docs/*_dev.rst']), includeEmptyDirs = True)
@@ -69,15 +66,8 @@ class unittests(Target):
   """
   def Run(self):
     from datetime import datetime
-    Echo('''
-
-STARTED at: %s
-======================================================================
-
-''' % datetime.today(),
-      file = 'unittests.log',
-      append = True
-    )
+    Echo('\n\nSTARTED at: %s\n======================================================================\n\n' % datetime.today(),
+          file = 'unittests.log', append = True)
 
     t = PyExec('-m', ['unittest', 'discover', '-v', '-p', '*', '-s', 'tests\unittest'], failOnError = False, useShell = False)
 
@@ -157,7 +147,7 @@ class makedocs(Target):
   def UserDocs(self):
     m = {}
     ms = {}
-    for fileName in FileSet('atta', includes = ['targets/**/*.py', 'tasks/**/*.py', 'tools/**/*.py', 'dvcs/**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
+    for fileName in FileSet('atta', includes = ['targets/**/*.py', 'tasks/**/*.py', 'tools/**/*.py', 'vcs/**/*.py'], excludes = ['**/__*', '**/*Test*', '**/templates/'], realPaths = False):
       group = fileName.split(os.path.sep)[0]
       subgroup = 'TODO'
       desc = ''
@@ -227,7 +217,7 @@ class makedocs(Target):
           file = os.path.join(outputFile, moduleName) + '.rst',
           )
 
-      mapGroupNames = { 'dvcs' : 'Version Control'}
+      mapGroupNames = { 'vcs' : 'Version Control'}
       if group in mapGroupNames:
         groupName = mapGroupNames[group]
       else:

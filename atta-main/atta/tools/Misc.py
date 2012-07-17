@@ -1,9 +1,8 @@
 """.. Miscellaneous: Various functions and classes"""
 
-from .internal.Misc import ObjectFromClass
-from .. import Dict
-
-#------------------------------------------------------------------------------
+def isstring(obj):
+  """TODO: description"""
+  return isinstance(obj, basestring)
 
 def isiterable(obj):
   """TODO: description"""
@@ -28,18 +27,18 @@ def RemoveDuplicates(iterable, preserveOrder = True):
 
 def strip(str):
   """TODO: description"""
-  if str != None: return str.strip()
-  return None
+  if str: return str.strip()
+  return str
 
 def lstrip(str):
   """TODO: description"""
-  if str != None: return str.lstrip()
-  return None
+  if str: return str.lstrip()
+  return str
 
 def rstrip(str):
   """TODO: description"""
-  if str != None: return str.rstrip()
-  return None
+  if str: return str.rstrip()
+  return str
 
 #------------------------------------------------------------------------------
 
@@ -50,7 +49,7 @@ class NamedFileLike:
     self.f = f
 
   def __del__(self):
-    if self.f != None:
+    if self.f:
       self.f.close()
     self.f = None
 
@@ -66,21 +65,3 @@ class NamedFileLike:
   def __exit__(self, exc_type, exc_value, traceback):
     self.__del__()
     return False
-
-#------------------------------------------------------------------------------
-
-class VarsExpander:
-  """
-  TODO: description
-  """
-  def __init__(self, _class):
-    self._expander = ObjectFromClass(_class)
-
-  def SetImpl(self, _class):
-    """Sets variables expander class and returns previous class."""
-    return self._expander.SetClass(_class)
-
-  def Expand(self, txt, **tparams):
-    """Expand variables in given text."""
-    return self._expander.GetObject().Expand(txt, **tparams)
-

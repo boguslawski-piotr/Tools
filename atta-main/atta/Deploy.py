@@ -1,5 +1,8 @@
 """TODO: description"""
 import sys
+
+from .tools.internal.Misc import AttaClassOrModule
+from .tools.Misc import isstring
 from . import AttaError, Dict, OS
 
 class Deployer:
@@ -8,8 +11,9 @@ class Deployer:
     """Returns list of all deployed files."""
     files = OS.Path.AsList(files)
     result = []
+
     for e in data:
-      if isinstance(e, basestring):
+      if isstring(e):
         e = dict(repository = e)
 
       # Prepare repository module name.
@@ -18,14 +22,12 @@ class Deployer:
         if not defaultRepository:
           raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
         repositoryName = defaultRepository
-      if not isinstance(repositoryName, basestring):
+      if not isstring(repositoryName):
         repositoryName = repositoryName.__name__
+      repositoryName = AttaClassOrModule(repositoryName)
 
-      try:
-        __import__(repositoryName)
-        repository = sys.modules[repositoryName].Repository(e)
-        result += repository.Put(files, baseDirName, package)
-      finally:
-        repository = None
+      __import__(repositoryName)
+      repository = sys.modules[repositoryName].Repository(e)
+      result += repository.Put(baseDirName, files, package)
 
     return result

@@ -1,5 +1,6 @@
 """.. no-user-reference:"""
 from ..tools.internal.Misc import ObjectFromClass
+from ..tools.Interfaces import AbstractMethod
 from .. import Dict
 from . import Styles
 
@@ -7,7 +8,7 @@ class ARepository:
   """TODO: description"""
   def __init__(self, data):
     self.data = data
-    if data is not None:
+    if data:
       _styleClass = data.get(Dict.style, ARepository.GetDefaultStyleImpl())
     else:
       self.data = {}
@@ -37,25 +38,29 @@ class ARepository:
     TODO: more description"""
     return self.data.get(Dict.getOptional, False)
 
-  # Abstract methods
+  # Abstract methods (interface)
 
+  @AbstractMethod
   def Get(self, package, scope, store = None):
     """TODO: description"""
     assert False
 
+  @AbstractMethod
   def Check(self, package, scope):
     """TODO: description"""
     assert False
 
-  def Put(self, f, fBaseDirName, package):
+  @AbstractMethod
+  def Put(self, fBaseDirName, files, package):
     """TODO: description"""
     assert False
 
+  @AbstractMethod
   def Clean(self, package):
     """TODO: description"""
     assert False
 
+  @AbstractMethod
   def _Name(self):
     """TODO: description"""
     assert False
-

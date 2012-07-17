@@ -5,8 +5,8 @@ Atta main
 import platform
 import sys
 import os
-from logilab.common.test.unittest_interface import D
 
+from atta.tools.internal.Misc import AttaClassOrModule
 from atta import Atta, LogLevel, Properties, OS, Dict
 
 def _ParseArgv(argv):
@@ -77,7 +77,7 @@ def _PutArgsIntoProps(args, props):
     for D in args.D:
       try:
         D = D.split('=')
-        props[D[0]] = '1' if len(D) <= 1 else D[1]
+        props['D' + D[0]] = '1' if len(D) <= 1 else D[1]
       except Exception:
         continue
 
@@ -175,11 +175,13 @@ def Main():
 
   lc = props.get('lc')
   if lc:
+    lc = AttaClassOrModule(lc)
     __import__(OS.Path.RemoveExt(lc))
     Atta.Logger().SetImpl(lc)
 
   llc = OS.Path.AsList(props.get('llc'), ',')
   for c in llc:
+    c = AttaClassOrModule(c)
     __import__(OS.Path.RemoveExt(c))
     Atta.Logger().RegisterListener(c)
 
@@ -208,7 +210,7 @@ def Main():
       import traceback
       exc_type, exc_value, exc_traceback = sys.exc_info()
       lines = traceback.extract_tb(exc_traceback)
-      lines = lines[-5:] # only last five
+      #lines = lines[-5:] # only last five
       for line in lines:
         print('%s: %d' % (line[0], line[1]))
         print('  %s' % line[3])

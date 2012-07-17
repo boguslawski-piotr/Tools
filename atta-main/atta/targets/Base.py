@@ -2,9 +2,9 @@
 import os
 import platform
 
+from ..tools.Interfaces import AbstractMethod, IsAbstractMethod
 from ..Activity import Activity
 from .. import OS
-from ..tools.Interfaces import AbstractMethod, IsAbstractMethod
 
 class Target(Activity):
   """
@@ -59,7 +59,7 @@ class Target(Activity):
     if not hasattr(self, 'name'):
       self.name = '{0}'.format(self.__class__)
       self.name = self.name.replace('atta.targets.', '')
-      project = self.Project()
+      project = self.Project
       if project and project._parent is None:
         self.name = self.name.replace(OS.Path.RemoveExt(os.path.basename(project.fileName)) + '.', '')
     return self.name

@@ -11,7 +11,10 @@ Project.dependsOn += [
     repository = 'atta.repositories.Maven',
     package = 'dom4j:dom4j.jar:1.6.1',
     #package = 'com.beust:jcommander:1.13',
-    optional = True,
+    optional = False,
+    exclusions = 'xml-apis,stax:stax-api:1.0',
+    #exclusions = ['xml-apis', 'stax:stax-api:1.0'],
+    #exclusions = [dict(artifactId = 'xml-apis'), 'stax:stax-api:1.0'],
     # TODO: przemyslec to jeszcze, zmiana nazwy?
     getOptional = True
   )

@@ -2,6 +2,11 @@
 import sys
 from .. import OS
 
+def AttaClassOrModule(name):
+  if name.startswith('.'):
+    name = 'atta' + name
+  return name
+
 class ObjectFromClass:
   """
   General class that allows you to dynamically
@@ -17,6 +22,7 @@ class ObjectFromClass:
     """TODO:description"""
     oldClass = self._class
     if isinstance(_class, basestring):
+      _class = AttaClassOrModule(_class)
       self._class = sys.modules[OS.Path.RemoveExt(_class)].__dict__[OS.Path.Ext(_class, False)]
     else:
       self._class = _class

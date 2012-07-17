@@ -39,7 +39,7 @@ class SrcHashStrategy(IRequiresCompileStrategy):
       try:
         with open(srcHashFileName, 'rb') as f:
           storedSrcHash = f.read()
-      except:
+      except Exception:
         pass
 
     actionNeeded = False
@@ -48,7 +48,7 @@ class SrcHashStrategy(IRequiresCompileStrategy):
       try:
         with open(srcHashFileName, 'wb') as f:
           f.write(srcHash)
-      except:
+      except Exception:
         pass
 
     if not os.path.exists(destFileName):

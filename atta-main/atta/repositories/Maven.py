@@ -5,14 +5,8 @@ import cStringIO
 
 from ..tools import DefaultVarsExpander
 from ..tools.Misc import NamedFileLike, RemoveDuplicates, strip
-from ..tools.Xml import Xml
-from ..tools import OS
-from ..tasks.Base import Task
-from .. import AttaError
-from .. import Dict
-from .. import LogLevel
+from .. import AttaError, Dict, LogLevel, OS, Xml, Task, PackageId
 from .Base import ARepository
-from .Package import PackageId
 from . import ArtifactNotFoundError
 from . import Styles
 
@@ -76,7 +70,7 @@ class Repository(ARepository, Task):
               download = False
               filesInStore = filesInStore2
 
-        # Get artifact.
+        # Get the artifact.
         if download:
           self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
           filesToDownload = []
@@ -89,17 +83,17 @@ class Repository(ARepository, Task):
               NamedFileLike(Styles.Maven().FileName(PackageId.FromPackage(package, type = Dict.pom)), cStringIO.StringIO(pom)))
           try:
             if len(filesToDownload) > 0:
-              filesInStore += store.Put(filesToDownload, '', package)
+              filesInStore += store.Put('', filesToDownload, package)
           finally:
             for i in range(len(filesToDownload)):
               filesToDownload[i] = None
 
-    # Check results.
-    if not package.IsOptional():
+    # Check the results.
+    if not package.optional:
       if filesInStore is None or len(filesInStore) <= 0:
         raise ArtifactNotFoundError(self, "Can't find: " + str(package))
 
-    # Return package and its dependencies files.
+    # Return the package files and its dependencies files.
     filesInStore = RemoveDuplicates(filesInStore)
     self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
@@ -113,7 +107,7 @@ class Repository(ARepository, Task):
   def Check(self, package, scope):
     raise AttaError(self, Dict.errNotImplemented.format('Check'))
 
-  def Put(self, f, fBaseDirName, package):
+  def Put(self, fBaseDirName, files, package):
     raise AttaError(self, Dict.errNotImplemented.format('Put'))
 
   @staticmethod
@@ -310,18 +304,18 @@ class Repository(ARepository, Task):
     def _PreparePackagesFromDependencies(depSrc, ignoreScopes = False):
       depDest = []
       for d in depSrc:
-        # Collect package information from <dependency> section.
         dependPackage = PackageId(type = Dict.jar)
+
+        # Collect package information from <dependency> section.
         for i in list(d):
           ltag = i.tag.lower()
           if ltag == Dict.exclusions:
             # Handle <exclusions> section.
-            dependPackage.exclusions = []
             for es in list(i):
               excludedPackage = PackageId()
               for e in list(es):
                 text = expander.Expand(e.text, **props)
-                excludedPackage.SetAttr(e.tag, text)
+                excludedPackage.__setattr__(e.tag, text)
               dependPackage.exclusions.append(excludedPackage)
           else:
             if not includeOptional:
@@ -330,7 +324,7 @@ class Repository(ARepository, Task):
                   dependPackage = None
                   break
             text = expander.Expand(i.text, **props)
-            dependPackage.SetAttr(i.tag, text)
+            dependPackage.__setattr__(i.tag, text)
 
         if dependPackage is None:
           continue
@@ -338,18 +332,13 @@ class Repository(ARepository, Task):
         # Search for the missing properties in the definitions from parents.
         for parent in reversed(dmDependencies):
           if parent.groupId == dependPackage.groupId and parent.artifactId == dependPackage.artifactId:
-            if not dependPackage.version:
-              dependPackage.version = parent.version
-            if not dependPackage.GetAttr(Dict.scope):
-              dependPackage.scope = parent.GetAttr(Dict.scope)
-            if Dict.exclusions in dir(parent):
-              if not Dict.exclusions in dir(dependPackage):
-                dependPackage.exclusions = []
-              dependPackage.exclusions += parent.exclusions
+            if not dependPackage.version: dependPackage.version = parent.version
+            if not dependPackage.scope: dependPackage.scope = parent.scope
+            if parent.exclusions: dependPackage.exclusions += parent.exclusions
 
         # Add the default scope, if missing.
-        if not dependPackage.GetAttr(Dict.scope):
-          dependPackage.scope = Dict.Scopes.compile
+        if not dependPackage.scope:
+          dependPackage.scope = Dict.Scopes.default
 
         # If the package definition is OK and affects processed scopes add it to the returned list.
         if ignoreScopes or dependPackage.scope in scopes:

@@ -5,12 +5,15 @@ TODO: description
 import os
 import stat
 
-from ..repositories.Package import PackageId
 from ..repositories import Styles, Maven
-from .. import Dict
+from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, ExtendedFileSet
 from ..Activity import Activity
 
-from atta import *
+#from atta import *
+
+from ..tasks import Javac, Jar
+Javac = Javac.Javac
+Jar = Jar.Jar
 
 class ProjectType:
   app = 'app'
@@ -20,7 +23,7 @@ class ProjectType:
 class Setup(Activity):
   """TODO: description"""
   def __init__(self, type = ProjectType.app, **tparams):
-    project = self.Project()
+    project = self.Project
 
     # Java target settings.
 
@@ -89,7 +92,7 @@ class Setup(Activity):
       self.packageExt = Dict.jar
 
     #: result package file name set in package target DOCTODO: description
-    self.packageName = ''
+    self.packageFileName = ''
 
     #: DOCTODO: description
     self.packageAdditionalFiles = []
@@ -139,12 +142,11 @@ class Setup(Activity):
 
 #------------------------------------------------------------------------------
 
-def ResolveDependencies(scope):
-  project = GetProject()
+def _ResolveDependencies(project, scope):
   files, packages = project.ResolveDependencies(scope = scope, returnPackages = True,
                                                 defaultRepository = project.defaultRepository)
   result = []
-  if files is not None:
+  if files:
     # Leave only the files that make sense for the Java compiler or/and Java runtime.
     for p in files:
       append = os.path.isdir(p)
@@ -167,7 +169,7 @@ class prepare(Target):
 
   def PrepareEnvironment(self):
     """Create the necessary directories."""
-    project = self.Project()
+    project = self.Project
     create = False
     for classDir in project.classDirs:
       if not os.path.exists(classDir):
@@ -186,7 +188,7 @@ class compile(Target):
   dependsOn = ['prepare']
 
   def Run(self):
-    project = self.Project()
+    project = self.Project
     self.ResolveDependencies()
 
     i = 0
@@ -212,8 +214,8 @@ class compile(Target):
 
   def ResolveDependencies(self):
     """TODO: description"""
-    project = self.Project()
-    project.javacClassPath += ResolveDependencies(scope = Dict.Scopes.compile)
+    project = self.Project
+    project.javacClassPath += _ResolveDependencies(self.Project, scope = Dict.Scopes.compile)
 
   def JavacTaskParams(self):
     """Additional parameters for Javac task. It must be a dictionary."""
@@ -231,19 +233,19 @@ class package(Target):
   dependsOn = ['compile']
 
   def Run(self):
-    project = self.Project()
+    project = self.Project
     classDirs = project.classDirs[:]
     self.ExtendClassDirs(classDirs)
-    project.packageName = os.path.join(project.buildBaseDir, self.GetPackageName())
-    Jar(project.packageName, classDirs, self.GetManifest())
+    project.packageFileName = os.path.join(project.buildBaseDir, self.GetPackageName())
+    Jar(project.packageFileName, classDirs, self.GetManifest())
 
   def ExtendClassDirs(self, classDirs):
     """TODO: description"""
-    classDirs.extend(self.Project().packageAdditionalFiles)
+    classDirs.extend(self.Project.packageAdditionalFiles)
 
   def GetManifest(self):
     """Creates basic manifest."""
-    project = self.Project()
+    project = self.Project
     manifest = {
                 'Implementation-Title'  : project.name,
                 'Implementation-Version': str(project.version),
@@ -253,7 +255,7 @@ class package(Target):
 
   def GetPackageName(self):
     """Creates package (base) file name."""
-    project = self.Project()
+    project = self.Project
     if len(project.name) <= 0:
       raise AttaError(self, Dict.errNotSpecified.format('Project.name'))
     package = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
@@ -267,7 +269,7 @@ class install(Target):
 
   def Run(self):
     # Create install directory (if needed).
-    project = self.Project()
+    project = self.Project
     if not os.path.exists(project.installBaseDir):
       Echo('Creating directory: ' + os.path.normpath(project.installBaseDir))
       OS.MakeDirs(project.installBaseDir)
@@ -285,26 +287,26 @@ class install(Target):
 
   def CopyPackage(self):
     """Copy package. TODO: more... """
-    project = self.Project()
-    destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageName))
-    if OS.CopyFileIfDiffrent(project.packageName, destFileName, useHash = True, force = True):
+    project = self.Project
+    destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageFileName))
+    if OS.CopyFileIfDiffrent(project.packageFileName, destFileName, useHash = True, force = True):
       Echo('Installed: ' + destFileName)
     return [destFileName]
 
   def ResolveDependencies(self):
     """TODO: description"""
-    return ResolveDependencies(scope = Dict.Scopes.runtime)
+    return _ResolveDependencies(self.Project, scope = Dict.Scopes.runtime)
 
   def CopyDependencies(self):
     """Copy dependencies. TODO: more..."""
-    project = self.Project()
+    project = self.Project
     filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
     filesCopied += self.CopyDependenciesFiles(self.ResolveDependencies())
     return filesCopied
 
   def CopyDependenciesFiles(self, files):
     """TODO: description"""
-    project = self.Project()
+    project = self.Project
     filesCopied = []
     for name in files:
       if os.path.exists(name) and not os.path.isdir(name):
@@ -316,7 +318,7 @@ class install(Target):
 
   def CopyAdditionalFiles(self):
     """TODO: description"""
-    project = self.Project()
+    project = self.Project
     installedFiles = []
     for rootDirName, fileName in ExtendedFileSet(project.installAdditionalFiles):
       srcFileName = os.path.join(rootDirName, fileName)
@@ -329,7 +331,7 @@ class install(Target):
 
   def CreateStartupScripts(self, javaClassPath):
     """Create shell scripts. TODO: more..."""
-    project = self.Project()
+    project = self.Project
 
     javaClassPathStr = ''
     for name in javaClassPath:
@@ -373,7 +375,7 @@ class install(Target):
     return Atta.dirName + '/atta/templates/JavaApp.sh.tmpl'
 
   def CreatePOM(self):
-    project = self.Project()
+    project = self.Project
 
     dependencies4POM = [p.AsDependencyInPOM() for p in project.neededPackages]
     dependencies4POM = list(set(dependencies4POM))
@@ -381,7 +383,7 @@ class install(Target):
 
     with open(self.GetPOMTmplFileName(), 'rb') as f:
       pomFileName = os.path.join(project.installBaseDir,
-                                 OS.Path.JoinExt(OS.Path.RemoveExt(os.path.basename(project.packageName)), Dict.pom))
+                                 OS.Path.JoinExt(OS.Path.RemoveExt(os.path.basename(project.packageFileName)), Dict.pom))
       Echo(f, file = pomFileName, force = True,
            groupId = project.groupId,
            artifactId = project.name,
@@ -419,25 +421,25 @@ class deploy(Target):
   def Prepare(self):
     """TODO: description"""
     self.UpdateSources()
-    self.Project().RunTarget('clean')
+    self.Project.RunTarget('clean')
     return True
 
   def UpdateSources(self):
     """Updates working directory from DVCS"""
-    project = self.Project()
-    if not project.dvcs:
+    project = self.Project
+    if not project.vcs:
       return
     self.CheckWorkingDirectory()
     revision = self.GetRevision()
-    project.dvcs.UpdateWorkingDirectory(revision)
+    project.vcs.UpdateWorkingDirectory(revision)
     if revision:
       self.CheckWorkingDirectory()
 
   def CheckWorkingDirectory(self):
-    project = self.Project()
-    if not project.dvcs.IsWorkingDirectoryClean():
+    project = self.Project
+    if not project.vcs.IsWorkingDirectoryClean():
       Echo(Dict.msgDvcsOutputTitle, level = LogLevel.VERBOSE)
-      Echo(project.dvcs.output, level = LogLevel.VERBOSE)
+      Echo(project.vcs.output, level = LogLevel.VERBOSE)
       raise AttaError(self, Dict.errDvcsWorkingDirectoryNotClean)
 
   def GetRevision(self):
@@ -446,10 +448,10 @@ class deploy(Target):
 
   def Run(self):
     """TODO: description"""
-    project = self.Project()
+    project = self.Project
 
     package = PackageId(project.groupId, project.name, str(project.version), project.packageExt,
-                        timestamp = os.path.getmtime(project.packageName))
+                        timestamp = os.path.getmtime(project.packageFileName))
     project.deployedFiles = project.Deploy(project.installBaseDir, project.installedFiles, package)
 
     self.TagBuild(self.GetBuildTag())
@@ -457,17 +459,17 @@ class deploy(Target):
     self.Commit(self.GetCommitMessage(), self.GetCommitAuthor())
 
   def GetBuildTag(self):
-    return OS.Path.RemoveExt(os.path.basename(self.Project().packageName)).replace(' ', '_')
+    return OS.Path.RemoveExt(os.path.basename(self.Project.packageFileName)).replace(' ', '_')
 
   def TagBuild(self, tag):
     """"""
     if len(tag) > 0:
-      project = self.Project()
-      if project.dvcs:
-        project.dvcs.SetTag(tag)
+      project = self.Project
+      if project.vcs:
+        project.vcs.SetTag(tag)
 
   def NextVersion(self):
-    self.Project().version.NextBuild()
+    self.Project.version.NextBuild()
 
   def GetCommitMessage(self):
     return Dict.msgDvcsNextBuildNumber
@@ -477,12 +479,12 @@ class deploy(Target):
 
   def Commit(self, msg, author):
     if len(msg) > 0:
-      project = self.Project()
-      if project.dvcs != None:
-        project.dvcs.CommitAndPublishAllChanges(msg, author)
+      project = self.Project
+      if project.vcs:
+        project.vcs.CommitAndPublishAllChanges(msg, author)
 
   def Finalize(self):
-    self.Project().RunTarget('clean', force = True)
+    self.Project.RunTarget('clean', force = True)
 
 #------------------------------------------------------------------------------
 
@@ -496,7 +498,7 @@ class nextMinorVersion(Target):
 class clean(Target):
   """TODO: description"""
   def Run(self):
-    project = self.Project()
+    project = self.Project
     Delete([project.buildBaseDir, project.installBaseDir, '**/*.py?'], force = True)
 
 #------------------------------------------------------------------------------

@@ -2,14 +2,11 @@
 from atta import *
 from atta.targets import Java
 
-'''
-Project setup.
-'''
+#
+# Project setup.
 
 Project.groupId = 'org.atta'
-Project.name = 'JavaMedium'
-#Project.dvcs = Git()
-p = Properties.Open('deploy.properties')
+#Project.vcs = Git()
 
 from atta.compilers.Strategies import SrcNewerStrategy
 from atta.tools.Strategies import VersionResetBuildStrategy
@@ -29,49 +26,37 @@ def MyVersion(v, event):
     OS.Touch('main.java')
 
 Project.version.Configure(impl = VersionResetBuildStrategy,
-                           observers = MyVersion,
-                           fileName = 'v.i',
-                           # In this project we don't use ${patch} and ${build} version element.
-                           format = '${major}.${minor}${postfix}',
-                           # More about postfixs you can find in deploy_rc, deploy_release targets below.
-                           postfix = '-SNAPSHOT'
-
-                           # TODO: more formats for file: ini, prop, py, etc.
+                          observers = MyVersion,
+                          fileName = 'v.i',
+                          # In this project we don't use ${patch} and ${build} version element.
+                          format = '${major}.${minor}${postfix}',
+                          # More about postfixs you can find in deploy_rc, deploy_release targets below.
+                          postfix = '-SNAPSHOT'
                           )
 
-'''
-'''
+#
 Java.Setup(Java.ProjectType.app, mainClass = 'main')
 
-'''
-First we have to compile the library 'lib', because the application uses it.
-That is why we put the folders at the beginning of the list.
-'''
+# First we have to compile the library 'lib', because the application uses it.
+# That is why we put the folders at the beginning of the list.
 Project.javaDirs.insert(0, Project.srcBaseDir + '/lib/java')
 Project.classDirs.insert(0, Project.buildBaseDir + '/classes/lib')
 
-'''
-We also have the source files in the root directory.
-'''
+# We also have the source files in the root directory.
 Project.javaDirs += ['*.java']
 
-'''
-'''
+#
 Project.debug = True
 Project.debugLevel = 'vars,lines'
 
-'''
-'''
+#
 Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*')]
 
-'''
-'''
-#Project.installAdditionalFiles += ['*.java', '*.py', r'../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*', realPaths = False)]
+#
+#Project.installAdditionalFiles += ['*.java', '*.py', '../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*')]
 
-'''
-Dependencies
-------------
-'''
+#
+# Dependencies
 
 # Below dependencies are mostly not real.
 # It's only example of power of Atta.
@@ -95,76 +80,69 @@ Project.dependsOn += [{
 
 Project.dependsOn += [{
                       # Calls Atta project in directory (default: build.py) or with file name specified by: project.
-                      'repository': 'atta.repositories.Project',
-                      'project'   : '../JavaBasic',
+                      'repository' : 'atta.repositories.Project',
+                      'project'    : '../JavaBasic',
+                      'failOnError': False,
 
                       # You can set the following items according to the commentary,
                       # or not set, and then Atta will use the default values.
 
                       # This must be the name or names of the targets separated by spaces.
-                      'target'    : 'package', # default: package
+                      'target'     : 'package', # default: package
 
                       # This must be name (or list of names) of project property(ies) which may contains:
                       # string, string path (entries separated by :) or list of strings.
                       # These values will be used in the parameter '-classpath' passed
                       # to javac if scope is 'compile' (default) or, if scope is 'runtime',
                       # in '-classpath' passed to java.
-                      'resultIn'  : ['packageName', 'javacClassPath'] # default: packageName
+                      'resultIn'   : ['packageFileName', 'javacClassPath'] # default: packageFileName
                       }]
-
-import atta.repositories.Local
 
 Project.dependsOn += [{
-                       'repository' : atta.repositories.Local,
-                       'style'      : 'atta.repositories.Styles.Flat',
-                       'scope'      : 'runtime',
-                       'package'    : 'javax.mail:mail.jar:1.4.5',
-                       'ifNotExists': [{
-                                        'repository' : 'atta.repositories.Maven',
-                                        'package'    : 'javax.mail:mail.jar:1.4.5',
-                                        'scope'      : 'runtime',
-                                        'putIn'      : {
-                                                        'repository' : 'atta.repositories.Local',
-                                                        'style'      : 'atta.repositories.Styles.Flat',
-                                                       }
-                                       }]
+                      'repository' : '.repositories.Maven',
+                      'package'    : 'javax.mail:mail.jar:1.4.5',
+                      'scope'      : 'runtime',
+                      'putIn'      : {
+                                      'repository' : 'atta.repositories.Local',
+                                      'style'      : '.repositories.Styles.Flat',
+                                     }
                       }]
 
-'''
-Deploy
-'''
+#
+# Deploy
+
+p = Properties.Open('deploy.properties')
 
 Project.deployTo += [
-#                    {
-#                     # into ftp repository
-#                     'repository' : 'atta.repositories.Ftp',
-#                     'host'       : p.Get('host'),
-#                     'rootDirName': p.Get('rootDirName'),
-#                     'user'       : p.Get('user'),
-#                     'password'   : p.Get('password'),
-#                     'useCache'   : False,
-#                    },
+                    {
+                     # into ftp repository
+                     'repository' : 'atta.repositories.Ftp',
+                     'host'       : p.Get('host'),
+                     'rootDirName': p.Get('rootDirName'),
+                     'user'       : p.Get('user'),
+                     'password'   : p.Get('password'),
+                     'useCache'   : False,
+                    },
 #                     # into machine local repository
 #                     'atta.repositories.Local',
                   ]
 
-'''
-Customizing Java targets that come with Atta. It's easy :)
-
-Just define a class that inherits from the class of the Java module.
-No matter on which it will be call level, this class will be used.
-See also example in build2.py.
-'''
+#
+# Customizing Java targets that come with Atta. It's easy :)
+#
+# Just define a class that inherits from the class of the Java module.
+# No matter on which it will be call level, this class will be used.
+# See also example in build2.py.
 
 class deploy(Java.deploy):
   def TagBuild(self, tag):
-    if Project.dvcs:
-      Project.dvcs.SetTag(tag, replace = True)
+    if Project.vcs:
+      Project.vcs.SetTag(tag, replace = True)
 
 class deploy_rc(deploy):
   def PreparePostfix(self):
     rcN = Project.env.get('N', None)
-    if rcN == None or rcN == '':
+    if not rcN:
       raise RuntimeError("Please specify the number of 'rc' with parameter '-DN=x' in the command line.")
     self.oldPostfix = Project.version.SetPostfix('-rc%d' % int(rcN))
 
@@ -188,9 +166,7 @@ class deploy_release(deploy_rc):
   def GetCommitMessage(self):
     return 'Next minor version number'
 
-'''
-# for build2.py
-'''
+# internal stuff for build2.py
 
 Project.targetsMap['deploy'] = 'build.deploy'
 Project.targetsMap['deploy_rc'] = 'build.deploy_rc'

@@ -5,7 +5,6 @@ import cStringIO
 
 from .internal.Misc import ObjectFromClass
 from .DefaultVarsExpander import Expander
-from .Misc import isiterable
 from .Strategies import VersionDefaultStrategy
 from .Interfaces import Observable
 from ..tasks.Base import Task

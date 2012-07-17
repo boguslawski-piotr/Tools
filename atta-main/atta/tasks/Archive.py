@@ -36,7 +36,7 @@ class Archive(Task):
       archive = _impl.GetClass()(fileName, 'r')
       if not archive.CanWrite():
         raise AttaError(self, Dict.errArchiveImplCantWrite)
-    except:
+    except Exception:
       pass
 
     for src in srcs:
@@ -62,7 +62,7 @@ class Archive(Task):
 
       for name in srcsSet:
         fullName = os.path.normpath(os.path.join(rootDirName, name))
-        changed = (archive == None) or recreate
+        changed = (archive is None) or recreate
         if not changed:
           try:
             inArchiveFileTime = archive.FileTime(name)
@@ -71,7 +71,7 @@ class Archive(Task):
             if not changed and checkCRC and archive.HasCRCs():
               if archive.FileCRCn(name) != OS.FileCRCn(fullName):
                 changed = True
-          except:
+          except Exception:
             changed = True
         allFiles.append((fullName, name))
         if changed:

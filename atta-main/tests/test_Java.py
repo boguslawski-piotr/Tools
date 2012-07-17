@@ -1,4 +1,5 @@
 from atta import *
+from atta.targets.Java import *
 
 Project.defaultTarget = 'test'
 Project.name = 'test_Java'

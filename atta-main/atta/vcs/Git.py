@@ -1,14 +1,11 @@
-""".. Distributed Version Control: Git"""
+""".. Distributed Version Control Systems: Git"""
 import os
 
-from ..tasks.Base import Task
-from ..tasks.Exec import Exec
-from ..tools import OS
-from .. import Dict
-from .. import LogLevel
+from .. import LogLevel, Dict, OS, Task, Exec
 from . import Interfaces
 
-class Git(Interfaces.IDvcs, Task):
+class Git(Interfaces.IVcs, Task):
+  """TODO: description"""
   def __init__(self, dirName = '.', params = None, **tparams):
     self._lastRevision = None
     self._lastRemote = None
@@ -17,7 +14,7 @@ class Git(Interfaces.IDvcs, Task):
     self.output = None
     self.someChangesWereTaken = -1
 
-    self.dirName = dirName if len(dirName) > 0 else '.'
+    self.dirName = dirName if dirName else '.'
     if params:
       self.Cmd(params, **tparams)
 
@@ -29,13 +26,13 @@ class Git(Interfaces.IDvcs, Task):
     self._SetLogOutput(tparams)
 
     checkoutOutput = ''
-    if revision != None:
+    if revision:
       if self.Cmd(['checkout', revision], **tparams) != 0:
         return self.returnCode
       checkoutOutput = self.output
       self._lastRevision = revision
 
-    if self.Cmd(['pull', remote if remote != None else ''], **tparams) == 0:
+    if self.Cmd(['pull', remote if remote else ''], **tparams) == 0:
       self._lastRemote = remote
       self.someChangesWereTaken = int(self.output.find('up-to-date') < 0)
 
@@ -45,11 +42,10 @@ class Git(Interfaces.IDvcs, Task):
   def SetTag(self, tagName, msg = None, replace = False, **tparams):
     self._SetLogOutput(tparams)
     params = ['tag', '-f' if replace else '']
-    if msg != None and len(msg) > 0:
+    if msg:
       params += ['-a', '-m', msg]
     params += [tagName]
-    self.Cmd(params, **tparams)
-    if self.returnCode == 0:
+    if self.Cmd(params, **tparams) == 0:
       self._tagWasSet = True
     return self.returnCode
 
@@ -61,28 +57,32 @@ class Git(Interfaces.IDvcs, Task):
     addOutput = self.output
 
     params = ['commit', '-a', '-m', msg]
-    if author != None:
+    if author:
       params += ['--author=' + author]
-    if self.Cmd(params, **tparams) != 0:
-      return self.returnCode
+    self.Cmd(params, **tparams)
     commitOutput = self.output
-    self.output = addOutput + Dict.newLine + commitOutput
+    if self.returnCode != 0:
+      self.output = addOutput + Dict.newLine + commitOutput
+      return self.returnCode
 
-    if remotes == None:
-      remotes = [self._lastRemote if self._lastRemote != None else 'origin']
+    if not remotes:
+      remotes = [self._lastRemote if self._lastRemote else 'origin']
+    else:
+      remotes = OS.Path.AsList(remotes, ' ')
     revision = self._lastRevision
-    if revision == None:
+    if not revision:
       revision = 'HEAD'
     pushOutput = ''
     for remote in remotes:
       params = ['push', '--tags' if self._tagWasSet else '', remote, revision]
-      if self.Cmd(params, **tparams) != 0:
-        return self.returnCode
+      self.Cmd(params, **tparams)
       pushOutput = pushOutput + Dict.newLine + self.output
+      if self.returnCode != 0:
+        self.output = addOutput + Dict.newLine + commitOutput + Dict.newLine + pushOutput
+        return self.returnCode
 
     self._tagWasSet = False
     self.someChangesWereTaken = int(False)
-
     self.output = addOutput + Dict.newLine + commitOutput + Dict.newLine + pushOutput
     return self.returnCode
 
@@ -100,8 +100,9 @@ class Git(Interfaces.IDvcs, Task):
     self.output = self._NormalizeOutput(e.output)
 
     if self.LogLevel() <= LogLevel.VERBOSE:
-      if len(self.output): self.Log(self.output)
-      self.Log(Dict.msgExitCode.format(self.returnCode))
+      if not tparams.get(Dict.paramLogOutput):
+        if len(self.output): self.Log(self.output)
+        self.Log(Dict.msgExitCode.format(self.returnCode))
 
     return self.returnCode
 

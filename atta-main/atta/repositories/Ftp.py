@@ -76,7 +76,7 @@ class Repository(Local.Repository):
         return OS.INVALID_FILE_SIZE
       else:
         raise
-    return fileSize if fileSize != None else OS.INVALID_FILE_SIZE
+    return fileSize if fileSize is not None else OS.INVALID_FILE_SIZE
 
   def vFileExists(self, fileName):
     return self.vFileSize(fileName) != OS.INVALID_FILE_SIZE
@@ -116,13 +116,13 @@ class Repository(Local.Repository):
     return self.tempFile
 
   def vGetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
-    if self.cache != None:
+    if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
       fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
       try:
         return self.cache.vGetFileContents(fileNameInCache, logLevel)
-      except:
+      except Exception:
         pass
 
     f = self.GetFileLike(fileName, logLevel)
@@ -134,12 +134,12 @@ class Repository(Local.Repository):
 
   def _PutFileLikeCallback(self, data):
     self.sha1.update(data)
-    if self.fileInCache != None:
+    if self.fileInCache:
       self.fileInCache.write(data)
 
   def vPutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     self.fileInCache = None
-    if self.cache != None:
+    if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
       fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
@@ -164,7 +164,7 @@ class Repository(Local.Repository):
         self.Log("Error '%s' while saving the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
         self.Log('Retry saving (%d).' % (retries + 1), level = LogLevel.WARNING)
         f.seek(startPos)
-        if self.fileInCache != None:
+        if self.fileInCache:
           self.fileInCache.seek(0)
         retries += 1
         if retries >= maxRetries:
@@ -174,7 +174,7 @@ class Repository(Local.Repository):
     sha1 = self.sha1.hexdigest()
     self.sha1 = None
 
-    if self.fileInCache != None:
+    if self.fileInCache:
       try: self.fileInCache.close()
       finally: self.fileInCache = None
 
@@ -224,13 +224,11 @@ class Repository(Local.Repository):
           filesInStore = []
 
           # Get the dependencies.
-          packages = self.GetDependencies(package, scope)
-          if packages != None:
-            for p in packages:
-              if not package.Excludes(p):
-                if p not in resolvedPackages:
-                  resolvedPackages.append(p)
-                  filesInStore += self._Get(p, scope, store, resolvedPackages)
+          for p in self.GetDependencies(package, scope) or ():
+            if not package.Excludes(p):
+              if p not in resolvedPackages:
+                resolvedPackages.append(p)
+                filesInStore += self._Get(p, scope, store, resolvedPackages)
 
           # Get artifact.
           if download:
@@ -239,13 +237,13 @@ class Repository(Local.Repository):
             try:
               for rFileName in self.GetAll(fileName):
                 filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName, LogLevel.VERBOSE)))
-              filesInStore += store.Put(filesToDownload, os.path.dirname(fileName), package)
+              filesInStore += store.Put(os.path.dirname(fileName), filesToDownload, package)
             finally:
               for i in range(len(filesToDownload)):
                 filesToDownload[i] = None
 
     # Check results.
-    if not package.IsOptional():
+    if not package.optional:
       if filesInStore is None or len(filesInStore) <= 0:
         raise ArtifactNotFoundError(self, "Can't find: " + str(package))
 
@@ -260,32 +258,32 @@ class Repository(Local.Repository):
     self._Get(package, scope, store, [])
 
   def _ChangeFileNamesToFtpUrls(self, fileNames):
-    if fileNames != None:
+    if fileNames:
       for i in range(len(fileNames)):
         fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
     return fileNames
 
   def Check(self, package, scope):
     cresult = None
-    if self.cache != None:
+    if self.cache:
       # First checks the local cache and if it does not have
       # the correct files then forces a full refresh.
       cresult = self.cache.Check(package, scope)
-      if cresult == None:
+      if cresult is None:
         return None
     # Then check the files on ftp.
     result = Local.Repository.Check(self, package, scope)
-    if result == None:
+    if result is None:
       return None
     # Usually we give the file names from the local cache.
     # But in the case when the repository is set to not use cache we give the full urls.
-    return cresult if cresult != None else self._ChangeFileNamesToFtpUrls(result)
+    return cresult if cresult else self._ChangeFileNamesToFtpUrls(result)
 
-  def Put(self, f, fBaseDirName, package):
+  def Put(self, fBaseDirName, files, package):
     # Put the files on ftp at the same time (if the repository use cache)
     # creating an exact copy in the local cache (see also: vPutFileLike method).
-    result = Local.Repository.Put(self, f, fBaseDirName, package)
-    if result != None and self.cache != None:
+    result = Local.Repository.Put(self, fBaseDirName, files, package)
+    if result and self.cache:
       # Because the cache had just been updated, we give local file names.
       for i in range(len(result)):
         result[i] = os.path.join(self.cache._RootDirName(), os.path.relpath(result[i], self._RootDirName()))
