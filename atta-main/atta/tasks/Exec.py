@@ -46,7 +46,7 @@ class Exec(Task):
 
   """
   def __init__(self, executable, params = None, **tparams):
-    params = OS.Path.AsList(params, ' ')
+    params = OS.SplitCmdLine(params)
     failOnError = tparams.get(Dict.paramFailOnError, True)
     self.logOutput = tparams.get(Dict.paramLogOutput, True)
     useShell = tparams.get('useShell', False if not OS.IsWindows() else True)
@@ -59,7 +59,7 @@ class Exec(Task):
     exeExt = '.exe' if OS.IsWindows() else ''
     executable = DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
 
-    _params = [executable]
+    _params = [os.path.normpath(executable)]
     _params.extend(params)
     if env is None:
       env = self.Env()

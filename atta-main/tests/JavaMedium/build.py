@@ -35,7 +35,7 @@ Project.version.Configure(impl = VersionResetBuildStrategy,
                           )
 
 #
-Java.Setup(Java.ProjectType.app, mainClass = 'main')
+Java.Setup(Java.ConsoleApp, mainClass = 'main')
 
 # First we have to compile the library 'lib', because the application uses it.
 # That is why we put the folders at the beginning of the list.

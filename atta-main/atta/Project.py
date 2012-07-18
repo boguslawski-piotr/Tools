@@ -38,7 +38,7 @@ class Project:
     #: DOCTODO: description
     self.url = ''
 
-    #: object from class implements vcs.IVcs DOCTODO: description
+    #: object from class which implements vcs.IVcs DOCTODO: description
     self.vcs = None
 
     #: DOCTODO: description
@@ -62,6 +62,9 @@ class Project:
     #: List of targets passed to Atta in the command line or in the
     #: parameter *targets* of the method :py:meth:`.Project.RunProject`.
     self.targets = []
+
+    #: DOCTODO: description
+    self.targetsParameters = {}
 
     #: DOCTODO: description
     self.targetsMap = {}
@@ -223,6 +226,16 @@ class Project:
     except Exception: pass
     return availableTargets
 
+  def _PrepareTargets(self, targets):
+    newTargets = []
+    for target in targets:
+      i = target.find(' ')
+      rest = '' if i <= 0 else target[i:].strip()
+      target = target.strip() if i <= 0 else target[:i + 1].strip()
+      newTargets.append(target)
+      self.targetsParameters[target] = OS.SplitCmdLine(rest)
+    return newTargets
+
   def _Run(self, environ, fileName, targets):
     prevDirName = os.getcwd()
     prevAttaProject = _GetProject()
@@ -242,16 +255,16 @@ class Project:
       self.env.chdir(self.dirName)
       self.name = os.path.basename(self.dirName)
       self.version = Version(createIfNotExists = False)
-      self.targets = targets
+      self.targets = self._PrepareTargets(targets)
 
       if self._parent is None:
         Atta.Log('Buildfile: ' + self.fileName)
 
       moduleName, module = self.Import(self.fileName)
 
-      if len(targets) <= 0 or len(targets[0]) <= 0:
-        targets = [self.defaultTarget]
-        if len(targets[0]) <= 0:
+      if len(self.targets) <= 0 or len(self.targets[0]) <= 0:
+        self.targets = [self.defaultTarget]
+        if len(self.targets[0]) <= 0:
           availableTargets = self.AvailableTargets(moduleName)
           if len(availableTargets):
             availableTargets = '\nThe following targets are available:\n  ' + '\n  '.join(availableTargets)
@@ -260,6 +273,7 @@ class Project:
                     log = True)
           self._End(Project.SUCCESSFUL)
           return
+        self.targets = self._PrepareTargets(self.targets)
 
       self.env._Dump()
       self._Dump()
@@ -272,7 +286,7 @@ class Project:
       if self.version is not None:
         self.version._CreateIfNotExists()
 
-      for targetName in targets:
+      for targetName in self.targets:
         self._executedTargets.clear() # Behavior compatible with Ant.
         self._targetsLevel = 0
         self.RunTarget(moduleName + '.' + targetName)

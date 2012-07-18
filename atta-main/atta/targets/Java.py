@@ -6,36 +6,35 @@ import os
 import stat
 
 from ..repositories import Styles, Maven
-from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, Copy
+from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, Copy, Exec
 from ..Activity import Activity
-
-#from atta import *
 
 from ..tasks import Javac, Jar
 Javac = Javac.Javac
 Jar = Jar.Jar
 
-class ProjectType:
-  app = 'app'
-  jar = Dict.jar
-  war = Dict.war
+#: DOCTODO: description
+ConsoleApp = 'capp'
+
+#: DOCTODO: description
+Library = Dict.jar
+
+#: DOCTODO: description
+WebApp = Dict.war
 
 class Setup(Activity):
   """TODO: description"""
-  def __init__(self, type = ProjectType.app, **tparams):
+
+  # Internal: the type of project being built.
+  _projectType = ConsoleApp
+
+  def __init__(self, projectType = ConsoleApp, **tparams):
     project = self.Project
 
     # Java target settings.
 
-    if not project.groupId:
-      project.groupId = project.name
-
-    #: DOCTODO: description; available values: see ProjectType
-    # TODO: w project jest tez i razem to troche nie gra ze soba - przemyslec
-    self.type = type
-
-    #: DOCTODO: description, def repo for dependencies
-    self.defaultRepository = tparams.get('defaultRepository', Maven)
+    if not project.groupId: project.groupId = project.name
+    Setup._projectType = projectType
 
     #: DOCTODO: description
     self.srcBaseDir = tparams.get('srcBaseDir', 'src')
@@ -43,15 +42,18 @@ class Setup(Activity):
     #: DOCTODO: description
     self.buildBaseDir = tparams.get('buildBaseDir', 'build')
 
-    if self.type == ProjectType.app:
-      defInstallBaseDir = 'bin'
+    if Setup._projectType == ConsoleApp:
+      defInstallBaseDirName = 'bin'
     else:
-      defInstallBaseDir = 'lib'
+      defInstallBaseDirName = 'lib'
     #: DOCTODO: description
-    self.installBaseDir = tparams.get('installBaseDir', defInstallBaseDir)
+    self.installBaseDir = tparams.get('installBaseDir', defInstallBaseDirName)
 
     #: DOCTODO: description
     self.archiveBaseDir = tparams.get('archiveBaseDir', 'archive')
+
+    #: DOCTODO: description, def repo for dependencies
+    self.defaultRepository = tparams.get('defaultRepository', Maven)
 
 
     #: DOCTODO: description
@@ -87,9 +89,10 @@ class Setup(Activity):
     self.packageNameStyle = Styles.Maven
 
     #: DOCTODO: description
-    self.packageExt = self.type
-    if self.type == ProjectType.app:
-      self.packageExt = Dict.jar
+    if Setup._projectType == WebApp:
+      self.type = Dict.war
+    else:
+      self.type = Dict.jar
 
     #: result package file name set in package target DOCTODO: description
     self.packageFileName = ''
@@ -134,6 +137,7 @@ class Setup(Activity):
     project.targetsMap['compile'] = 'atta.targets.Java.compile'
     project.targetsMap['package'] = 'atta.targets.Java.package'
     project.targetsMap['install'] = 'atta.targets.Java.install'
+    project.targetsMap['run'] = 'atta.targets.Java.run'
     project.targetsMap['deploy'] = 'atta.targets.Java.deploy'
     project.targetsMap['clean'] = 'atta.targets.Java.clean'
     project.targetsMap['help'] = 'atta.targets.Java.help'
@@ -256,10 +260,11 @@ class package(Target):
   def GetPackageName(self):
     """Creates package (base) file name."""
     project = self.Project
-    if len(project.name) <= 0:
+    if not project.name:
       raise AttaError(self, Dict.errNotSpecified.format('Project.name'))
-    package = PackageId(project.groupId, project.name, str(project.version), project.packageExt)
-    return project.packageNameStyle().FileName(package)
+    package = project.CreatePackage()
+    return package.AsFileName(project.packageNameStyle)
+    #return project.packageNameStyle().FileName(package)
 
 #------------------------------------------------------------------------------
 
@@ -276,7 +281,7 @@ class install(Target):
 
     javaClassPath = self.CopyPackage()
 
-    if project.type == ProjectType.app:
+    if Setup._projectType == ConsoleApp:
       javaClassPath += self.CopyDependencies()
       self.CreateStartupScripts(javaClassPath)
 
@@ -326,25 +331,25 @@ class install(Target):
 
     # windows
     with open(self.GetWinStartupScriptTmplFileName(), 'rb') as f:
-      scriptName = os.path.join(project.installBaseDir, project.name + '.bat')
-      Echo(f, file = scriptName, force = True,
+      scriptFileName = os.path.join(project.installBaseDir, project.name + '.bat')
+      Echo(f, file = scriptFileName, force = True,
            projectName = projectNameInScript,
            projectHome = '%' + projectNameInScript + '_HOME%',
            mainClass = project.javaMainClass,
            classPath = javaClassPathStr)
-      project.installedFiles.append(scriptName)
+      project.installedFiles.append(scriptFileName)
 
     # unix family
     with open(self.GetUnixStartupScriptTmplFileName(), 'rb') as f:
-      scriptName = os.path.join(project.installBaseDir, project.name)
-      Echo(f, file = scriptName, force = True,
+      scriptFileName = os.path.join(project.installBaseDir, project.name)
+      Echo(f, file = scriptFileName, force = True,
            projectName = projectNameInScript,
            projectHome = '$' + projectNameInScript + '_HOME',
            mainClass = project.javaMainClass,
            classPath = javaClassPathStr.replace('\\', '/').replace(';', ':'))
       if not OS.IsWindows():
-        os.chmod(scriptName, stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
-      project.installedFiles.append(scriptName)
+        os.chmod(scriptFileName, stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
+      project.installedFiles.append(scriptFileName)
 
     Atta.VarsExpander().SetImpl(ove)
 
@@ -369,7 +374,7 @@ class install(Target):
       Echo(f, file = pomFileName, force = True,
            groupId = project.groupId,
            artifactId = project.name,
-           type = project.packageExt,
+           type = project.type,
            version = str(project.version),
            displayName = project.displayName if len(project.displayName) > 0 else project.name,
            description = project.description,
@@ -383,7 +388,14 @@ class install(Target):
 
 #------------------------------------------------------------------------------
 
-# TODO: run target (dependsOn install)
+class run(Target):
+  dependsOn = ['install']
+  def Run(self):
+    project = self.Project
+    if Setup._projectType == ConsoleApp:
+      scriptFileName = os.path.join(project.installBaseDir, project.name)
+      Exec(scriptFileName + '${bat}', project.targetsParameters['run'])
+      # you can: atta "run param1 param2 ..."
 
 #------------------------------------------------------------------------------
 
@@ -432,8 +444,8 @@ class deploy(Target):
     """TODO: description"""
     project = self.Project
 
-    package = PackageId(project.groupId, project.name, str(project.version), project.packageExt,
-                        timestamp = os.path.getmtime(project.packageFileName))
+    package = project.CreatePackage()
+    project.timestamp = os.path.getmtime(project.packageFileName)
     project.deployedFiles = project.Deploy(project.installBaseDir, project.installedFiles, package)
 
     self.TagBuild(self.GetBuildTag())

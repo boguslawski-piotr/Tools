@@ -334,6 +334,48 @@ class Path:
     return ''
 
 #
+# Common
+
+def SplitCmdLine(line):
+  """Splits the command line parameters *line* (with space as separator) into a list.
+     Correctly handles the characters ' and ".
+     If *line* is `None` returns empty list.
+     If *line* is a iterable then do nothing and returns *line*.
+     If *line* is not a string then returns *line* as list with one element.
+     Throws `SyntaxError` if the characters ' and " do not match."""
+  if line is None:
+    return []
+  from .Misc import isstring, isiterable
+  if isstring(line):
+    insideQuotes = False
+    quote = None
+    params = []
+    i = 0
+    while i < len(line):
+      if not insideQuotes:
+        if line[i] == '"' or line[i] == "'":
+          insideQuotes = not insideQuotes
+          quote = line[i]
+      elif line[i] == quote:
+        insideQuotes = not insideQuotes
+      if not insideQuotes:
+        if line[i] == ' ' or i == len(line) - 1:
+          param = line[:i + 1].strip()
+          if param:
+            if param[0] in '\'"': param = param[1:]
+            if param[-1] in '\'"': param = param[:-1]
+            params.append(param)
+          line = line[i + 1:]
+          i = -1
+      i += 1
+    if insideQuotes:
+      raise SyntaxError(line)
+    return params
+  elif not isiterable(line):
+    return [line]
+  return line
+
+#
 # Directories Tools
 
 def MakeDirs(dirNames):

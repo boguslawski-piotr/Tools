@@ -68,7 +68,7 @@ class Git(Interfaces.IVcs, Task):
     if not remotes:
       remotes = [self._lastRemote if self._lastRemote else 'origin']
     else:
-      remotes = OS.Path.AsList(remotes, ' ')
+      remotes = OS.SplitCmdLine(remotes)
     revision = self._lastRevision
     if not revision:
       revision = 'HEAD'
@@ -88,7 +88,7 @@ class Git(Interfaces.IVcs, Task):
 
   def Cmd(self, params, **tparams):
     """TODO: description"""
-    params = OS.Path.AsList(params, ' ')
+    params = OS.SplitCmdLine(params)
     params = [p for p in params if len(p) > 0]
 
     if self.LogLevel() <= LogLevel.INFO:

@@ -31,7 +31,7 @@ class Repository(Local.Repository):
         self.Log(msg, level = LogLevel.ERROR)
         return []
 
-    targetNames = OS.Path.AsList(self.data.get('target', ['package']), ' ')
+    targetNames = OS.SplitCmdLine(self.data.get('target', ['package']))
     resultProperties = self.data.get(Dict.resultIn, ['packageFileName'])
     result = None
 

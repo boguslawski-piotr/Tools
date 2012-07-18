@@ -36,7 +36,7 @@ class JavaStdCompiler(IJavaCompiler, Task):
 
     """
     # Prepare command line for java compiler.
-    params = OS.Path.AsList(tparams.get('cParams', []), ' ')
+    params = OS.SplitCmdLine(tparams.get('cParams', []))
 
     debug = tparams.get('debug', False)
     debugLevel = tparams.get('debugLevel', None)
