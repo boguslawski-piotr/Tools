@@ -11,12 +11,12 @@ class test(Target):
     # Macro: ${bat}, ${cmd} or ${exe}: On Windows will add .bat/.cmd/.exe to
     # the executable name, on other systems will not add anything.
     # Macro ${sh}: on non Windows systems will add .sh, on Windows will add .bat.
-    Exec('test_exec${bat}', ['1', '2', '3'], useShell = False)
+    Exec('./test_exec${bat}', ['1', '2', '3'], useShell = False)
 
     if OS.IsWindows():
       Exec('cmd', ['/c', 'dir', '*.py'])
     else:
-      Exec('ls', ['*.py'])
+      Exec('ls', ['*.py'], useShell = True)
 
     Exec('git', ['status'])
 

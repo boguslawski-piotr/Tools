@@ -6,7 +6,7 @@ import os
 import stat
 
 from ..repositories import Styles, Maven
-from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, ExtendedFileSet
+from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, Copy
 from ..Activity import Activity
 
 #from atta import *
@@ -287,11 +287,8 @@ class install(Target):
 
   def CopyPackage(self):
     """Copy package. TODO: more... """
-    project = self.Project
-    destFileName = os.path.join(project.installBaseDir, os.path.basename(project.packageFileName))
-    if OS.CopyFileIfDiffrent(project.packageFileName, destFileName, useHash = True, force = True):
-      Echo('Installed: ' + destFileName)
-    return [destFileName]
+    c = Copy(self.Project.packageFileName, destDirName = self.Project.installBaseDir, useHash = True, force = True)
+    return [dfn for sfn, dfn in c.processedFiles + c.skippedFiles]
 
   def ResolveDependencies(self):
     """TODO: description"""
@@ -299,35 +296,20 @@ class install(Target):
 
   def CopyDependencies(self):
     """Copy dependencies. TODO: more..."""
-    project = self.Project
-    filesCopied = self.CopyDependenciesFiles(project.javacClassPath)
+    filesCopied = self.CopyDependenciesFiles(self.Project.javacClassPath)
     filesCopied += self.CopyDependenciesFiles(self.ResolveDependencies())
     return filesCopied
 
   def CopyDependenciesFiles(self, files):
     """TODO: description"""
-    project = self.Project
-    filesCopied = []
-    for name in files:
-      if os.path.exists(name) and not os.path.isdir(name):
-        destFileName = os.path.join(project.installBaseDir, os.path.basename(name))
-        if OS.CopyFileIfDiffrent(name, destFileName, useHash = True, force = True):
-          Echo('Installed: ' + destFileName)
-        filesCopied.append(destFileName)
-    return filesCopied
+    filesToCopy = [name for name in files if os.path.exists(name) and not os.path.isdir(name)]
+    c = Copy(filesToCopy, destDirName = self.Project.installBaseDir, useHash = True, force = True)
+    return [dfn for sfn, dfn in c.processedFiles + c.skippedFiles]
 
   def CopyAdditionalFiles(self):
     """TODO: description"""
-    project = self.Project
-    installedFiles = []
-    for rootDirName, fileName in ExtendedFileSet(project.installAdditionalFiles):
-      srcFileName = os.path.join(rootDirName, fileName)
-      destFileName = os.path.join(project.installBaseDir, fileName)
-      OS.MakeDirs(os.path.dirname(destFileName))
-      if OS.CopyFileIfDiffrent(srcFileName, destFileName, useHash = True, force = True):
-        Echo('Installed: ' + destFileName)
-      installedFiles.append(destFileName)
-    return installedFiles
+    c = Copy(self.Project.installAdditionalFiles, destDirName = self.Project.installBaseDir, useHash = True, force = True)
+    return [dfn for sfn, dfn in c.processedFiles + c.skippedFiles]
 
   def CreateStartupScripts(self, javaClassPath):
     """Create shell scripts. TODO: more..."""
@@ -339,7 +321,7 @@ class install(Target):
     javaClassPathStr = os.path.normpath(javaClassPathStr)
     projectNameInScript = project.name.upper().replace(' ', '_')
 
-    from atta.tools import DefaultVarsExpander
+    from ..tools import DefaultVarsExpander
     ove = Atta.VarsExpander().SetImpl(DefaultVarsExpander.Expander)
 
     # windows
@@ -361,7 +343,7 @@ class install(Target):
            mainClass = project.javaMainClass,
            classPath = javaClassPathStr.replace('\\', '/').replace(';', ':'))
       if not OS.IsWindows():
-        os.chmod(scriptName, stat.S_IEXEC)
+        os.chmod(scriptName, stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
       project.installedFiles.append(scriptName)
 
     Atta.VarsExpander().SetImpl(ove)

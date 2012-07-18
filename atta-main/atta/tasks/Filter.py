@@ -125,6 +125,9 @@ class Filter(Task):
     self.quiet = tparams.get(Dict.paramQuiet, False)
     if self.quiet:
       self.failOnError = False
+
+    self.processedFiles = []
+    self.skippedFiles = []
     self.errors = 0
 
     # Setup destination.
@@ -185,8 +188,6 @@ class Filter(Task):
         del fntParams[Dict.paramDestDirName]
 
       self.srcs = ExtendedFileSet(srcs)
-      self.processedFiles = 0
-      self.skippedFiles = 0
       if not self.quiet:
         self.LogStart()
 
@@ -212,7 +213,7 @@ class Filter(Task):
               break
 
           if not process:
-            self.skippedFiles += 1
+            self.skippedFiles.append((sfn,dfn))
             if not self.quiet:
               self.LogSkipped(sfn, dfn)
 
@@ -307,7 +308,7 @@ class Filter(Task):
                 endFn(caller = self, **tparams)
 
             self.EndProcessing(sfn, dfn)
-            self.processedFiles += 1
+            self.processedFiles.append((sfn,dfn))
             if not self.quiet:
               self.LogEndProcessing(sfn, dfn)
 
@@ -377,6 +378,6 @@ class Filter(Task):
 
   def LogEnd(self):
     """TODO: description"""
-    if self.processedFiles or self.skippedFiles:
-      self.Log(Dict.msgProcessedAndSkipped % (self.processedFiles, self.skippedFiles),
+    if self.processedFiles or self.verbose:
+      self.Log(Dict.msgProcessedAndSkipped % (len(self.processedFiles), len(self.skippedFiles)),
                  level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))

@@ -54,6 +54,7 @@ Project.packageAdditionalFiles += ['*.java', 'v.i', FileSet(includes = 'src/**/*
 
 #
 #Project.installAdditionalFiles += ['*.java', '*.py', '../../../Components/AqInternal/**/', FileSet(includes = 'src/**/*')]
+Project.installAdditionalFiles += ['*.java', '*.py', FileSet(includes = 'src/**/*')]
 
 #
 # Dependencies

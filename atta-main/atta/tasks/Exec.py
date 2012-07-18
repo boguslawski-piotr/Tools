@@ -21,7 +21,9 @@ class Exec(Task):
 
   * **failOnError** |True| - Stop the buildprocess if the command exits with a return code signaling failure.
   * **logOutput** |True| -   TODO: Przesyla stdout and stderr do logu Atta.
-  * **useShell** |True| -    Command will be executed through the shell. More information can be found in :py:class:`subprocess.Popen` documentation.
+  * **useShell** -           Command will be executed through the shell.
+    Default `False` on Unix family systems and `True` on Windows.
+    More information can be found in :py:class:`subprocess.Popen` documentation.
   * **env** |None| -         Environment variables. Completely replace the variables from the project.
   * **dirName** `(.)` -      The directory in which the command should be executed.
 
@@ -47,7 +49,7 @@ class Exec(Task):
     params = OS.Path.AsList(params, ' ')
     failOnError = tparams.get(Dict.paramFailOnError, True)
     self.logOutput = tparams.get(Dict.paramLogOutput, True)
-    useShell = tparams.get('useShell', True)
+    useShell = tparams.get('useShell', False if not OS.IsWindows() else True)
     env = tparams.get('env', None)
     dirName = tparams.get(Dict.paramDirName, '.')
 

@@ -52,6 +52,6 @@ class Move(Copy):
     self.dirsToDelete.add(os.path.dirname(sfn))
 
   def LogEnd(self):
-    if self.processedFiles or self.skippedFiles:
-      self.Log(Dict.msgMovedAndSkipped % (self.processedFiles, self.skippedFiles),
+    if self.processedFiles or self.verbose:
+      self.Log(Dict.msgMovedAndSkipped % (len(self.processedFiles), len(self.skippedFiles)),
                  level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))

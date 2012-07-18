@@ -31,7 +31,7 @@ class Copy(Filter):
 
     # The filter that determines whether a file is to be copied.
     def FileFilter(srcFileName, destFileName, **tparams):
-      if self.overwrite or not os.path.exists(destFileName):
+      if self.overwrite or not destFileName or not os.path.exists(destFileName):
         return True
       else:
         if self.useHash:
@@ -70,6 +70,6 @@ class Copy(Filter):
     self.Log(Dict.msgXtoY % (sfn, dfn))
 
   def LogEnd(self):
-    if self.processedFiles or self.skippedFiles:
-      self.Log(Dict.msgCopiedAndSkipped % (self.processedFiles, self.skippedFiles),
+    if self.processedFiles or self.verbose:
+      self.Log(Dict.msgCopiedAndSkipped % (len(self.processedFiles), len(self.skippedFiles)),
                  level = (LogLevel.INFO if not self.verbose else LogLevel.WARNING))
