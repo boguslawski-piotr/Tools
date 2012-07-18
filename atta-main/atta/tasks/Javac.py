@@ -34,7 +34,7 @@ class Javac(Task):
     Advanced parameters:
 
     * **requiresCompileImpl**   Physical implementation of :py:meth:`RequiresCompile` method.
-      It must be class that implements :py:meth:`.IRequiresCompileStrategy`.
+      It must be class that implements :py:class:`.IRequiresCompileStrategy`.
 
     * **compilerImpl**          Implementation of wrapper to the Java compiler.
       It must be class that implements :py:class:`.IJavaCompiler`.
@@ -42,7 +42,7 @@ class Javac(Task):
     **Methods:**
   """
   def __init__(self, srcs, destDirName = '.', **tparams):
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
     self._requiresCompileImpl = ObjectFromClass(tparams.get('requiresCompileImpl', Javac.GetDefaultRequiresCompileImpl()))
     self._compilerImpl = ObjectFromClass(tparams.get('compilerImpl', Javac.GetDefaultCompilerImpl()))
@@ -55,8 +55,7 @@ class Javac(Task):
 
     # Collect source files.
     RequiresCompile = lambda root, name: self.RequiresCompile(destDirName, root, name, **tparams)
-    self._requiresCompileImpl.GetObject().Start(destDirName, **tparams)
-
+    self.StartCheckingFilesToCompile(destDirName, **tparams)
     srcsSet = FileSet(createEmpty = True)
     for src in srcs:
       if len(src) <= 0:
@@ -69,6 +68,7 @@ class Javac(Task):
         srcsSet.extend(src)
       else:
         if OS.Path.HasWildcards(src):
+          # TODO: co ze sciezkami typu: ../../, ../**, itp. itd.?
           rootDirName, includes = OS.Path.Split(src)
           if len(rootDirName) <= 0:
             rootDirName = '.'
@@ -94,22 +94,22 @@ class Javac(Task):
                 sourcePath.append(rootDirName)
                 srcsSet += [src]
 
-    srcsSet += self._requiresCompileImpl.GetObject().End(**tparams)
+    srcsSet += self.EndCheckingFilesToCompile(**tparams)
     srcsSet = RemoveDuplicates(srcsSet)
 
     if len(srcsSet) <= 0:
       self.Log(Dict.msgNothingToCompile.format(' '.join(srcs)), level = LogLevel.VERBOSE)
       self.returnCode = -1
-      return None
+    else:
+      self.Log(Dict.msgCompilingTo % (len(srcsSet), destDirName))
+      self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
 
-    self.Log(Dict.msgCompilingTo % (len(srcsSet), destDirName))
-    self.LogIterable(None, srcsSet, level = LogLevel.VERBOSE)
+      tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
+      tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
 
-    tparams[Dict.paramSourcePath] = RemoveDuplicates(sourcePath)
-    tparams[Dict.paramClassPath] = RemoveDuplicates(classPath)
-
-    self.returnCode = self._compilerImpl.GetObject().Compile(srcsSet, destDirName, **tparams)
-    self.output = self._compilerImpl.GetObject().output
+      compiler = self._compilerImpl.GetObject()
+      self.returnCode = compiler.Compile(srcsSet, destDirName, **tparams)
+      self.output = compiler.output
 
   _defaultRequiresCompileImpl = ObjectFromClass(SrcNewerStrategy)
 
@@ -123,6 +123,10 @@ class Javac(Task):
   def GetDefaultRequiresCompileImpl():
     return Javac._defaultRequiresCompileImpl.GetClass()
 
+  def StartCheckingFilesToCompile(self, destDirName, **tparams):
+    """TODO: description"""
+    self._requiresCompileImpl.GetObject().Start(destDirName, **tparams)
+
   def RequiresCompile(self, destDirName, srcDirName, fileName, **tparams):
     """TODO: description"""
     dest = os.path.join(destDirName, OS.Path.RemoveExt(fileName) + self._compilerImpl.GetObject().OutputExt(**tparams))
@@ -130,6 +134,10 @@ class Javac(Task):
     rc = self._requiresCompileImpl.GetObject().RequiresCompile(src, dest, **tparams)
     #self.Log('%s: %s' % (src, ('up to date' if not rc else 'needs compile')), level = LogLevel.DEBUG)
     return rc
+
+  def EndCheckingFilesToCompile(self, **tparams):
+    """TODO: description"""
+    return self._requiresCompileImpl.GetObject().End(**tparams)
 
   _defaultCompilerImpl = ObjectFromClass(JavaStdCompiler)
 

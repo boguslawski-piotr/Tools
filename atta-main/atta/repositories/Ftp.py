@@ -201,8 +201,9 @@ class Repository(Local.Repository):
   # NOTE: Code for this function is very similar to the analogous function in Maven.Repository.
   # The differences are in minor details. I do not have sensible idea how to minimize the duality :(
   def _Get(self, package, scope, store, resolvedPackages):
+    #self._DumpParams(locals())
+
     # Check parameters.
-    self._DumpParams(locals())
     if not package:
       raise AttaError(self, 'Not enough parameters.')
     if store is None:

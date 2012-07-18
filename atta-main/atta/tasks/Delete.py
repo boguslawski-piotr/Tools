@@ -23,7 +23,7 @@ class Delete(Task):
     self._delete(srcs, **tparams)
 
   def _delete(self, srcs, **tparams):
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
     # Parameters.
     self.force = tparams.get(Dict.paramForce, False)

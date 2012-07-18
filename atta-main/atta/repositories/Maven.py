@@ -23,7 +23,7 @@ class Repository(ARepository, Task):
   #</relocation>
 
   def _Get(self, package, scope, store, resolvedPackages):
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
     # Check parameters.
     if not bool(package.type):

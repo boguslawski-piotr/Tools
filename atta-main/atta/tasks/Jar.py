@@ -27,8 +27,9 @@ class Jar(Zip):
     **Methods:**
   """
   def __init__(self, fileName, srcs, manifest = {}, **tparams):
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
+    # Parameters.
     manifestFileName = Dict.manifestFileName
     manifestStr = self.ManifestAsStr(manifest, **tparams)
     fileName = os.path.normpath(fileName)

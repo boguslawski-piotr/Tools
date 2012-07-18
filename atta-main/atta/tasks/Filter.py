@@ -102,8 +102,7 @@ class Filter(Task):
 
   """
   def __init__(self, srcs, **tparams):
-    self.verbose = False
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
     # Parameters.
     if 'binaryMode' in tparams:

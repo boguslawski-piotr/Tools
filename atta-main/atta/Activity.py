@@ -49,11 +49,11 @@ class Activity:
 
   def _DumpParams(self, locals_):
     if Atta.LogLevel() == LogLevel.DEBUG:
-      self.Log(Dict.msgDumpParameters)
+      self._Log(Dict.msgDumpParameters)
       for name, value in locals_.items():
         if name != 'self':
           if isiterable(value):
-            self.LogIterable('{0}:'.format(name), value)
+            self._LogIterable('{0}:'.format(name), value)
           else:
-            self.Log('{0}: {1}'.format(name, value))
-      self.Log('')
+            self._Log('{0}: {1}'.format(name, value))
+      self._Log('')

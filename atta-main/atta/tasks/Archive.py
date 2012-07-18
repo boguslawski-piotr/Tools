@@ -15,10 +15,9 @@ class Archive(Task):
 
   """
   def __init__(self, _class, fileName, srcs, **tparams):
-    self._DumpParams(locals())
+    #self._DumpParams(locals())
 
     _impl = ObjectFromClass(_class)
-
     if isinstance(srcs, FileSet):
       srcs = [srcs]
     srcs = OS.Path.AsList(srcs)
@@ -29,7 +28,7 @@ class Archive(Task):
     changedFiles = []
     allFiles = []
 
-    # collecting files to add
+    # Collect files to add.
     self.Log(Dict.msgChecking.format(fileName), level = LogLevel.VERBOSE)
     archive = None
     try:
@@ -50,6 +49,7 @@ class Archive(Task):
         srcsSet = src
       else:
         if OS.Path.HasWildcards(src):
+          # TODO: co ze sciezkami typu: ../../, ../**, itp. itd.?
           rootDirName, includes = OS.Path.Split(src)
           srcsSet.AddFiles(rootDirName, includes = includes, realPaths = False, withRootDirName = False)
         else:
@@ -80,12 +80,12 @@ class Archive(Task):
     if archive is not None:
       archive.close()
 
-    # create archive file (if nedded)
+    # Create archive file if needed.
     self.sometingWasWritten = False
     if len(changedFiles) > 0 or recreate:
       self.Log(Dict.msgCreating.format(fileName), level = LogLevel.INFO)
       with _impl.GetClass()(fileName, 'w') as archive:
-        # add files
+        # Add files.
         self.Log(Dict.msgWithFiles, level = LogLevel.VERBOSE)
         for fullName, name in allFiles:
           archive.write(fullName, name)

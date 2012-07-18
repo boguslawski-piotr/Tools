@@ -16,6 +16,6 @@ Project.dependsOn += [
     #exclusions = ['xml-apis', 'stax:stax-api:1.0'],
     #exclusions = [dict(artifactId = 'xml-apis'), 'stax:stax-api:1.0'],
     # TODO: przemyslec to jeszcze, zmiana nazwy?
-    getOptional = True
+    getOptional = False
   )
 ]
