@@ -59,6 +59,12 @@ class NamedFileLike:
       raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, name))
     return attr
 
+  def __str__(self):
+    return self.fileName + str(self.f)
+
+  def __repr__(self):
+    return self.fileName + str(self.f)
+
   def __enter__(self):
     return self
 

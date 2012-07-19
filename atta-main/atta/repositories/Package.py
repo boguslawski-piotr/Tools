@@ -10,12 +10,13 @@ class PackageId:
     self.groupId = groupId
     self.version = version
     self.type = type
-    self.timestamp = tparams.get('timestamp')
+    self.stamp = tparams.get('stamp')
 
     #self.scope
     #self.optional
     #self.exclusions
-    #self.sha1?
+    #self.downloadUrl
+    #self.fileNames
 
   def __getattr__(self, name):
     if name == Dict.exclusions:
@@ -72,10 +73,17 @@ class PackageId:
       return '%s:%s:%s' % (str(self.groupId), str(self.artifactId), str(self.version))
 
   def AsFileName(self, style):
+    """TODO: description"""
     style = ObjectFromClass(style)
     return style.GetObject().FileName(self)
 
+  def AsFullFileName(self, style):
+    """TODO: description"""
+    style = ObjectFromClass(style)
+    return style.GetObject().FullFileName(self)
+
   def AsDependencyInPOM(self):
+    """TODO: description"""
     xml = Dict.dependencyStartTag + Dict.newLine
 
     def OneLine(n, v, s = 2):
@@ -166,7 +174,11 @@ class PackageId:
   def __str__(self):
     return self.AsStr()
 
+  def __hash__(self):
+    return hash(repr(self))
+
   def __repr__(self):
-    return '%s:%s.%s:%s (%s, %s, (%s))' % (str(self.groupId), str(self.artifactId), str(self.type), str(self.version),
-                                           str(self.scope), str(self.optional), ','.join([repr(p) for p in self.exclusions]))
+    return '%s:%s.%s:%s (%s, %s, %s, (%s))' % (str(self.groupId), str(self.artifactId), str(self.type), str(self.version),
+                                              str(self.stamp), str(self.scope), str(self.optional),
+                                              ','.join([repr(p) for p in self.exclusions]))
 

@@ -49,7 +49,7 @@ class Exec(Task):
     params = OS.SplitCmdLine(params)
     failOnError = tparams.get(Dict.paramFailOnError, True)
     self.logOutput = tparams.get(Dict.paramLogOutput, True)
-    useShell = tparams.get('useShell', False if not OS.IsWindows() else True)
+    useShell = tparams.get('useShell', OS.IsWindows())
     env = tparams.get('env', None)
     dirName = tparams.get(Dict.paramDirName, '.')
 

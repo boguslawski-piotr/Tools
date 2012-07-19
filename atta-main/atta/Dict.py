@@ -60,8 +60,12 @@ port = 'port'
 user = 'user'
 pasword = 'password'
 passive = 'passive'
+timeout = 'timeout'
 useCache = 'useCache'
 maxRetries = 'maxRetries'
+downloadUrl = 'downloadUrl'
+baseUrl = 'baseUrl'
+fileNames = 'fileNames'
 
 #
 # POM releated
@@ -82,6 +86,7 @@ parent = 'parent'
 packaging = 'packaging'
 properties = 'properties'
 project = 'project'
+distributionManagement = 'distributionManagement'
 
 #
 # Java related
@@ -128,22 +133,29 @@ paramDirName = 'dirName'
 #
 # Errors
 
-errNotImplemented = 'Not implemented: {0}'
-errNotSpecified = 'Not specified: {0}'
-errNotEnoughParams = 'Not enough parameters.'
-errFileNotExists = 'File: %s does not exists.'
-errFileExists = 'File: %s exists.'
-errFileOrDirNotExists = 'File or directory: %s does not exists.'
-errFileOrDirExists = 'File or directory: %s exists.'
-errOSErrorForX = "OS error: %d, '%s' for: %s"
-errException = "Exception: '%s'"
+# TODO: jakos rozwiazac te powtorzenia Error...
 
-errXWhileGettingYFromZ = "Error '%s' while trying to get: %s from: %s"
-errXWhileGettingTimestamp = "Error '%s' while trying to get timestamp."
+errNotImplemented = 'Error: Not implemented: {0}'
+errNotSpecified = 'Error: Not specified: {0}'
+errNotEnoughParams = 'Error: Not enough parameters.'
+errInvalidParameterType = 'Error: Invalid type of parameter: %s'
+errFileNotExists = 'Error: File: %s does not exists.'
+errFileExists = 'Error: File: %s exists.'
+errFileOrDirNotExists = 'Error: File or directory: %s does not exists.'
+errFileOrDirExists = 'Error: File or directory: %s exists.'
+errOSErrorForX = "OS Error: %d, '%s' for: %s"
+errPackageNotComplete = 'Error: The definition of the package: %s is not complete.'
 
-errArchiveImplCantWrite = "The supplied implementation of 'Archive' does not support writing to archive files."
+errXWhileGettingY = "Error: '%s' while trying to get: %s"
+errXWhileGettingYFromZ = "Error: '%s' while trying to get: %s from: %s"
+errXWhileGettingStamp = "Error: '%s' while trying to get stamp."
+errXWhileSavingY = "Error: '%s' while saving: %s"
+errFailedToAssembleX = "Error: Failed to assemble: %s"
+errFailedToAssembleXNotFoundY = "Error: Failed to assemble: %s (not found: %s)"
 
-errDvcsWorkingDirectoryNotClean = 'Working directory is not clean.'
+errArchiveImplCantWrite = "Error: The supplied implementation of 'Archive' does not support writing to archive files."
+
+errDvcsWorkingDirectoryNotClean = 'Error: Working directory is not clean.'
 
 #
 # Messages

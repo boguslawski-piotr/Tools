@@ -47,7 +47,7 @@ class Observable:
       x.action()
   """
   def AddObserver(self, observer):
-    """Adds new *observer*. It can be class or function that implements IObserver.
+    """Adds new *observer*. It can be a class or function that implements :py:func:`.IObserver`.
        Returns object that can be used as parameter in :py:meth:`.RemoveObserver`."""
     if not self.__observers:
       self.__observers = []

@@ -30,7 +30,7 @@ class SrcHashStrategy(IRequiresCompileStrategy):
     srcHashFileName = os.path.join('.atta/srchash', os.path.dirname(srcFileName))
     if not os.path.exists(srcHashFileName):
       OS.MakeDirs(srcHashFileName)
-    srcHashFileName = os.path.join(srcHashFileName, os.path.basename(srcFileName) + '.sha1')
+    srcHashFileName = os.path.join(srcHashFileName, OS.Path.JoinExt(os.path.basename(srcFileName), 'sha1'))
     realSrcFileName = srcFileName
 
     srcHash = OS.FileHash(realSrcFileName, hashlib.sha1())

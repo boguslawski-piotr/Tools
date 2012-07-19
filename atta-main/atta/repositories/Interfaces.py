@@ -3,8 +3,16 @@
 class IRepositoryStyle:
   """TODO: description"""
   def DirName(self, package):
-    pass
+    assert False
   def FileName(self, package):
-    pass
+    assert False
   def FullFileName(self, package):
-    pass
+    assert False
+
+# TODO: give more accurate name
+class IPackageUrls:
+  """TODO: description"""
+  def StampUrl(self, package):
+    assert False
+  def PackageUrl(self, package):
+    assert False

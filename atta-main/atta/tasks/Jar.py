@@ -1,9 +1,10 @@
 """.. Java related: TODO: java"""
 import os
 
+from ..tools.Misc import isstring
 from ..tools.ZipFile import ZipFile
 from .. import Dict, LogLevel, Zip
-from .. import Atta
+from .. import Atta, AttaError
 
 class Jar(Zip):
   """
@@ -26,18 +27,17 @@ class Jar(Zip):
 
     **Methods:**
   """
-  def __init__(self, fileName, srcs, manifest = {}, **tparams):
+  def __init__(self, fileName, srcs, manifest = None, **tparams):
     #self._DumpParams(locals())
 
     # Parameters.
-    manifestFileName = Dict.manifestFileName
     manifestStr = self.ManifestAsStr(manifest, **tparams)
     fileName = os.path.normpath(fileName)
 
     manifestChanged = True
     try:
       with ZipFile(fileName, 'r') as zipFile:
-        storedManifestStr = zipFile.read(manifestFileName)
+        storedManifestStr = zipFile.read(Dict.manifestFileName)
         if manifestStr == storedManifestStr:
           manifestChanged = False
     except Exception:
@@ -51,12 +51,19 @@ class Jar(Zip):
       with ZipFile(fileName, 'a') as zipFile:
         # add manifest
         self.LogIterable(Dict.msgWithManifest, manifestStr.rstrip().split(Dict.newLine), level = LogLevel.VERBOSE)
-        zipFile.writestr(manifestFileName, manifestStr)
+        zipFile.writestr(Dict.manifestFileName, manifestStr)
 
-  def ManifestAsStr(self, manifest = {}, **tparams):
+  def ManifestAsStr(self, manifest = None, **tparams):
     """TODO: description"""
-    # TODO: obsluzyc gdy manifest: string (fileName), file-like object
     manifestStr = Dict.basicManifest % (Atta.name, Atta.version)
-    for name, value in manifest.items():
-      manifestStr += '{0}: {1}\n'.format(name, value)
+    if manifest:
+      if isstring(manifest):
+        manifestStr += manifest
+      elif 'read' in dir(manifest):
+        manifestStr += manifest.read()
+      elif isinstance(manifest, dict):
+        for name, value in manifest.items():
+          manifestStr += '%s: %s\n' % (name, value)
+      else:
+        raise AttaError(self, Dict.errInvalidParameterType % 'manifest')
     return manifestStr

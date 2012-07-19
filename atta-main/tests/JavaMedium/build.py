@@ -62,6 +62,11 @@ Project.installAdditionalFiles += ['*.java', '*.py', FileSet(includes = 'src/**/
 # Below dependencies are mostly not real.
 # It's only example of power of Atta.
 
+from atta.repositories import Maven
+Maven.Repository.resolvers.insert(0, Maven.Repository.Local())
+#Maven.Repository.resolvers.append(Maven.Repository.Sonatype())
+Maven.Repository.resolvers = [Maven.Repository.Local(), Maven.Repository.Sonatype(), Maven.Repository.Central()]
+
 Project.dependsOn += [{
                        'repository': 'atta.repositories.Maven', # it can be any module with class Repository which inherits from ARepository
                        'groupId'   : 'com.beust',
@@ -73,7 +78,7 @@ Project.dependsOn += [{
                        'putIn'     : 'atta.repositories.Project', # like repository
                        'dependsOn' : [{
                                      'repository' : 'atta.repositories.Maven',
-                                     'package'    : 'commons-net.jar:3.1',
+                                     'package'    : 'commons-net.jar:3.0.1',
                                      'putIn'      : 'atta.repositories.Local',
                                     }],
                                     # and we could continue long ...
@@ -83,7 +88,7 @@ Project.dependsOn += [{
                       # Calls Atta project in directory (default: build.py) or with file name specified by: project.
                       'repository' : 'atta.repositories.Project',
                       'project'    : '../JavaBasic',
-                      'failOnError': False,
+                      'failOnError': True,
 
                       # You can set the following items according to the commentary,
                       # or not set, and then Atta will use the default values.
@@ -108,6 +113,26 @@ Project.dependsOn += [{
                                       'style'      : '.repositories.Styles.Flat',
                                      }
                       }]
+
+#Project.dependsOn += [{'package':'bsh.jar:1.3.0','optional':True}]
+#Project.dependsOn += ['bsh.jar:1.3.0']
+
+MyMaven = {'repository' : '.repositories.Maven', 'rootDirName' : 'c:\\!!'}
+MyMaven2 = Maven.Repository(rootDirName = 'c:\\!!')
+class MyMaven3(Maven.Repository): pass
+
+MyPackage = PackageId.FromStr('bsh.jar:1.3.0')
+MyPackage.scope = 'runtime'
+MyPackage.optional = True
+
+Project.dependsOn += [{'repository' : MyMaven3,
+                       'package' : MyPackage,
+                       'putIn' : MyMaven2}]
+
+MyPackage = PackageId.FromStr('slinky.jar:2.1')
+MyPackage.downloadUrl = 'http://slinky2.googlecode.com/svn/artifacts/2.1/slinky.jar'
+Project.dependsOn += [{'package' : MyPackage}]
+
 
 #
 # Deploy

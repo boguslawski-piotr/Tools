@@ -1,26 +1,23 @@
 """.. Remote: TODO"""
 import ftplib
+import urllib2
 import os
 import hashlib
 import tempfile
 from time import sleep
 
-from ..tasks.Base import Task
 from ..tools.Misc import RemoveDuplicates, NamedFileLike
-from ..tools import OS
-from .. import AttaError
-from .. import Dict
-from .. import LogLevel
+from .. import AttaError, OS, Dict, LogLevel
 from .Base import ARepository
 from . import ArtifactNotFoundError
 from . import Local
 
 class Repository(Local.Repository):
   """TODO: description"""
-  def __init__(self, data):
-    ARepository.__init__(self, data)
+  def __init__(self, **tparams):
+    ARepository.__init__(self, **tparams)
 
-    self.host = data.get(Dict.host)
+    self.host = self.data.get(Dict.host)
     if not self.host:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.host))
     if not self._RootDirName():
@@ -29,26 +26,22 @@ class Repository(Local.Repository):
     self.ftp = ftplib.FTP()
     self.ftp.set_debuglevel(0)
 
-    self.port = data.get(Dict.port, 21)
-    self.ftp.connect(self.host, self.port)
+    from socket import _GLOBAL_DEFAULT_TIMEOUT
+    self.port = self.data.get(Dict.port, 21)
+    self.ftp.connect(self.host, self.port, self.data.get(Dict.timeout, _GLOBAL_DEFAULT_TIMEOUT))
 
-    # TODO: anonymous login?
-    user = data.get(Dict.user)
-    passwd = data.get(Dict.pasword)
+    user = self.data.get(Dict.user)
+    passwd = self.data.get(Dict.pasword)
     self.ftp.login(user, passwd)
 
-    self.ftp.set_pasv(data.get(Dict.passive, False))
+    self.ftp.set_pasv(self.data.get(Dict.passive, False))
 
     self.cache = None
-    if data.get(Dict.useCache, True):
+    if self.data.get(Dict.useCache, True):
       # NOTE: Cache is on the local file system.
-      # Any change of this assumption will result in the need
-      # to change the function: self.vPutFileLike().
-      cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), '.ftpcache'))
-      self.cache = Local.Repository({
-                                     Dict.style   : data.get(Dict.style, ARepository.GetDefaultStyleImpl()),
-                                     Dict.rootDirName : cacheDirName
-                                    })
+      cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), Dict.repository))
+      self.cache = Local.Repository(style = self.data.get(Dict.style, ARepository.GetDefaultStyleImpl()),
+                                    rootDirName = cacheDirName)
 
   def __del__(self):
     try:
@@ -59,18 +52,21 @@ class Repository(Local.Repository):
     finally:
       self.ftp = None
 
-  def vMakeDirs(self, dirName):
+  def NormPath(self, path):
+    return OS.Path.NormUnix(path)
+
+  def MakeDirs(self, dirName):
     try:
-      self.ftp.mkd(OS.Path.NormUnix(dirName))
+      self.ftp.mkd(self.NormPath(dirName))
     except ftplib.error_perm as E:
       if str(E).find('550') >= 0:
         pass
       else:
         raise
 
-  def vFileSize(self, fileName):
+  def FileSize(self, fileName):
     try:
-      fileSize = self.ftp.size(OS.Path.NormUnix(fileName))
+      fileSize = self.ftp.size(self.NormPath(fileName))
     except ftplib.error_perm as E:
       if str(E).find('550') >= 0:
         return OS.INVALID_FILE_SIZE
@@ -78,14 +74,14 @@ class Repository(Local.Repository):
         raise
     return fileSize if fileSize is not None else OS.INVALID_FILE_SIZE
 
-  def vFileExists(self, fileName):
-    return self.vFileSize(fileName) != OS.INVALID_FILE_SIZE
+  def FileExists(self, fileName):
+    return self.FileSize(fileName) != OS.INVALID_FILE_SIZE
 
-  def vFileTime(self, fileName):
+  def FileTime(self, fileName):
     # TODO: implement?
     return None
 
-  def vTouch(self, fileName):
+  def Touch(self, fileName):
     # TODO: I don't known method for simulate touch on ftp server :(
     pass
 
@@ -94,10 +90,10 @@ class Repository(Local.Repository):
 
   def GetFileLike(self, fileName, logLevel = LogLevel.VERBOSE):
     self.tempFile = tempfile.SpooledTemporaryFile()
-    fileName = OS.Path.NormUnix(fileName)
+    fileName = self.NormPath(fileName)
     self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
 
-    maxRetries = self.data.get(Dict.maxRetries, 3)
+    maxRetries = self.data.get(Dict.maxRetries, 5)
     retries = 0
     while retries < maxRetries:
       try:
@@ -105,23 +101,26 @@ class Repository(Local.Repository):
         break
       except ftplib.Error as E:
         self.Log("Error '%s' while downloading the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
-        self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
-        self.tempFile.seek(0)
-        retries += 1
-        if retries >= maxRetries:
+        if str(E).find('550') >= 0:
           raise
-        sleep(1.00)
+        else:
+          self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
+          self.tempFile.seek(0)
+          retries += 1
+          if retries >= maxRetries:
+            raise
+          sleep(2.00)
 
     self.tempFile.seek(0)
     return self.tempFile
 
-  def vGetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
+  def GetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
     if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
       fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
       try:
-        return self.cache.vGetFileContents(fileNameInCache, logLevel)
+        return self.cache.GetFileContents(fileNameInCache, logLevel)
       except Exception:
         pass
 
@@ -137,7 +136,7 @@ class Repository(Local.Repository):
     if self.fileInCache:
       self.fileInCache.write(data)
 
-  def vPutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
+  def PutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     self.fileInCache = None
     if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
@@ -146,7 +145,7 @@ class Repository(Local.Repository):
       OS.MakeDirs(os.path.dirname(fileNameInCache))
       self.fileInCache = open(fileNameInCache, 'wb')
 
-    fileName = OS.Path.NormUnix(fileName)
+    fileName = self.NormPath(fileName)
     self.Log(Dict.msgSavingFile % fileName, level = logLevel)
 
     startPos = 0
@@ -180,73 +179,86 @@ class Repository(Local.Repository):
 
     return sha1
 
-  def vPutFile(self, fFileName, fileName, logLevel = LogLevel.VERBOSE):
-    self.vMakeDirs(os.path.dirname(fileName))
-    f = open(fFileName, 'rb')
+  def PutFile(self, srcFileName, destFileName, logLevel = LogLevel.VERBOSE):
+    self.MakeDirs(os.path.dirname(destFileName))
+    f = open(srcFileName, 'rb')
     try:
-      rc = self.vPutFileLike(f, fileName, logLevel)
+      rc = self.PutFileLike(f, destFileName, logLevel)
     finally:
       f.close()
     return rc
 
-  def vPutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
+  def PutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
     f = tempfile.SpooledTemporaryFile()
     f.write(contents)
     f.seek(0)
-    self.vPutFileLike(f, fileName, logLevel)
+    self.PutFileLike(f, fileName, logLevel)
 
-  def vPrepareFileName(self, fileName):
+  def CompleteFileName(self, fileName):
     return fileName
 
-  # NOTE: Code for this function is very similar to the analogous function in Maven.Repository.
-  # The differences are in minor details. I do not have sensible idea how to minimize the duality :(
   def _Get(self, package, scope, store, resolvedPackages):
-    #self._DumpParams(locals())
-
-    # Check parameters.
-    if not package:
-      raise AttaError(self, 'Not enough parameters.')
-    if store is None:
-      store = self.cache
-    if store is None:
-      raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
-
-    store.SetOptionalAllowed(self.OptionalAllowed())
+    # First, look into the store (cache) if the required files
+    # (for package and its dependencies) are all up to date.
     filesInStore = store.Check(package, scope)
+    problem = False
     if filesInStore is None:
-      fileName = self.PrepareFileName(package, self._RootDirName())
-      if self.vFileExists(fileName):
-        package.timestamp, sha1 = self.GetFileMarker(fileName)
-        if package.timestamp is not None:
+      # If something is obsolete then check if all required files are available
+      # in repository and download additional information about them (eg. stamp).
+      # Check the store again if it makes sense.
+      try:
+        allFiles, baseDirName = self._CheckAndPrepareFilesForGet(package)
+      except Exception as E:
+        self.Log(str(E), level = LogLevel.ERROR)
+        problem = True
+      else:
+        if package.stamp is not None:
           filesInStore = store.Check(package, scope)
-
         if filesInStore is None:
+          # The store still says that something is missing or out of date.
           download = True
           filesInStore = []
 
           # Get the dependencies.
-          for p in self.GetDependencies(package, scope) or ():
+          packages = self.GetDependencies(package, scope)
+          for p in packages or ():
             if not package.Excludes(p):
               if p not in resolvedPackages:
                 resolvedPackages.append(p)
                 filesInStore += self._Get(p, scope, store, resolvedPackages)
+          if packages:
+            # After downloading all the dependencies, check the store third time.
+            # This is intended to minimize the amount of downloads.
+            filesInStore2 = store.Check(package, scope)
+            if filesInStore2:
+              download = False
+              filesInStore = filesInStore2
 
-          # Get artifact.
           if download:
+            # Download all files and put them into the store.
             self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
             filesToDownload = []
             try:
-              for rFileName in self.GetAll(fileName):
-                filesToDownload.append(NamedFileLike(rFileName, self.GetFileLike(rFileName, LogLevel.VERBOSE)))
-              filesInStore += store.Put(os.path.dirname(fileName), filesToDownload, package)
-            finally:
-              for i in range(len(filesToDownload)):
-                filesToDownload[i] = None
+              for fn in allFiles:
+                filesToDownload.append(NamedFileLike(fn, self.GetFileLike(fn, LogLevel.VERBOSE)))
+            except ftplib.Error, urllib2.URLError:
+              problem = True
+            except Exception as E:
+              self.Log(Dict.errXWhileGettingY % (str(E), str(package)), level = LogLevel.ERROR)
+              problem = True
+            if not problem and filesToDownload:
+              try:
+                filesInStore += store.Put(baseDirName, filesToDownload, package)
+              except Exception as E:
+                self.Log(Dict.errXWhileSavingY % (str(E), str(package)), level = LogLevel.ERROR)
+                problem = True
 
     # Check results.
-    if not package.optional:
-      if filesInStore is None or len(filesInStore) <= 0:
-        raise ArtifactNotFoundError(self, "Can't find: " + str(package))
+    if not filesInStore or problem:
+      if not package.optional:
+        raise ArtifactNotFoundError(self, Dict.errFailedToAssembleX % str(package))
+      else:
+        filesInStore = []
 
     # Return package and its dependencies files.
     filesInStore = RemoveDuplicates(filesInStore)
@@ -256,12 +268,17 @@ class Repository(Local.Repository):
   def Get(self, package, scope, store = None):
     """TODO: description"""
     '''returns: list of filesNames'''
+    if store is None:
+      store = self.cache
+    if store is None:
+      raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
+    store.SetOptionalAllowed(self.OptionalAllowed())
     self._Get(package, scope, store, [])
 
   def _ChangeFileNamesToFtpUrls(self, fileNames):
     if fileNames:
       for i in range(len(fileNames)):
-        fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + OS.Path.NormUnix(fileNames[i])
+        fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + self.NormPath(fileNames[i])
     return fileNames
 
   def Check(self, package, scope):
@@ -282,7 +299,7 @@ class Repository(Local.Repository):
 
   def Put(self, fBaseDirName, files, package):
     # Put the files on ftp at the same time (if the repository use cache)
-    # creating an exact copy in the local cache (see also: vPutFileLike method).
+    # creating an exact copy in the local cache (see also: PutFileLike method).
     result = Local.Repository.Put(self, fBaseDirName, files, package)
     if result and self.cache:
       # Because the cache had just been updated, we give local file names.
@@ -293,5 +310,6 @@ class Repository(Local.Repository):
     return self._ChangeFileNamesToFtpUrls(result)
 
   def _Name(self):
-    name = Task._Name(self)
-    return 'Ftp.' + name
+#    name = Task._Name(self)
+#    return 'Ftp.' + name
+    return 'Ftp'

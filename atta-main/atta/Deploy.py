@@ -3,31 +3,46 @@ import sys
 
 from .tools.internal.Misc import AttaClassOrModule
 from .tools.Misc import isstring
-from . import AttaError, Dict, OS
+from .repositories import Base
+from . import AttaError, LogLevel, Dict, OS, Task
 
-class Deployer:
+class Deployer(Task):
   """TODO: description"""
   def Deploy(self, baseDirName, files, package, data, defaultRepository = None):
     """Returns list of all deployed files."""
     files = OS.Path.AsList(files)
+    failOnError = True
     result = []
-
     for e in data:
-      if isstring(e):
-        e = dict(repository = e)
+      try:
+        if isstring(e):
+          e = dict(repository = e)
+        failOnError = e.get(Dict.paramFailOnError, True)
 
-      # Prepare repository module name.
-      repositoryName = e.get(Dict.repository)
-      if not repositoryName:
-        if not defaultRepository:
-          raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
-        repositoryName = defaultRepository
-      if not isstring(repositoryName):
-        repositoryName = repositoryName.__name__
-      repositoryName = AttaClassOrModule(repositoryName)
+        # Prepare repository. It can be: instance, class, module, module name
+        repositoryName = e.get(Dict.repository)
+        if not repositoryName:
+          if not defaultRepository:
+            raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
+          repositoryName = defaultRepository
+        if Base.ARepository.IsMyInstance(repositoryName):
+          repository = repositoryName
+        elif Base.ARepository.IsMySubclass(repositoryName):
+          repository = repositoryName(**e)
+        else:
+          if not isstring(repositoryName):
+            repositoryName = repositoryName.__name__
+          repositoryName = AttaClassOrModule(repositoryName)
+          __import__(repositoryName)
+          repository = sys.modules[repositoryName].Repository(**e)
 
-      __import__(repositoryName)
-      repository = sys.modules[repositoryName].Repository(e)
-      result += repository.Put(baseDirName, files, package)
+        # Put files into repository.
+        result += repository.Put(baseDirName, files, package)
+
+      except Exception as E:
+        if failOnError:
+          raise
+        else:
+          self.Log(str(E), level = LogLevel.ERROR)
 
     return result

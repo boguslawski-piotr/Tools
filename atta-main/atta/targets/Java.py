@@ -191,9 +191,17 @@ class compile(Target):
   """TODO: description"""
   dependsOn = ['prepare']
 
+  def Prepare(self):
+    self.ResolveDependencies()
+    return True
+
+  def ResolveDependencies(self):
+    """TODO: description"""
+    project = self.Project
+    project.javacClassPath += _ResolveDependencies(self.Project, scope = Dict.Scopes.compile)
+
   def Run(self):
     project = self.Project
-    self.ResolveDependencies()
 
     i = 0
     for srcDirName in project.javaDirs:
@@ -215,11 +223,6 @@ class compile(Target):
 
       if i < len(project.classDirs) - 1:
         i += 1
-
-  def ResolveDependencies(self):
-    """TODO: description"""
-    project = self.Project
-    project.javacClassPath += _ResolveDependencies(self.Project, scope = Dict.Scopes.compile)
 
   def JavacTaskParams(self):
     """Additional parameters for Javac task. It must be a dictionary."""
@@ -445,7 +448,7 @@ class deploy(Target):
     project = self.Project
 
     package = project.CreatePackage()
-    project.timestamp = os.path.getmtime(project.packageFileName)
+    package.stamp = OS.FileTimestamp(project.packageFileName)
     project.deployedFiles = project.Deploy(project.installBaseDir, project.installedFiles, package)
 
     self.TagBuild(self.GetBuildTag())

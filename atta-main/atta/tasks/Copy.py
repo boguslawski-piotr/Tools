@@ -41,7 +41,7 @@ class Copy(Filter):
         else:
           srcTime = datetime.fromtimestamp(os.path.getmtime(srcFileName))
           destTime = datetime.fromtimestamp(os.path.getmtime(destFileName))
-          return abs((srcTime - destTime)) > timedelta(seconds = self.granularity)
+          return abs(srcTime - destTime) > timedelta(seconds = self.granularity)
 
     # Register above filter(s) for Filter task.
     fileFilters = OS.Path.AsList(tparams.get('fileFilters', None))

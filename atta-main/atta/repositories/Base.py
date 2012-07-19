@@ -6,13 +6,9 @@ from . import Styles
 
 class ARepository:
   """TODO: description"""
-  def __init__(self, data):
-    self.data = data
-    if data:
-      _styleClass = data.get(Dict.style, ARepository.GetDefaultStyleImpl())
-    else:
-      self.data = {}
-      _styleClass = ARepository.GetDefaultStyleImpl()
+  def __init__(self, **tparams):
+    self.data = tparams
+    _styleClass = self.data.get(Dict.style, ARepository.GetDefaultStyleImpl())
     self._styleImpl = ObjectFromClass(_styleClass)
 
   _defaultStyleImpl = ObjectFromClass(Styles.Maven)
@@ -27,6 +23,16 @@ class ARepository:
     """TODO: description"""
     return ARepository._defaultStyleImpl.GetClass()
 
+  @staticmethod
+  def IsMySubclass(_class):
+    try: return issubclass(_class, ARepository)
+    except Exception: return False
+
+  @staticmethod
+  def IsMyInstance(obj):
+    try: return isinstance(obj, ARepository)
+    except Exception: return False
+
   # Properties
 
   def SetOptionalAllowed(self, v):
@@ -39,6 +45,11 @@ class ARepository:
     return self.data.get(Dict.getOptional, False)
 
   # Abstract methods (interface)
+
+  @AbstractMethod
+  def PrepareFileName(self, package):
+    """TODO: description"""
+    assert False
 
   @AbstractMethod
   def Get(self, package, scope, store = None):

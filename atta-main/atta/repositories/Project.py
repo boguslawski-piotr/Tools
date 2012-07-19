@@ -8,7 +8,7 @@ from . import Local
 class Repository(Local.Repository):
   """TODO: description"""
 
-  def vPrepareFileName(self, fileName):
+  def CompleteFileName(self, fileName):
     return os.path.normpath(os.path.join(self.Project.dirName, fileName))
 
   def Get(self, package, scope, store = None):
@@ -16,20 +16,13 @@ class Repository(Local.Repository):
     if not projectName:
       raise AttaError(self, 'Not given name / directory of the project.')
 
-    failOnError = self.data.get(Dict.paramFailOnError)
-
     if os.path.isdir(projectName):
       dirName = projectName
       projectName = projectName + '/' + Dict.defaultBuildFileName
     else:
       dirName = os.path.dirname(projectName)
     if not os.path.exists(projectName):
-      msg = Dict.errFileNotExists % projectName
-      if failOnError:
-        raise AttaError(self, msg)
-      else:
-        self.Log(msg, level = LogLevel.ERROR)
-        return []
+      raise AttaError(self, Dict.errFileNotExists % projectName)
 
     targetNames = OS.SplitCmdLine(self.data.get('target', ['package']))
     resultProperties = self.data.get(Dict.resultIn, ['packageFileName'])
@@ -44,19 +37,12 @@ class Repository(Local.Repository):
       prevLoggerClass = Atta.Logger().SetImpl(Compact.Logger)
       try:
         # Invoke Atta project.
-        Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
+        Atta.Log(target = self._Name(), start = True, level = LogLevel.VERBOSE)
         self.Log('Invoking target(s): %s in: %s' % (' '.join(targetNames), projectName), level = LogLevel.VERBOSE)
 
-        project = None
-        try:
-          project = self.Project.RunProject(self.Project.env, projectTmpName, targetNames)
-        except Exception as E:
-          if failOnError:
-            raise
-          else:
-            self.Log(E, level = LogLevel.ERROR)
+        project = self.Project.RunProject(self.Project.env, projectTmpName, targetNames)
 
-        Atta.Log(target = self._Name(), prepare = True, level = LogLevel.VERBOSE)
+        Atta.Log(target = self._Name(), start = True, level = LogLevel.VERBOSE)
         self.Log('Back in: %s' % self.Project.fileName, level = LogLevel.VERBOSE)
 
         # Collect produced file(s).
@@ -99,5 +85,6 @@ class Repository(Local.Repository):
     return result
 
   def _Name(self):
-    name = Task._Name(self)
-    return 'Project.' + name
+#    name = Task._Name(self)
+#    return 'Project.' + name
+    return 'Project'

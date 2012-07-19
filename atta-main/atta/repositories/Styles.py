@@ -8,11 +8,12 @@ class Maven(IRepositoryStyle):
     return '%s/%s/%s' % (str(package.groupId).replace('.', '/'), str(package.artifactId), str(package.version))
 
   def FileName(self, package):
-    fn = str(package.artifactId) + '-' + str(package.version)
+    fn = str(package.artifactId)
+    if bool(package.version):
+      fn += '-' + str(package.version)
     if bool(package.type):
-      fn = fn + '.' + str(package.type)
+      fn += '.' + str(package.type)
     return fn
-    #return '%s-%s.%s' % (str(package.artifactId), str(package.version), str(package.type))
 
   def FullFileName(self, package):
     dirName = self.DirName(package).strip()

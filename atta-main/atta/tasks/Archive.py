@@ -23,6 +23,7 @@ class Archive(Task):
     srcs = OS.Path.AsList(srcs)
     recreate = tparams.get('recreate', False)
     checkCRC = tparams.get('checkCRC', True)
+    granularity = tparams.get('granularity', 2)
 
     fileName = os.path.normpath(fileName)
     changedFiles = []
@@ -35,8 +36,8 @@ class Archive(Task):
       archive = _impl.GetClass()(fileName, 'r')
       if not archive.CanWrite():
         raise AttaError(self, Dict.errArchiveImplCantWrite)
-    except Exception:
-      pass
+    except AttaError: raise
+    except Exception: pass
 
     for src in srcs:
       if len(src) <= 0:
@@ -67,7 +68,7 @@ class Archive(Task):
           try:
             inArchiveFileTime = archive.FileTime(name)
             fileTime = datetime.fromtimestamp(os.path.getmtime(fullName))
-            changed = abs(fileTime - inArchiveFileTime) > timedelta(seconds = 2)
+            changed = abs(fileTime - inArchiveFileTime) > timedelta(seconds = granularity)
             if not changed and checkCRC and archive.HasCRCs():
               if archive.FileCRCn(name) != OS.FileCRCn(fullName):
                 changed = True
