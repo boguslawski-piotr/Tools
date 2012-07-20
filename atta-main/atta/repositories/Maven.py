@@ -115,8 +115,8 @@ class Repository(Local.Repository, Task):
       return OS.Path.JoinExt(self.PackageUrl(package), 'sha1')
 
     def PackagePath(self, package):
-      return '{0}/{1}/{2}/{1}-{2}.{3}'.format(
-        str(package.groupId).replace('.', '/'), package.artifactId, package.version, package.type)
+      return '{0}/{1}/{2}/{3}'.format(
+        str(package.groupId).replace('.', '/'), package.artifactId, package.version, package.AsFileName(Styles.Maven))
 
     def PackageUrl(self, package):
       return self.baseUrl + 'remotecontent?filepath=' + self.PackagePath(package)

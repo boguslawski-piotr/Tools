@@ -32,28 +32,32 @@ from atta import *
 Project.defaultTarget = 'test'
 p = Properties.Open('JavaMedium/deploy.properties')
 
-test = [
-        {
-         'repository' : 'atta.repositories.Ftp',
-         'style'      : 'atta.repositories.Styles.Flat',
-         'host'       : p.Get('host'),
-         'rootDirName': p.Get('rootDirName'),
-         'user'       : p.Get('user'),
-         'password'   : p.Get('password'),
-         #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-         'package'    : 'commons-net.jar:3.0.1',
-         'getOptional': True,
-        },
-        ]
+#test = [
+#        {
+#         'repository' : 'atta.repositories.Ftp',
+#         'style'      : 'atta.repositories.Styles.Flat',
+#         'host'       : p.Get('host'),
+#         'rootDirName': p.Get('rootDirName'),
+#         'user'       : p.Get('user'),
+#         'password'   : p.Get('password'),
+#         #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#         'package'    : 'commons-net.jar:3.0.1',
+#         'getOptional': True,
+#        },
+#        ]
 
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'getOptional': True,
-#       'optional' : True,
-#       }]
+test = [{
+       'repository' : 'atta.repositories.Maven',
+       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+       #'package'    : 'org.sat4j:org.sat4j.pb.jar:2.3.1',
+       'package' : 'org.apache.mina:mina-core:2.0.2',
+       #'getOptional': True,
+       'optional' : True,
+       'failOnError' : False,
+       }]
 
-r = Project.ResolveDependencies(test)
+#r = Project.ResolveDependencies(test)
+#sys.exit()
 
 test = [{
        'repository' : 'atta.repositories.Local',
@@ -65,7 +69,7 @@ test = [{
        #'putIn'     : 'atta.repositories.Local',
        }]
 
-r = Project.ResolveDependencies(test)
+#r = Project.ResolveDependencies(test)
 
 #test = [{
 #       'repository' : 'atta.repositories.Maven',
@@ -84,9 +88,9 @@ r = Project.ResolveDependencies(test)
 
 # Get any files from FTP...
 
-PP = PackageId.FromStr('include1.py') # main file
+PP = PackageId.FromStr('MyFiles.set:1')
 #PP.fileNames = ['include1.py', 'Inc2/includes2.py', 'Polska_1206_6.263.r37.7z']
-PP.fileNames = ['include1.py', 'Inc2/includes2.py', 'a']
+PP.fileNames = ['include1.py', 'Inc2/includes2.py']
 #PP.optional = True
 
 from atta.repositories import Styles
@@ -96,7 +100,7 @@ test = [
     {
     'repository' : 'atta.repositories.Ftp',
     'style'      : OnlyFN,
-    'failOnError': False,
+    #'failOnError': False,
     'host'       : p.Get('host'),
     'rootDirName': p.Get('rootDirName') + '/Inc',
     'user'       : p.Get('user'),
@@ -104,8 +108,8 @@ test = [
     'package'    : PP,
     'putIn'     : {'repository' : 'atta.repositories.Local',
                    'rootDirName': Project.dirName + '/repository/PP',
-                   'lifeTime' : 2, # in seconds
-                   'style' : 'atta.repositories.Styles.OnlyFileName',
+                   'lifeTime' : 15, # in seconds
+                   'style' : 'atta.repositories.Styles.Flat',
                   },
     },
 ]

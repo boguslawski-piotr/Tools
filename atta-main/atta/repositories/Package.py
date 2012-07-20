@@ -8,8 +8,8 @@ class PackageId:
   def __init__(self, groupId = None, artifactId = None, version = None, type = None, **tparams):
     self.artifactId = artifactId
     self.groupId = groupId
-    self.version = version
     self.type = type
+    self.version = version
     self.stamp = tparams.get('stamp')
 
     #self.scope
@@ -28,7 +28,10 @@ class PackageId:
   def __setattr__(self, name, value):
     name = Dict.type if name == Dict.packaging else name
 
-    if name == Dict.groupId:
+    if name == Dict.type:
+      if value and str(value).startswith('test'):
+        self.tests = True
+    elif name == Dict.groupId:
       if not value:
         value = self.artifactId
     elif name == Dict.exclusions:

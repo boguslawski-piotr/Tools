@@ -1,6 +1,7 @@
 """.. no-user-reference:"""
 
 from .Interfaces import IRepositoryStyle
+from .. import Dict
 
 class Maven(IRepositoryStyle):
   """TODO: description"""
@@ -11,8 +12,15 @@ class Maven(IRepositoryStyle):
     fn = str(package.artifactId)
     if bool(package.version):
       fn += '-' + str(package.version)
+    if bool(package.tests):
+      fn += '-tests'
     if bool(package.type):
-      fn += '.' + str(package.type)
+      type = str(package.type)
+      if bool(package.tests):
+        type = type.replace('test-', '').replace('tests-', '')
+      if type == Dict.bundle:
+        type = Dict.jar
+      fn += '.' + type
     return fn
 
   def FullFileName(self, package):

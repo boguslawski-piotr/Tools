@@ -87,6 +87,7 @@ packaging = 'packaging'
 properties = 'properties'
 project = 'project'
 distributionManagement = 'distributionManagement'
+bundle = 'bundle'
 
 #
 # Java related
