@@ -18,8 +18,7 @@ class Resolver(Task):
     rc = False
     for e in data:
       try:
-        if isstring(e):
-          e = dict(package = e)
+        if isstring(e): e = dict(package = e)
         failOnError = e.get(Dict.paramFailOnError, True)
 
         if Dict.dependsOn in e:
@@ -27,12 +26,12 @@ class Resolver(Task):
           self.Resolve(e[Dict.dependsOn], scope, defaultRepository)
 
         # Create (or get) package object.
-        packageStrId = e.get(Dict.package)
-        if packageStrId is not None:
-          if isinstance(packageStrId, PackageId):
-            package = packageStrId
+        package = e.get(Dict.package)
+        if package is not None:
+          if isinstance(package, PackageId):
+            package = package
           else:
-            package = PackageId.FromStr(packageStrId)
+            package = PackageId.FromStr(package)
         else:
           package = PackageId(e.get(Dict.groupId), e.get(Dict.artifactId), e.get(Dict.version), e.get(Dict.type))
 
@@ -45,7 +44,6 @@ class Resolver(Task):
         if not package.exclusions: package.exclusions = OS.Path.AsList(e.get(Dict.exclusions), ',')
         if not package.optional: package.optional = e.get(Dict.optional, False)
         if not package.downloadUrl: package.downloadUrl = e.get(Dict.downloadUrl, None)
-        if not package.baseUrl: package.baseUrl = e.get(Dict.baseUrl, None)
         if not package.fileNames: package.fileNames = e.get(Dict.fileNames, None)
 
         # Prepare repository object.

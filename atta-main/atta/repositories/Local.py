@@ -13,6 +13,15 @@ def GetPOMFileContents(package):
 
 class Repository(ARepository, Task):
   """TODO: description"""
+  def __init__(self, **tparams):
+    ARepository.__init__(self, **tparams)
+
+    self.rootDirName = self.data.get(Dict.rootDirName, None)
+    if self.rootDirName:
+      self.rootDirName = self.rootDirName.replace('~', os.path.expanduser('~'))
+
+    self.useFileHashInCheck = self.data.get(Dict.useFileHashInCheck, True)
+    self.lifeTime = timedelta(seconds = self.data.get(Dict.lifeTime, 3600 * 24 * 14)) # 14 days
 
   def NormPath(self, path):
     return os.path.normpath(path)
@@ -27,6 +36,9 @@ class Repository(ARepository, Task):
     """Returns the modification time of file *fileName*
        or `None` if the modification time is unavailable."""
     return OS.FileTimestamp(fileName)
+
+  def FileHash(self, fileName):
+    return OS.FileHash(fileName, hashlib.sha1())
 
   def Touch(self, fileName):
     """Sets the current modification time for file *fileName*."""
@@ -54,13 +66,13 @@ class Repository(ARepository, Task):
         lf.write(chunk)
     finally:
       lf.close()
-    return OS.FileHash(fileName, hashlib.sha1())
+    return self.FileHash(fileName)
 
   def PutFile(self, srcFileName, destFileName, logLevel = LogLevel.VERBOSE):
     self.Log(Dict.msgSavingFile % destFileName, level = logLevel)
     self.MakeDirs(os.path.dirname(destFileName))
     OS.CopyFile(srcFileName, destFileName, force = True)
-    return OS.FileHash(destFileName, hashlib.sha1())
+    return self.FileHash(destFileName)
 
   def PutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
     self.Log(Dict.msgSavingFile % fileName, level = logLevel)
@@ -72,8 +84,8 @@ class Repository(ARepository, Task):
 
   def PrepareMarkerFileName(self, fileName):
     """TODO: description"""
-    dirName = os.path.join(os.path.dirname(fileName), self._AttaDataExt())
-    return os.path.join(dirName, os.path.basename(fileName) + self._AttaDataExt())
+    dirName = os.path.join(os.path.dirname(fileName), Dict.attaExt)
+    return os.path.join(dirName, os.path.basename(fileName) + Dict.attaExt)
 
   def GetFileMarker(self, fileName):
     """TODO: description"""
@@ -105,7 +117,7 @@ class Repository(ARepository, Task):
   def PrepareInfoFileName(self, package):
     """TODO: description"""
     fileName = self.PrepareFileName(package)
-    return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + self._InfoExt()
+    return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + Dict.infoExt
 
   def GetInfoFileContents(self, package):
     infoFileName = self.PrepareInfoFileName(package)
@@ -131,18 +143,20 @@ class Repository(ARepository, Task):
     Maven.Repository.PutPOMIntoCache(package, pom, self.Log)
     return pom
 
+  def Url(self):
+    return ''
+
   def CompleteFileName(self, fileName):
     """TODO: description"""
-    return os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), fileName))
+    return os.path.normpath(os.path.join(os.path.expanduser('~'), Dict.attaExt, fileName))
 
   def PrepareFileName(self, package):
     """TODO: description"""
-    rootDirName = self._RootDirName()
-    if rootDirName is None:
+    if self.rootDirName is None:
       fileName = os.path.join(Dict.repository, self._styleImpl.GetObject().FullFileName(package))
       return self.CompleteFileName(fileName)
     else:
-      return os.path.join(rootDirName, self._styleImpl.GetObject().FullFileName(package))
+      return os.path.join(self.rootDirName, self._styleImpl.GetObject().FullFileName(package))
 
   def GetAll(self, package):
     fileName = self.PrepareFileName(package)
@@ -152,11 +166,11 @@ class Repository(ARepository, Task):
       infoFile = self.GetInfoFileContents(package)
       if infoFile is not None:
         result = infoFile.split('\n')
+        result = [self.NormPath(os.path.join(dirName, fn.strip())) for fn in result if fn.strip()]
       else:
-        result = [fileName]
+        result = [self.NormPath(fileName)]
     else:
-      result = package.fileNames
-    result = [self.NormPath(os.path.join(dirName, fn.strip())) for fn in result if fn.strip()]
+      result = [self.NormPath(fn) for fn in package.fileNames]
     return result
 
   def _CheckAndPrepareFilesForGet(self, package):
@@ -183,6 +197,7 @@ class Repository(ARepository, Task):
           additionalFiles += self._Get(p, scope, store, resolvedPackages)
 
     # Get the artifact files.
+    allFiles = []
     problem = False
     try:
       allFiles, baseDirName = self._CheckAndPrepareFilesForGet(package)
@@ -246,29 +261,38 @@ class Repository(ARepository, Task):
     allFiles = self.GetAll(package)
     for fileName in allFiles:
       if not self.FileExists(fileName):
+        #print '***1', fileName
         return None
 
       storedStamp, storedSha1 = self.GetFileMarker(fileName)
       if storedStamp is None:
+        #print '***2'
         return None
 
       # If the given stamp isn't equal to the local file stamp
       # (stored with the file: see Put method) then return None.
       if package.stamp is not None:
         if str(package.stamp) != str(storedStamp):
+          #print '***3'
           return None
         else:
           self.Touch(fileName)
 
       # If the local file was stored earlier (modification time)
-      # than _LifeTime then return None.
-      def _LifeTime():
-        return timedelta(seconds = self.data.get('lifeTime', 3600 * 24 * 14)) # 14 days
+      # than `lifeTime` then return None.
       fileTime = self.FileTime(fileName)
       if fileTime is not None:
         fileTime = datetime.fromtimestamp(fileTime)
-        if datetime.now() - fileTime > _LifeTime():
+        if datetime.now() - fileTime > self.lifeTime:
+          #print '***4', fileName
           return None
+
+      if self.useFileHashInCheck:
+        sha1 = self.FileHash(fileName)
+        if sha1:
+          if sha1 != storedSha1:
+            #print '***5'
+            return None
 
     # Check dependencies.
     additionalFiles = []
@@ -279,6 +303,7 @@ class Repository(ARepository, Task):
           pfiles = self._Check(p, scope, checkedPackages)
           if self.OptionalAllowed() or not p.optional:
             if pfiles is None:
+              #print '***6'
               return None
           if pfiles: additionalFiles += pfiles
 
@@ -295,7 +320,7 @@ class Repository(ARepository, Task):
     dirName = os.path.normpath(os.path.dirname(fileName))
     self.MakeDirs(dirName)
 
-    self.Log('to: %s' % dirName, level = LogLevel.DEBUG)
+    self.Log('to: %s%s' % (self.Url(), self.NormPath(dirName)), level = LogLevel.DEBUG)
 
     if 'read' in dir(files):
       sha1 = self.PutFileLike(files, fileName)
@@ -329,17 +354,3 @@ class Repository(ARepository, Task):
 #    name = Task._Name(self)
 #    return 'Local.' + name
     return 'Local'
-
-  def _RootDirName(self):
-    rootDirName = None
-    if self.data is not None:
-      rootDirName = self.data.get(Dict.rootDirName, None)
-      if rootDirName:
-        rootDirName = rootDirName.replace('~', os.path.expanduser('~'))
-    return rootDirName
-
-  def _AttaDataExt(self):
-    return '.atta'
-
-  def _InfoExt(self):
-    return '.info'

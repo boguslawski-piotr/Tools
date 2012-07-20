@@ -13,12 +13,6 @@ class Repository(Local.Repository, Task):
   """TODO: description
   """
   def _Get(self, package, scope, store, resolvedPackages):
-    # Check parameters.
-    if not bool(package.type):
-      package.type = Dict.jar
-    if not package:
-      raise AttaError(self, Dict.errPackageNotComplete % str(package))
-
     # First, see in the store (cache) if the required files (for package and its dependencies) are all up to date.
     filesInStore = store.Check(package, scope)
     problem = False
@@ -87,19 +81,38 @@ class Repository(Local.Repository, Task):
     """TODO: description
      returns list (of strings: fileName) of locally available files
     """
+    # Check parameters.
+    if not bool(package.type):
+      package.type = Dict.jar
+    if not package:
+      raise AttaError(self, Dict.errPackageNotComplete % str(package))
     if store is None:
       store = Repository(style = Styles.Maven)
     if store is None:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
+
     store.SetOptionalAllowed(self.OptionalAllowed())
     return self._Get(package, scope, store, [])
 
   def CompleteFileName(self, fileName):
     return os.path.normpath(os.path.join(os.path.expanduser('~'), '.m2', fileName))
 
+  def GetFileMarker(self, fileName):
+    sha1 = self.GetFileContents(OS.Path.JoinExt(fileName, Dict.sha1Ext))
+    sha1 = sha1[:40]
+    return sha1, sha1
+
   def PutMarkerFile(self, fileName, fileSha1, package):
-    Local.Repository.PutMarkerFile(self, fileName, fileSha1, package)
-    self.PutFileContents(str(fileSha1), OS.Path.JoinExt(fileName, 'sha1'))
+    self.PutFileContents(str(fileSha1), OS.Path.JoinExt(fileName, Dict.sha1Ext))
+
+  def PutInfoFile(self, package, storedFileNames):
+    pass
+
+  def GetAll(self, package):
+    result = [self.PrepareFileName(package)]
+    if package.type != Dict.pom:
+      result.append(self.PrepareFileName(PackageId.FromPackage(package, type = Dict.pom)))
+    return result
 
   #
   # Resolvers
@@ -112,7 +125,7 @@ class Repository(Local.Repository, Task):
         self.baseUrl += '/'
 
     def StampUrl(self, package):
-      return OS.Path.JoinExt(self.PackageUrl(package), 'sha1')
+      return OS.Path.JoinExt(self.PackageUrl(package), Dict.sha1Ext)
 
     def PackagePath(self, package):
       return '{0}/{1}/{2}/{3}'.format(
@@ -159,7 +172,7 @@ class Repository(Local.Repository, Task):
           continue
     if f is not None:
       try:
-        return f.read()
+        return f.read(40)
       except Exception as E:
         if logFn: logFn(Dict.errXWhileGettingStamp % E, level = LogLevel.VERBOSE)
     return None

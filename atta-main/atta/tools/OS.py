@@ -522,7 +522,7 @@ def FileTimestamp(fileName):
   """Creates timestamp for file *fileName*."""
   return os.path.getmtime(fileName)
 
-def FileHash(fileName, algo = hashlib.sha1(), chunkSize = 128 * 64):
+def FileHash(fileName, algo, chunkSize = 128 * 64):
   """Creates a hash of the file *fileName* using the selected encryption algorithm.
      Returns file hash as a string (hexdigest) or `None` on error.
      More information about the available algorithms can be found in :py:mod:`hashlib`.

@@ -15,12 +15,12 @@ from . import Local
 class Repository(Local.Repository):
   """TODO: description"""
   def __init__(self, **tparams):
-    ARepository.__init__(self, **tparams)
+    Local.Repository.__init__(self, **tparams)
 
     self.host = self.data.get(Dict.host)
     if not self.host:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.host))
-    if not self._RootDirName():
+    if not self.rootDirName:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.rootDirName))
 
     self.ftp = ftplib.FTP()
@@ -39,9 +39,11 @@ class Repository(Local.Repository):
     self.cache = None
     if self.data.get(Dict.useCache, True):
       # NOTE: Cache is on the local file system.
-      cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), self._AttaDataExt(), Dict.repository))
+      cacheDirName = os.path.normpath(os.path.join(os.path.expanduser('~'), Dict.attaExt, Dict.repository))
       self.cache = Local.Repository(style = self.data.get(Dict.style, ARepository.GetDefaultStyleImpl()),
                                     rootDirName = cacheDirName)
+
+    self.maxRetries = self.data.get(Dict.maxRetries, 5)
 
   def __del__(self):
     try:
@@ -81,6 +83,11 @@ class Repository(Local.Repository):
     # TODO: implement?
     return None
 
+  def FileHash(self, fileName):
+    # Without the implementation for performance reasons.
+    # To calculate the hash you need to download a file from the server.
+    return None
+
   def Touch(self, fileName):
     # TODO: I don't known method for simulate touch on ftp server :(
     pass
@@ -93,9 +100,8 @@ class Repository(Local.Repository):
     fileName = self.NormPath(fileName)
     self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
 
-    maxRetries = self.data.get(Dict.maxRetries, 5)
     retries = 0
-    while retries < maxRetries:
+    while retries < self.maxRetries:
       try:
         self.ftp.retrbinary('RETR ' + fileName, self._GetFileLikeCallback)
         break
@@ -107,20 +113,22 @@ class Repository(Local.Repository):
           self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
           self.tempFile.seek(0)
           retries += 1
-          if retries >= maxRetries:
+          if retries >= self.maxRetries:
             raise
           sleep(2.00)
 
     self.tempFile.seek(0)
     return self.tempFile
 
+  def _FileNameInCache(self, fileName):
+    return os.path.join(str(self.cache.rootDirName), os.path.relpath(fileName, self.rootDirName))
+
   def GetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
     if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
-      fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
       try:
-        return self.cache.GetFileContents(fileNameInCache, logLevel)
+        return self.cache.GetFileContents(self._FileNameInCache(fileName), logLevel)
       except Exception:
         pass
 
@@ -141,7 +149,7 @@ class Repository(Local.Repository):
     if self.cache:
       # NOTE: We assume that the cache is a repository on the file system.
       # See also the notes in self.__init__().
-      fileNameInCache = os.path.join(self.cache._RootDirName(), os.path.relpath(fileName, self._RootDirName()))
+      fileNameInCache = self._FileNameInCache(fileName)
       OS.MakeDirs(os.path.dirname(fileNameInCache))
       self.fileInCache = open(fileNameInCache, 'wb')
 
@@ -152,9 +160,8 @@ class Repository(Local.Repository):
     if 'tell' in dir(f):
       startPos = f.tell()
 
-    maxRetries = self.data.get(Dict.maxRetries, 3)
     retries = 0
-    while retries < maxRetries:
+    while retries < self.maxRetries:
       try:
         self.sha1 = hashlib.sha1()
         self.ftp.storbinary('STOR ' + fileName, f, callback = self._PutFileLikeCallback) #, blocksize, callback, rest
@@ -166,7 +173,7 @@ class Repository(Local.Repository):
         if self.fileInCache:
           self.fileInCache.seek(0)
         retries += 1
-        if retries >= maxRetries:
+        if retries >= self.maxRetries:
           raise
         sleep(1.00)
 
@@ -193,6 +200,9 @@ class Repository(Local.Repository):
     f.write(contents)
     f.seek(0)
     self.PutFileLike(f, fileName, logLevel)
+
+  def Url(self):
+    return 'ftp://' + self.host + ':' + str(self.port) + '/'
 
   def CompleteFileName(self, fileName):
     return fileName
@@ -278,34 +288,30 @@ class Repository(Local.Repository):
   def _ChangeFileNamesToFtpUrls(self, fileNames):
     if fileNames:
       for i in range(len(fileNames)):
-        fileNames[i] = 'ftp://' + self.host + ':' + str(self.port) + '/' + self.NormPath(fileNames[i])
+        fileNames[i] = self.Url() + self.NormPath(fileNames[i])
     return fileNames
 
   def Check(self, package, scope):
-    cresult = None
     if self.cache:
-      # First checks the local cache and if it does not have
-      # the correct files then forces a full refresh.
-      cresult = self.cache.Check(package, scope)
-      if cresult is None:
+      # Check the local cache if exists.
+      return self.cache.Check(package, scope)
+    else:
+      # Check the files on ftp.
+      result = Local.Repository.Check(self, package, scope)
+      if not result:
         return None
-    # Then check the files on ftp.
-    result = Local.Repository.Check(self, package, scope)
-    if result is None:
-      return None
-    # Usually we give the file names from the local cache.
-    # But in the case when the repository is set to not use cache we give the full urls.
-    return cresult if cresult else self._ChangeFileNamesToFtpUrls(result)
+      return self._ChangeFileNamesToFtpUrls(result)
 
   def Put(self, fBaseDirName, files, package):
-    # Put the files on ftp at the same time (if the repository use cache)
-    # creating an exact copy in the local cache (see also: PutFileLike method).
+    # Put the files on ftp at the same time creating an exact copy in the local cache
+    # (if the repository use cache, see also: PutFileLike method).
     result = Local.Repository.Put(self, fBaseDirName, files, package)
     if result and self.cache:
       # Because the cache had just been updated, we give local file names.
       for i in range(len(result)):
-        result[i] = os.path.join(self.cache._RootDirName(), os.path.relpath(result[i], self._RootDirName()))
+        result[i] = self._FileNameInCache(result[i])
       return result
+
     # If the repository is set to not use cache we give the full urls.
     return self._ChangeFileNamesToFtpUrls(result)
 

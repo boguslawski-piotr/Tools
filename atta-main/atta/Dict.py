@@ -30,11 +30,18 @@ yes = 'yes'
 no = 'no'
 Or = 'or'
 
+project = 'project'
+target = 'target'
+
 #
 # Environment related
 
 attaPropsFileName = 'atta.properties'
 defaultBuildFileName = 'build.py'
+
+attaExt = '.atta'
+infoExt = '.info'
+sha1Ext = 'sha1'
 
 PATH = 'PATH'
 
@@ -66,6 +73,8 @@ maxRetries = 'maxRetries'
 downloadUrl = 'downloadUrl'
 baseUrl = 'baseUrl'
 fileNames = 'fileNames'
+lifeTime = 'lifeTime'
+useFileHashInCheck = 'useFileHashInCheck'
 
 #
 # POM releated
@@ -85,7 +94,6 @@ relativePath = 'relativePath'
 parent = 'parent'
 packaging = 'packaging'
 properties = 'properties'
-project = 'project'
 distributionManagement = 'distributionManagement'
 bundle = 'bundle'
 

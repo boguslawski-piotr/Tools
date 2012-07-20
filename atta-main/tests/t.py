@@ -52,8 +52,8 @@ test = [{
        #'package'    : 'org.sat4j:org.sat4j.pb.jar:2.3.1',
        'package' : 'org.apache.mina:mina-core:2.0.2',
        #'getOptional': True,
-       'optional' : True,
-       'failOnError' : False,
+       #'optional' : True,
+       #'failOnError' : False,
        }]
 
 #r = Project.ResolveDependencies(test)
@@ -71,20 +71,23 @@ test = [{
 
 #r = Project.ResolveDependencies(test)
 
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'package'    : 'commons-net.jar:3.0.1',
-#       'putIn' :
-#          {
-#           'repository' : 'atta.repositories.Ftp',
-#           'style'      : 'atta.repositories.Styles.Flat',
-#           'host'       : p.Get('host'),
-#           'rootDirName': p.Get('rootDirName'),
-#           'user'       : p.Get('user'),
-#           'password'   : p.Get('password'),
-#          },
-#        }]
+test = [{
+       'repository' : 'atta.repositories.Maven',
+       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+       'package'    : 'commons-net.jar:3.0.1',
+       'putIn' :
+          {
+           'repository' : 'atta.repositories.Ftp',
+           'style'      : 'atta.repositories.Styles.Flat',
+           'host'       : p.Get('host'),
+           'rootDirName': p.Get('rootDirName'),
+           'user'       : p.Get('user'),
+           'password'   : p.Get('password'),
+          },
+        }]
+
+r = Project.ResolveDependencies(test)
+sys.exit()
 
 # Get any files from FTP...
 

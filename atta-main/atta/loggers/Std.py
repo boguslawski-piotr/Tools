@@ -1,6 +1,7 @@
 import os
 
 from .Interfaces import ILogger
+from .. import Dict
 
 class Logger(ILogger):
   """
@@ -39,15 +40,15 @@ class Logger(ILogger):
     return None
 
   def _HandleTarget(self, msg, **args):
-    if 'target' in args:
+    if Dict.target in args:
       if 'prepare' in args:
-        _msg = os.linesep + args['target'] + ':prepare:'
+        _msg = os.linesep + args[Dict.target] + ':prepare:'
         return _msg
       if 'start' in args:
-        _msg = os.linesep + args['target'] + ':'
+        _msg = os.linesep + args[Dict.target] + ':'
         return _msg
       if 'log' in args:
-        _msg = os.linesep + args['target'] + ': %s' % msg
+        _msg = os.linesep + args[Dict.target] + ': %s' % msg
         return _msg
     return None
 

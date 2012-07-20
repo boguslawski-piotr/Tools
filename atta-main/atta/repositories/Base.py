@@ -1,4 +1,7 @@
 """.. no-user-reference:"""
+import os
+from datetime import datetime, timedelta
+
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Interfaces import AbstractMethod
 from .. import Dict
@@ -8,6 +11,7 @@ class ARepository:
   """TODO: description"""
   def __init__(self, **tparams):
     self.data = tparams
+
     _styleClass = self.data.get(Dict.style, ARepository.GetDefaultStyleImpl())
     self._styleImpl = ObjectFromClass(_styleClass)
 
@@ -45,6 +49,11 @@ class ARepository:
     return self.data.get(Dict.getOptional, False)
 
   # Abstract methods (interface)
+
+  @AbstractMethod
+  def Url(self):
+    """TODO: description"""
+    assert False
 
   @AbstractMethod
   def PrepareFileName(self, package):

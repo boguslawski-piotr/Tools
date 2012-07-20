@@ -15,11 +15,11 @@ class Deployer(Task):
     result = []
     for e in data:
       try:
-        if isstring(e):
-          e = dict(repository = e)
+        if isstring(e): e = dict(repository = e)
         failOnError = e.get(Dict.paramFailOnError, True)
 
-        # Prepare repository. It can be: instance, class, module, module name
+        # Prepare repository object.
+        # You can provide: instance, class, module, module name
         repositoryName = e.get(Dict.repository)
         if not repositoryName:
           if not defaultRepository:

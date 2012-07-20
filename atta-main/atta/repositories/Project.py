@@ -24,7 +24,7 @@ class Repository(Local.Repository):
     if not os.path.exists(projectName):
       raise AttaError(self, Dict.errFileNotExists % projectName)
 
-    targetNames = OS.SplitCmdLine(self.data.get('target', ['package']))
+    targetNames = OS.SplitCmdLine(self.data.get(Dict.target, [Dict.package]))
     resultProperties = self.data.get(Dict.resultIn, ['packageFileName'])
     result = None
 

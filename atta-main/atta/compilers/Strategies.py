@@ -3,6 +3,7 @@ import os
 import hashlib
 
 from ..tools import OS
+from .. import Dict
 from .Interfaces import IRequiresCompileStrategy
 
 class SrcNewerStrategy(IRequiresCompileStrategy):
@@ -30,7 +31,7 @@ class SrcHashStrategy(IRequiresCompileStrategy):
     srcHashFileName = os.path.join('.atta/srchash', os.path.dirname(srcFileName))
     if not os.path.exists(srcHashFileName):
       OS.MakeDirs(srcHashFileName)
-    srcHashFileName = os.path.join(srcHashFileName, OS.Path.JoinExt(os.path.basename(srcFileName), 'sha1'))
+    srcHashFileName = os.path.join(srcHashFileName, OS.Path.JoinExt(os.path.basename(srcFileName), Dict.sha1Ext))
     realSrcFileName = srcFileName
 
     srcHash = OS.FileHash(realSrcFileName, hashlib.sha1())

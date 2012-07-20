@@ -36,7 +36,7 @@ Bugs, comments and suggestions please report on page\nhttps://github.com/bogusla
 
   buildGroup = argsParser.add_argument_group('build')
   buildGroup.add_argument(
-    'target', nargs = '*', default = '',
+    Dict.target, nargs = '*', default = '',
     help = ''
   )
   buildGroup.add_argument(
@@ -210,7 +210,7 @@ def Main():
       import traceback
       exc_type, exc_value, exc_traceback = sys.exc_info()
       lines = traceback.extract_tb(exc_traceback)
-      #lines = lines[-5:] # only last five
+      lines = lines[-5:] # only last five
       for line in lines:
         print('%s: %d' % (line[0], line[1]))
         print('  %s' % line[3])

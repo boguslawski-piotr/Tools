@@ -5,6 +5,7 @@ import platform
 from ..tools.Interfaces import AbstractMethod, IsAbstractMethod
 from ..Activity import Activity
 from .. import OS
+from .. import Dict
 
 class Target(Activity):
   """
@@ -53,7 +54,7 @@ class Target(Activity):
   # private section
 
   def _Type(self):
-    return 'target'
+    return Dict.target
 
   def _Name(self):
     if not hasattr(self, 'name'):
