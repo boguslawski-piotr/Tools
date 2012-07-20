@@ -32,6 +32,18 @@ from atta import *
 Project.defaultTarget = 'test'
 p = Properties.Open('JavaMedium/deploy.properties')
 
+MyPackage = PackageId.FromStr('slinky.jar:2.1')
+test = [{
+  'repository' : '.repositories.Http',
+  #'style' : '.repositories.Styles.OnlyFileName',
+  'url' : 'http://slinky2.googlecode.com/svn/artifacts/2.1',
+  'package' : MyPackage,
+  'fileNames' : ['slinky.jar']
+}]
+
+r = Project.ResolveDependencies(test)
+#sys.exit()
+
 #test = [
 #        {
 #         'repository' : 'atta.repositories.Ftp',
@@ -56,38 +68,38 @@ test = [{
        #'failOnError' : False,
        }]
 
-#r = Project.ResolveDependencies(test)
-#sys.exit()
-
-test = [{
-       'repository' : 'atta.repositories.Local',
-       'style'      : 'atta.repositories.Styles.Flat',
-       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-       'package'    : 'commons-net.jar:3.0.1',
-       'getOptional': True,
-       'putIn'     : {'repository' : 'atta.repositories.Project', 'lifeTime' : 2},
-       #'putIn'     : 'atta.repositories.Local',
-       }]
-
-#r = Project.ResolveDependencies(test)
-
-test = [{
-       'repository' : 'atta.repositories.Maven',
-       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-       'package'    : 'commons-net.jar:3.0.1',
-       'putIn' :
-          {
-           'repository' : 'atta.repositories.Ftp',
-           'style'      : 'atta.repositories.Styles.Flat',
-           'host'       : p.Get('host'),
-           'rootDirName': p.Get('rootDirName'),
-           'user'       : p.Get('user'),
-           'password'   : p.Get('password'),
-          },
-        }]
-
 r = Project.ResolveDependencies(test)
 sys.exit()
+
+#test = [{
+#       'repository' : 'atta.repositories.Local',
+#       'style'      : 'atta.repositories.Styles.Flat',
+#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       'package'    : 'commons-net.jar:3.0.1',
+#       'getOptional': True,
+#       'putIn'     : {'repository' : 'atta.repositories.Project', 'lifeTime' : 2},
+#       #'putIn'     : 'atta.repositories.Local',
+#       }]
+
+#r = Project.ResolveDependencies(test)
+
+#test = [{
+#       'repository' : 'atta.repositories.Maven',
+#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+#       'package'    : 'commons-net.jar:3.0.1',
+#       'putIn' :
+#          {
+#           'repository' : 'atta.repositories.Ftp',
+#           'style'      : 'atta.repositories.Styles.Flat',
+#           'host'       : p.Get('host'),
+#           'rootDirName': p.Get('rootDirName'),
+#           'user'       : p.Get('user'),
+#           'password'   : p.Get('password'),
+#          },
+#        }]
+#
+#r = Project.ResolveDependencies(test)
+#sys.exit()
 
 # Get any files from FTP...
 
@@ -102,7 +114,7 @@ OnlyFN = Styles.OnlyFileName()
 test = [
     {
     'repository' : 'atta.repositories.Ftp',
-    'style'      : OnlyFN,
+    #'style'      : OnlyFN,
     #'failOnError': False,
     'host'       : p.Get('host'),
     'rootDirName': p.Get('rootDirName') + '/Inc',

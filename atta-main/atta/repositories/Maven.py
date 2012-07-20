@@ -1,69 +1,93 @@
 """.. Remote: TODO"""
 import urllib2
-import json
 import cStringIO
 import os
 
-from ..tools import DefaultVarsExpander
+from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Misc import NamedFileLike, RemoveDuplicates, strip
-from .. import AttaError, Dict, LogLevel, OS, Xml, Task, PackageId
-from . import ArtifactNotFoundError, Interfaces, Styles, Local
+from ..tools import DefaultVarsExpander
+from .. import AttaError, Dict, LogLevel, OS, Xml, PackageId
+from . import ArtifactNotFoundError, Styles, Remote
 
-class Repository(Local.Repository, Task):
+class Repository(Remote.Repository):
   """TODO: description
   """
+  def __init__(self, **tparams):
+    Remote.Repository.__init__(self, **tparams)
+    self._styleImpl = ObjectFromClass(Styles.Maven)
+
+  def GetFileMarker(self, fileName):
+    try:
+      sha1 = self.GetFileContents(OS.Path.JoinExt(fileName, Dict.sha1Ext))
+      sha1 = sha1[:40]
+      return sha1, sha1
+    except Exception:
+      return None, None
+
+  def PutMarkerFile(self, fileName, fileSha1, package):
+    self.PutFileContents(str(fileSha1), OS.Path.JoinExt(fileName, Dict.sha1Ext))
+
+  def PutInfoFile(self, package, storedFileNames):
+    # Atta does not create or modify the file: _maven.repositories
+    pass
+
+  def CompleteFileName(self, fileName):
+    return os.path.normpath(os.path.join(os.path.expanduser('~'), '.m2', fileName))
+
+  def GetAll(self, package):
+    result = [self.PrepareFileName(package)]
+    if package.type != Dict.pom:
+      result.append(self.PrepareFileName(PackageId.FromPackage(package, type = Dict.pom)))
+    return result
+
   def _Get(self, package, scope, store, resolvedPackages):
-    # First, see in the store (cache) if the required files (for package and its dependencies) are all up to date.
-    filesInStore = store.Check(package, scope)
+    # First, see in the store (cache) if the required
+    # files (for package and its dependencies) are all up to date.
     problem = False
+    filesInStore = store.Check(package, scope)
     if filesInStore is None:
-      # If something is obsolete then get detailed information
-      # about the package and check the store (cache) again.
-      package.stamp = Repository.GetArtifactStamp(package, store.PrepareFileName(package), self.Log)
-      if package.stamp is not None:
-        filesInStore = store.Check(package, scope)
-      if filesInStore is None:
-        # The store still says that something is missing or out of date.
-        download = True
-        filesInStore = []
+      # If something is obsolete, missing or corrupted then refresh the store.
+      download = True
+      filesInStore = []
 
-        # Get the dependencies.
-        pom = Repository.GetPOM(package, self.Log)
+      # Get the dependencies.
+      pom = Repository.GetPOM(package, refresh = True, logFn = self.Log)
+      if pom:
+        packages = Repository.GetDependenciesFromPOM(package, pom,
+                                                     Dict.Scopes.map2POM.get(scope, []),
+                                                     self.OptionalAllowed(), logFn = self.Log)
+        for p in packages:
+          if not package.Excludes(p):
+            if p not in resolvedPackages:
+              resolvedPackages.append(p)
+              filesInStore += self._Get(p, scope, store, resolvedPackages)
+        if packages:
+          # After downloading all the dependencies, check the store third time.
+          # This is intended to minimize the amount of downloads.
+          filesInStore2 = store.Check(package, scope)
+          if filesInStore2:
+            download = False
+            filesInStore = filesInStore2
+
+      if download:
+        # Get the artifact and put it into the store.
+        filesToDownload = []
         if pom:
-          packages = Repository.GetDependenciesFromPOM(
-                        package, pom, Dict.Scopes.map2POM.get(scope, []), self.OptionalAllowed(), logFn = self.Log)
-          for p in packages:
-            if not package.Excludes(p):
-              if p not in resolvedPackages:
-                resolvedPackages.append(p)
-                filesInStore += self._Get(p, scope, store, resolvedPackages)
-          if packages:
-            # After downloading all the dependencies, check the store third time.
-            # This is intended to minimize the amount of downloads.
-            filesInStore2 = store.Check(package, scope)
-            if filesInStore2:
-              download = False
-              filesInStore = filesInStore2
-
-        if download:
-          # Get the artifact and put it into the store.
-          filesToDownload = []
-          if pom:
-            filesToDownload.append(NamedFileLike(Styles.Maven().FileName(PackageId.FromPackage(package, type = Dict.pom)),
-                                   cStringIO.StringIO(pom)))
-          if package.type != Dict.pom or not pom:
-            f = Repository.GetArtifactFile(package, pom, store.PrepareFileName(package), self.Log)
-            if f is not None:
-              filesToDownload.append(NamedFileLike(Styles.Maven().FileName(package), f))
-            else:
-              problem = True
-          if not problem and filesToDownload:
-            self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
-            try:
-              filesInStore += store.Put('', filesToDownload, package)
-            except Exception as E:
-              self.Log(Dict.errXWhileSavingY % (str(E), str(package)), level = LogLevel.ERROR)
-              problem = True
+          filesToDownload.append(NamedFileLike(Styles.Maven().FileName(PackageId.FromPackage(package, type = Dict.pom)),
+                                 cStringIO.StringIO(pom)))
+        if package.type != Dict.pom or not pom:
+          f = Repository.GetArtifactFile(package, pom, store.PrepareFileName(package), self.Log)
+          if f is not None:
+            filesToDownload.append(NamedFileLike(Styles.Maven().FileName(package), f))
+          else:
+            problem = True
+        if not problem and filesToDownload:
+          self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
+          try:
+            filesInStore += store.Put('', filesToDownload, package)
+          except Exception as E:
+            self.Log(Dict.errXWhileSavingY % (str(E), str(package)), level = LogLevel.ERROR)
+            problem = True
 
     # Check the results.
     if not filesInStore or problem:
@@ -77,6 +101,9 @@ class Repository(Local.Repository, Task):
     self.Log(Dict.msgReturns % OS.Path.FromList(filesInStore), level = LogLevel.DEBUG)
     return filesInStore
 
+  def DefaultStore(self):
+    return Repository(lifeTime = None)
+
   def Get(self, package, scope, store = None):
     """TODO: description
      returns list (of strings: fileName) of locally available files
@@ -86,46 +113,24 @@ class Repository(Local.Repository, Task):
       package.type = Dict.jar
     if not package:
       raise AttaError(self, Dict.errPackageNotComplete % str(package))
-    if store is None:
-      store = Repository(style = Styles.Maven)
-    if store is None:
-      raise AttaError(self, Dict.errNotSpecified.format(Dict.putIn))
 
-    store.SetOptionalAllowed(self.OptionalAllowed())
-    return self._Get(package, scope, store, [])
-
-  def CompleteFileName(self, fileName):
-    return os.path.normpath(os.path.join(os.path.expanduser('~'), '.m2', fileName))
-
-  def GetFileMarker(self, fileName):
-    sha1 = self.GetFileContents(OS.Path.JoinExt(fileName, Dict.sha1Ext))
-    sha1 = sha1[:40]
-    return sha1, sha1
-
-  def PutMarkerFile(self, fileName, fileSha1, package):
-    self.PutFileContents(str(fileSha1), OS.Path.JoinExt(fileName, Dict.sha1Ext))
-
-  def PutInfoFile(self, package, storedFileNames):
-    pass
-
-  def GetAll(self, package):
-    result = [self.PrepareFileName(package)]
-    if package.type != Dict.pom:
-      result.append(self.PrepareFileName(PackageId.FromPackage(package, type = Dict.pom)))
-    return result
+    return Remote.Repository.Get(self, package, scope, store)
 
   #
   # Resolvers
 
-  class Central(Interfaces.IPackageUrls):
+  # TODO: give more accurate name
+  class IResolver:
+    """TODO: description"""
+    def PackageUrl(self, package):
+      assert False
+
+  class Central(IResolver):
     """TODO: description"""
     def __init__(self, baseUrl = 'http://search.maven.org/'):
       self.baseUrl = baseUrl
       if not self.baseUrl.endswith('/'):
         self.baseUrl += '/'
-
-    def StampUrl(self, package):
-      return OS.Path.JoinExt(self.PackageUrl(package), Dict.sha1Ext)
 
     def PackagePath(self, package):
       return '{0}/{1}/{2}/{3}'.format(
@@ -153,29 +158,6 @@ class Repository(Local.Repository, Task):
 
   #: TODO: description
   resolvers = [Central()]
-
-  @staticmethod
-  def GetArtifactStamp(package, excludedUrl = None, logFn = None):
-    """TODO: description"""
-    resolvers = Repository.resolvers
-    f = None
-    for resolver in resolvers:
-      url = resolver.StampUrl(package)
-      if url and (not excludedUrl or url.find(excludedUrl) < 0):
-        if logFn: logFn('Getting stamp for: %s from: %s' % (str(package), url), level = LogLevel.VERBOSE)
-        try:
-          f = urllib2.urlopen(url)
-          break
-        except urllib2.URLError as E:
-          if logFn: logFn(Dict.errXWhileGettingStamp % E, level = LogLevel.VERBOSE)
-          f = None
-          continue
-    if f is not None:
-      try:
-        return f.read(40)
-      except Exception as E:
-        if logFn: logFn(Dict.errXWhileGettingStamp % E, level = LogLevel.VERBOSE)
-    return None
 
   @staticmethod
   def GetArtifactFile(package, pom = None, excludedUrl = None, logFn = None):
@@ -212,7 +194,7 @@ class Repository(Local.Repository, Task):
         return f
     if package.downloadUrl:
       # If is specified in the package definition.
-      if isinstance(package.downloadUrl, Interfaces.IPackageUrls):
+      if isinstance(package.downloadUrl, Repository.IResolver):
         return _AlternateDownload(package.downloadUrl.PackageUrl(package))
       else:
         return _AlternateDownload(package.downloadUrl)
@@ -249,12 +231,12 @@ class Repository(Local.Repository, Task):
         Repository._pomCache[key] = f
 
   @staticmethod
-  def GetPOM(package, logFn = None):
-    """Gets the POM file from Maven Central Repository.
+  def GetPOM(package, refresh = False, logFn = None):
+    """Gets the POM file.
        The function uses the local impermanent cache.
        Returns the POM contents or None."""
     package = PackageId.FromPackage(package, type = Dict.pom)
-    pomFile = Repository.GetPOMFromCache(package, logFn)
+    pomFile = None if refresh else Repository.GetPOMFromCache(package, logFn)
     if pomFile is None:
       Repository.PutPOMIntoCache(package,
                                  Repository.GetArtifactFile(package, None, None, logFn), logFn)
@@ -263,11 +245,11 @@ class Repository(Local.Repository, Task):
   @staticmethod
   def GetPOMEx(package, pom, logFn = None):
     """Checks if the *pom* is the callable used to download contents of a POM file.
-       If so, uses it and trying to retrieve data. If the download did not succeed then
-       try again using the Maven Central Repository.
+       If so, use it and try to retrieve data.
+       If the download did not succeed then try again using internal method.
        Returns a tuple (*function*, *pom*) where *function* is a callable
        which you can use to download next POM file and *pom* points to the
-       contents of the file or is None."""
+       contents of the file or None."""
     getPOMFn = Repository.GetPOM
     if pom and '__call__' in dir(pom):
       getPOMFn = pom

@@ -9,7 +9,6 @@ Project.groupId = 'org.atta'
 #Project.vcs = Git()
 
 from atta.compilers.Strategies import SrcNewerStrategy
-from atta.tools.Strategies import VersionResetBuildStrategy
 
 def MyVersion(v, event):
   tmplFileName = 'version.java.tmpl'
@@ -25,7 +24,7 @@ def MyVersion(v, event):
            verbose = True)
     OS.Touch('main.java')
 
-Project.version.Configure(impl = VersionResetBuildStrategy,
+Project.version.Configure(impl = Version.ResetBuildStrategy,
                           observers = MyVersion,
                           fileName = 'v.i',
                           # In this project we don't use ${patch} and ${build} version element.
@@ -68,7 +67,7 @@ Maven.Repository.resolvers.insert(0, Maven.Repository.Local())
 Maven.Repository.resolvers = [Maven.Repository.Local(), Maven.Repository.Sonatype(), Maven.Repository.Central()]
 
 Project.dependsOn += [{
-                       'repository': 'atta.repositories.Maven', # it can be any module with class Repository which inherits from ARepository
+                       'repository': 'atta.repositories.Maven', # it can be any module with class Repository which inherits from Base.Repository
                        'groupId'   : 'com.beust',
                        'artifactId': 'jcommander',
                        'version'   : '1.26',
@@ -129,9 +128,12 @@ Project.dependsOn += [{'repository' : MyMaven3,
                        'package' : MyPackage,
                        'putIn' : MyMaven2}]
 
-MyPackage = PackageId.FromStr('slinky.jar:2.1')
-MyPackage.downloadUrl = 'http://slinky2.googlecode.com/svn/artifacts/2.1/slinky.jar'
-Project.dependsOn += [{'package' : MyPackage}]
+Project.dependsOn += [{
+  'repository' : '.repositories.Http',
+  'url' : 'http://slinky2.googlecode.com/svn/artifacts/2.1',
+  'package' : 'slinky.jar:2.1',
+  'fileNames' : ['slinky.jar']
+}]
 
 
 #
@@ -140,15 +142,15 @@ Project.dependsOn += [{'package' : MyPackage}]
 p = Properties.Open('deploy.properties')
 
 Project.deployTo += [
-                    {
-                     # into ftp repository
-                     'repository' : 'atta.repositories.Ftp',
-                     'host'       : p.Get('host'),
-                     'rootDirName': p.Get('rootDirName'),
-                     'user'       : p.Get('user'),
-                     'password'   : p.Get('password'),
-                     'useCache'   : False,
-                    },
+#                    {
+#                     # into ftp repository
+#                     'repository' : 'atta.repositories.Ftp',
+#                     'host'       : p.Get('host'),
+#                     'rootDirName': p.Get('rootDirName'),
+#                     'user'       : p.Get('user'),
+#                     'password'   : p.Get('password'),
+#                     'useCache'   : False,
+#                    },
 #                     # into machine local repository
 #                     'atta.repositories.Local',
                   ]

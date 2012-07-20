@@ -25,9 +25,9 @@ class Deployer(Task):
           if not defaultRepository:
             raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
           repositoryName = defaultRepository
-        if Base.ARepository.IsMyInstance(repositoryName):
+        if Base.Repository.IsMyInstance(repositoryName):
           repository = repositoryName
-        elif Base.ARepository.IsMySubclass(repositoryName):
+        elif Base.Repository.IsMySubclass(repositoryName):
           repository = repositoryName(**e)
         else:
           if not isstring(repositoryName):

@@ -5,7 +5,6 @@ import cStringIO
 
 from .internal.Misc import ObjectFromClass
 from .DefaultVarsExpander import Expander
-from .Strategies import VersionDefaultStrategy
 from .Interfaces import Observable
 from ..tasks.Base import Task
 from .. import LogLevel, Dict, OS
@@ -53,11 +52,55 @@ class Version(Observable, Task):
     AfterUpdate = 9
     AfterConfigure = 10
 
+  class IStrategy:
+    """TODO: description"""
+    def NextMajor(self, v):
+      """TODO: description"""
+      pass
+    def NextMinor(self, v):
+      """TODO: description"""
+      pass
+    def NextPath(self, v):
+      """TODO: description"""
+      pass
+    def NextBuild(self, v):
+      """TODO: description"""
+      pass
+
+  class DefaultStrategy(IStrategy):
+    """Default version strategy partially based on: http://semver.org/.
+       When a major version number is incremented, the minor version and
+       patch version MUST be reset to zero. When a minor version number
+       is incremented, the patch version MUST be reset to zero.
+       For instance: 1.1.3 -> 2.0.0 and 2.1.7 -> 2.2.0.
+    """
+    def NextMajor(self, v):
+      v.major += 1
+      v.minor = 0
+      v.patch = 0
+    def NextMinor(self, v):
+      v.minor += 1
+      v.patch = 0
+    def NextPatch(self, v):
+      v.patch += 1
+    def NextBuild(self, v):
+      v.build += 1
+
+  class ResetBuildStrategy(DefaultStrategy):
+    """This strategy works almost as :py:class:`.VersionDefaultStrategy`
+       but resets the build number to zero after each change of
+       a minor or major version.
+    """
+    def NextMajor(self, v):
+      Version.DefaultStrategy.NextMajor(self, v)
+      v.build = 0
+    def NextMinor(self, v):
+      Version.DefaultStrategy.NextMinor(self, v)
+      v.build = 0
+
   def Configure(self, **conf):
     """TODO: description"""
     self._impl = ObjectFromClass(conf.get('impl', Version.GetDefaultImpl()))
-    self.quiet = conf.get(Dict.paramQuiet, False)
-
     observers = OS.Path.AsList(conf.get('observers', None))
     for c in observers:
       self.AddObserver(c)
@@ -68,11 +111,10 @@ class Version(Observable, Task):
     self.build = 0
     self.changed = False
 
+    self.quiet = conf.get(Dict.paramQuiet, False)
     self.format = conf.get('format', Version.Formats.MMPB)
-
     self.prefix = conf.get('prefix', '')
     self.postfix = conf.get('postfix', '')
-
     self.fileName = conf.get('fileName', 'version.info')
     if not self._Read():
       if conf.get('createIfNotExists', True):
@@ -139,7 +181,7 @@ class Version(Observable, Task):
                     version = str(self),
                     **tparams)
 
-  _defaultImpl = ObjectFromClass(VersionDefaultStrategy)
+  _defaultImpl = ObjectFromClass(DefaultStrategy)
 
   @staticmethod
   def SetDefaultImpl(_class):
@@ -151,7 +193,7 @@ class Version(Observable, Task):
     """TODO: description"""
     return Version._defaultImpl.GetClass()
 
-  '''private section'''
+  # private section
 
   def __del__(self):
     self._Update()

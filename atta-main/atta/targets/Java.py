@@ -6,7 +6,7 @@ import os
 import stat
 
 from ..repositories import Styles, Maven
-from .. import Atta, AttaError, LogLevel, Dict, PackageId, Target, Echo, Delete, OS, Copy, Exec
+from .. import Atta, AttaError, LogLevel, Dict, Target, Echo, Delete, OS, Copy, Exec
 from ..Activity import Activity
 
 from ..tasks import Javac, Jar

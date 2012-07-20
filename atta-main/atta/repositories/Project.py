@@ -2,7 +2,7 @@
 import os
 
 from ..loggers import Compact
-from .. import Atta, AttaError, LogLevel, Dict, OS, Task
+from .. import Atta, AttaError, LogLevel, Dict, OS
 from . import Local
 
 class Repository(Local.Repository):

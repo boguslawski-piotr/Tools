@@ -1,7 +1,14 @@
 """.. no-user-reference:"""
-
-from .Interfaces import IRepositoryStyle
 from .. import Dict
+
+class IRepositoryStyle:
+  """TODO: description"""
+  def DirName(self, package):
+    assert False
+  def FileName(self, package):
+    assert False
+  def FullFileName(self, package):
+    assert False
 
 class Maven(IRepositoryStyle):
   """TODO: description"""

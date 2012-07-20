@@ -122,17 +122,3 @@ class IArchiveFile:
 
 #------------------------------------------------------------------------------
 
-class IVersionStrategy:
-  """TODO: description"""
-  def NextMajor(self, v):
-    """TODO: description"""
-    pass
-  def NextMinor(self, v):
-    """TODO: description"""
-    pass
-  def NextPath(self, v):
-    """TODO: description"""
-    pass
-  def NextBuild(self, v):
-    """TODO: description"""
-    pass

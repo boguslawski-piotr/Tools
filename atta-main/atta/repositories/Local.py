@@ -5,23 +5,21 @@ from datetime import datetime, timedelta
 
 from ..tools.Misc import RemoveDuplicates, NamedFileLike
 from .. import Dict, LogLevel, OS, Task, PackageId
-from .Base import ARepository
-from . import ArtifactNotFoundError
+from . import ArtifactNotFoundError, Base
 
-def GetPOMFileContents(package):
-  pass
-
-class Repository(ARepository, Task):
+class Repository(Base.Repository, Task):
   """TODO: description"""
   def __init__(self, **tparams):
-    ARepository.__init__(self, **tparams)
+    Base.Repository.__init__(self, **tparams)
 
     self.rootDirName = self.data.get(Dict.rootDirName, None)
     if self.rootDirName:
       self.rootDirName = self.rootDirName.replace('~', os.path.expanduser('~'))
 
     self.useFileHashInCheck = self.data.get(Dict.useFileHashInCheck, True)
-    self.lifeTime = timedelta(seconds = self.data.get(Dict.lifeTime, 3600 * 24 * 14)) # 14 days
+    self.lifeTime = self.data.get(Dict.lifeTime, None)
+    if self.lifeTime:
+      self.lifeTime = timedelta(seconds = self.lifeTime)
 
   def NormPath(self, path):
     return os.path.normpath(path)
@@ -44,13 +42,10 @@ class Repository(ARepository, Task):
     """Sets the current modification time for file *fileName*."""
     os.utime(fileName, None) # equivalent: touch
 
-  def GetFileLike(self, fileName, logLevel = LogLevel.VERBOSE):
-    self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
-    return open(fileName, 'rb')
-
   def GetFileContents(self, fileName, logLevel = LogLevel.DEBUG):
     """Returns contents of the file *fileName*."""
-    f = self.GetFileLike(fileName, logLevel)
+    self.Log(Dict.msgReadingFile % fileName, level = logLevel)
+    f = open(fileName, 'rb')
     try:
       rc = f.read()
     finally:
@@ -170,10 +165,10 @@ class Repository(ARepository, Task):
       else:
         result = [self.NormPath(fileName)]
     else:
-      result = [self.NormPath(fn) for fn in package.fileNames]
+      result = [self.NormPath(os.path.join(dirName, fn)) for fn in package.fileNames]
     return result
 
-  def _CheckAndPrepareFilesForGet(self, package):
+  def CheckAndPrepareFilesForGet(self, package):
     """Check and prepare the artifact files and get the artifact stamp if available."""
     fileName = self.PrepareFileName(package)
     dirName = os.path.dirname(fileName)
@@ -200,7 +195,7 @@ class Repository(ARepository, Task):
     allFiles = []
     problem = False
     try:
-      allFiles, baseDirName = self._CheckAndPrepareFilesForGet(package)
+      allFiles, baseDirName = self.CheckAndPrepareFilesForGet(package)
     except Exception as E:
       self.Log(str(E), level = LogLevel.ERROR)
       problem = True
@@ -241,7 +236,6 @@ class Repository(ARepository, Task):
     # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
     # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
 
-    #fileName = self.PrepareFileName(package)
     allFiles = self.GetAll(package)
 
     packageHasPOMFile =  Dict.pom in [OS.Path.Ext(fileName).lower() for fileName in allFiles]
@@ -269,23 +263,22 @@ class Repository(ARepository, Task):
         #print '***2'
         return None
 
-      # If the given stamp isn't equal to the local file stamp
-      # (stored with the file: see Put method) then return None.
       if package.stamp is not None:
         if str(package.stamp) != str(storedStamp):
-          #print '***3'
+          #print '***3', fileName, storedStamp, package.stamp
           return None
         else:
           self.Touch(fileName)
 
-      # If the local file was stored earlier (modification time)
-      # than `lifeTime` then return None.
-      fileTime = self.FileTime(fileName)
-      if fileTime is not None:
-        fileTime = datetime.fromtimestamp(fileTime)
-        if datetime.now() - fileTime > self.lifeTime:
-          #print '***4', fileName
-          return None
+      if self.lifeTime:
+        # If the local file was stored earlier (modification time)
+        # than `lifeTime` then return None.
+        fileTime = self.FileTime(fileName)
+        if fileTime is not None:
+          fileTime = datetime.fromtimestamp(fileTime)
+          if datetime.now() - fileTime > self.lifeTime:
+            #print '***4', fileName
+            return None
 
       if self.useFileHashInCheck:
         sha1 = self.FileHash(fileName)

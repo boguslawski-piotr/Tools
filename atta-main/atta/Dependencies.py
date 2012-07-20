@@ -5,7 +5,6 @@ from .tools.internal.Misc import AttaClassOrModule
 from .tools.Misc import isstring, RemoveDuplicates
 from .repositories import ArtifactNotFoundError, Base
 from . import Dict, AttaError, LogLevel, OS, PackageId, Task
-from . import Activity
 
 class Resolver(Task):
   """TODO: description"""
@@ -52,9 +51,9 @@ class Resolver(Task):
           if not defaultRepository:
             raise AttaError(self, Dict.errNotSpecified.format(Dict.repository))
           repositoryName = defaultRepository
-        if Base.ARepository.IsMyInstance(repositoryName):
+        if Base.Repository.IsMyInstance(repositoryName):
           repository = repositoryName
-        elif Base.ARepository.IsMySubclass(repositoryName):
+        elif Base.Repository.IsMySubclass(repositoryName):
           repository = repositoryName(**e)
         else:
           if not isstring(repositoryName):
@@ -67,11 +66,11 @@ class Resolver(Task):
         store = None
         storeName = e.get(Dict.putIn)
         if storeName:
-          if Base.ARepository.IsMyInstance(storeName):
+          if Base.Repository.IsMyInstance(storeName):
             store = storeName
           else:
             storeData = {}
-            if Base.ARepository.IsMySubclass(storeName):
+            if Base.Repository.IsMySubclass(storeName):
               store = storeName()
             else:
               if isinstance(storeName, dict):

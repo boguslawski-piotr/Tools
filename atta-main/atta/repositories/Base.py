@@ -1,18 +1,15 @@
 """.. no-user-reference:"""
-import os
-from datetime import datetime, timedelta
-
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Interfaces import AbstractMethod
 from .. import Dict
 from . import Styles
 
-class ARepository:
+class Repository:
   """TODO: description"""
   def __init__(self, **tparams):
     self.data = tparams
 
-    _styleClass = self.data.get(Dict.style, ARepository.GetDefaultStyleImpl())
+    _styleClass = self.data.get(Dict.style, Repository.GetDefaultStyleImpl())
     self._styleImpl = ObjectFromClass(_styleClass)
 
   _defaultStyleImpl = ObjectFromClass(Styles.Maven)
@@ -20,21 +17,21 @@ class ARepository:
   @staticmethod
   def SetDefaultStyleImpl(_class):
     """TODO: description"""
-    ARepository._defaultStyleImpl = ObjectFromClass(_class)
+    Repository._defaultStyleImpl = ObjectFromClass(_class)
 
   @staticmethod
   def GetDefaultStyleImpl():
     """TODO: description"""
-    return ARepository._defaultStyleImpl.GetClass()
+    return Repository._defaultStyleImpl.GetClass()
 
   @staticmethod
   def IsMySubclass(_class):
-    try: return issubclass(_class, ARepository)
+    try: return issubclass(_class, Repository)
     except Exception: return False
 
   @staticmethod
   def IsMyInstance(obj):
-    try: return isinstance(obj, ARepository)
+    try: return isinstance(obj, Repository)
     except Exception: return False
 
   # Properties
