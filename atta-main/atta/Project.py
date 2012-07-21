@@ -318,15 +318,17 @@ class Project:
 
   def _GetTargetClass(self, targetClass):
     if isinstance(targetClass, basestring):
+      targetClass = targetClass.replace('/', '.').replace('\\', '.')
       tryTargetInProject = True
       while True:
-        targetPackage, targetClassName = OS.Path.RemoveExt(targetClass), OS.Path.Ext(targetClass, False)
+        targetPackage = OS.Path.RemoveExt(targetClass)
+        targetClassName = OS.Path.Ext(targetClass, False)
         try:
           targetClass = sys.modules[targetPackage].__dict__[targetClassName]
         except Exception as e:
           firstDot = targetPackage.find('.')
           if firstDot >= 0:
-            targetPackage = targetPackage[firstDot + 1:]
+            targetClass = targetPackage[firstDot + 1:] + '.' + targetClassName
           else:
             key = None
             if len(targetClassName) > 0:

@@ -110,11 +110,11 @@ class Repository(Remote.Repository):
         if str(E).find('550') >= 0:
           raise
         else:
-          self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
           self.tempFile.truncate()
           retries += 1
           if retries >= self.maxRetries:
             raise
+          self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
           sleep(2.00)
 
   def _FileNameInCache(self, fileName):
@@ -172,13 +172,13 @@ class Repository(Remote.Repository):
         break
       except ftplib.Error as E:
         self.Log("Error '%s' while saving: %s" % (str(E), self.Url() + fileName), level = LogLevel.ERROR)
-        self.Log('Retry saving (%d).' % (retries + 1), level = LogLevel.WARNING)
         f.seek(startPos)
         if self.fileInCache:
           self.fileInCache.seek(0)
         retries += 1
         if retries >= self.maxRetries:
           raise
+        self.Log('Retry saving (%d).' % (retries + 1), level = LogLevel.WARNING)
         sleep(1.00)
 
     sha1 = self.sha1.hexdigest()

@@ -2,7 +2,7 @@
 import sys
 
 from .tools.internal.Misc import AttaClassOrModule
-from .tools.Misc import isstring
+from .tools.Misc import isstring, isiterable
 from .repositories import Base
 from . import AttaError, LogLevel, Dict, OS, Task
 
@@ -11,6 +11,13 @@ class Deployer(Task):
   def Deploy(self, baseDirName, files, package, data, defaultRepository = None):
     """Returns list of all deployed files."""
     files = OS.Path.AsList(files)
+    if isinstance(data, dict):
+      data = [data]
+    if isstring(data):
+      data = OS.Path.AsList(data, ',')
+    if not isiterable(data):
+      data = OS.Path.AsList(data)
+
     failOnError = True
     result = []
     for e in data:

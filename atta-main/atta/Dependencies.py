@@ -2,7 +2,7 @@
 import sys
 
 from .tools.internal.Misc import AttaClassOrModule
-from .tools.Misc import isstring, RemoveDuplicates
+from .tools.Misc import isstring, isiterable, RemoveDuplicates
 from .repositories import ArtifactNotFoundError, Base
 from . import Dict, AttaError, LogLevel, OS, PackageId, Task
 
@@ -13,16 +13,23 @@ class Resolver(Task):
 
   def Resolve(self, data, scope = Dict.Scopes.default, defaultRepository = None):
     """TODO: description"""
+    if isinstance(data, dict):
+      data = [data]
+    if isstring(data):
+      data = OS.Path.AsList(data, ',')
+    if not isiterable(data):
+      data = OS.Path.AsList(data)
+
     failOnError = True
     rc = False
     for e in data:
       try:
-        if isstring(e): e = dict(package = e)
+        if isstring(e) or isinstance(e, PackageId): e = dict(package = e)
         failOnError = e.get(Dict.paramFailOnError, True)
 
         if Dict.dependsOn in e:
           # Recursively resolve the dependencies.
-          self.Resolve(e[Dict.dependsOn], scope, defaultRepository)
+          self.Resolve(e[Dict.dependsOn], scope, e.get(Dict.repository))
 
         # Create (or get) package object.
         package = e.get(Dict.package)
@@ -30,7 +37,7 @@ class Resolver(Task):
           if isinstance(package, PackageId):
             package = package
           else:
-            package = PackageId.FromStr(package)
+            package = PackageId.FromStr(package.strip())
         else:
           package = PackageId(e.get(Dict.groupId), e.get(Dict.artifactId), e.get(Dict.version), e.get(Dict.type))
 
@@ -94,6 +101,7 @@ class Resolver(Task):
           if result:
             rc = True
             self.result += result
+            package.fileNames = result
             self.resultPackages.append(package)
           else:
             if Dict.ifNotExists in e:

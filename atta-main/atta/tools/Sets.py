@@ -117,12 +117,13 @@ class FileSet(list):
     if not useWalk:
       # If there are no subdirectories and/or Ant-style wildcards
       # in includes then use the simplest directory list.
+      tree = []
       try:
         tree = os.listdir(rootDirName)
       except os.error as E:
         OnError(E)
       dirs, nondirs = [], []
-      for name in tree or ():
+      for name in tree:
         if os.path.isdir(os.path.join(rootDirName, name)):
           dirs.append(name)
         else:
@@ -247,6 +248,8 @@ class ExtendedFileSet(list):
           if src.startswith('..'):
             l = src.rfind('../')
             rname, incls = src[:l + 3], src[l + 3:]
+          elif src.startswith('/') or src.find(':') == 1:
+            rname, incls = OS.Path.Split(src)
           else:
             rname, incls = '.', src
           for fname in FileSet(rname, includes = incls, **tparams):

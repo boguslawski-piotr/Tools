@@ -11,16 +11,17 @@ if Project is not None:
   Project.version.Configure(fileName = 'atta/version.py', format = Version.Formats.MMP)
   Project.vcs = Git()
 
-#------------------------------------------------------------------------------
+  # Install all needed dependencies.
+  packages = {
+    'repository': '.repositories.Http',
+    'url'       : 'http://prdownloads.sourceforge.net/cx-freeze',
+    'package'   : 'cx_Freeze:4.3',
+    'fileNames' : 'cx_Freeze-4.3.tar.gz'
+  }
 
-class nextBuild(Target):
-  def Run(self):
-    if Project.vcs:
-      if not Project.vcs.IsWorkingDirectoryClean():
-        raise AttaError(self, 'Working directory is not clean.')
-      Project.vcs.SetTag('v' + Atta.version)
-      Project.version.NextPatch()
-      Project.vcs.CommitAndPublishAllChanges('Next build number', remotes = 'origin sf')
+  _, packages = Project.ResolveDependencies(packages)
+  PyInstall(packages, logOutput = (Atta.LogLevel() <= LogLevel.VERBOSE))
+
 
 #------------------------------------------------------------------------------
 
@@ -241,3 +242,39 @@ class makedocs(Target):
     # Show documentation
     if self.Env().get('SHOW'):
       Exec(os.path.join('html', 'index.html'))
+
+#------------------------------------------------------------------------------
+
+class build(Target):
+  #dependsOn = [makedocs]
+  def Run(self):
+    # Create Atta ... using cx_Freeze
+    e = PyExec('buildexe', ['install_exe'], logOutput = (self.LogLevel() <= LogLevel.VERBOSE))
+    Echo(e.output, file = 'buildexe.log', append = False)
+    if self.LogLevel() > LogLevel.VERBOSE:
+      Echo([l for l in e.output.split('\n') if l.lower().find('copying') < 0 and l.lower().find('creating') < 0])
+
+    #
+    from buildexeprops import installBaseDirName, installDirName, platformInstallDirName, archiveFileName
+    zipFileName = os.path.join(installBaseDirName, archiveFileName)
+    Zip(zipFileName, FileSet(platformInstallDirName, includes = '**/*'))
+    Delete(installDirName)
+
+#------------------------------------------------------------------------------
+
+class nextBuild(Target):
+  dependsOn = [build]
+
+  def Prepare(self):
+    if Project.vcs:
+      if not Project.vcs.IsWorkingDirectoryClean():
+        raise AttaError(self, 'Working directory is not clean.')
+    return True
+
+  def Run(self):
+    if Project.vcs:
+      Project.vcs.SetTag('v' + Atta.version)
+      Project.version.NextPatch()
+      Project.vcs.CommitAndPublishAllChanges('Next build number', remotes = 'origin sf')
+
+

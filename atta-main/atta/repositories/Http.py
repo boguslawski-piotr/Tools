@@ -13,7 +13,7 @@ class Repository(Remote.Repository):
     self.url = self.data.get(Dict.url)
     if not self.url:
       raise AttaError(self, Dict.errNotSpecified.format(Dict.url))
-    if not self.url.endswith('/'):
+    if not self.url.endswith('/') and self.url.find('?') < 0:
       self.url += '/'
 
     if not self.rootDirName:

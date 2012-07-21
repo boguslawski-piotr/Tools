@@ -46,11 +46,11 @@ class Repository(Local.Repository):
         if isinstance(E, urllib2.HTTPError) and E.code == 404:
           raise
         else:
-          if logFn: logFn('Retry download (%d).' % (retries + 1), level = LogLevel.INFO)
           tempFile.truncate()
           retries += 1
-          if retries >= self.maxRetries:
+          if retries >= maxRetries:
             raise
+          if logFn: logFn('Retry download (%d).' % (retries + 1), level = LogLevel.INFO)
           sleep(2.00)
 
   def _Get(self, package, scope, store, resolvedPackages):

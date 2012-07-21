@@ -50,8 +50,47 @@ test = [{
       },
 }]
 
-r = Project.ResolveDependencies(test)
+#r, rr = Project.ResolveDependencies(test)
+#print rr, rr[0].fileNames
+#print MyPackage, MyPackage.fileNames
 #sys.exit()
+
+# Atta depends...
+CryptPkg = PackageId.FromStr('pycrypto.tar.gz:2.6')
+CryptPkg.importName = 'Crypto'
+CryptPkg.installSteps = 'build, install'
+test = {
+  'repository': '.repositories.PyPI',
+  'package'   : 'ssh.tar.gz:1.7.14',
+  'dependsOn' : CryptPkg
+  }
+
+# Atta depends...
+test = {
+  'repository': '.repositories.Http',
+  'url' : 'http://prdownloads.sourceforge.net/cx-freeze',
+  'package'   : 'cx_Freeze:4.3',
+  'fileNames' : ['cx_Freeze-4.3.tar.gz']
+}
+
+#test = {
+#  'url' : 'http://pysftp.googlecode.com/files',
+#  'package'   : 'pysftp:0.2.2',
+#  'fileNames' : 'pysftp-0.2.2.tar.gz'
+#}
+
+#test = 'Jinja2.tar.gz:2.6, Pygments.tar.gz:1.5'
+
+files, packages = Project.ResolveDependencies(test, defaultRepository = '.repositories.PyPI')
+#for o in packages:
+#  print o.fileNames, o.importName
+
+PyInstall(packages)
+# you must specify:
+#   package (with fileNames, importName and installSteps set and for version check)
+
+sys.exit()
+
 
 #test = [
 #        {
@@ -77,7 +116,9 @@ test = [{
        #'failOnError' : False,
        }]
 
-r = Project.ResolveDependencies(test)
+r, rr = Project.ResolveDependencies(test)
+for o in rr:
+  print o, o.fileNames
 #sys.exit()
 
 #test = [{

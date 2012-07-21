@@ -46,6 +46,12 @@ class Flat(Maven):
       return '%s.%s-%s' % (str(package.groupId), str(package.artifactId), str(package.version))
 
 # TODO: lepsza nazwa?
+class ByArtifactId(Flat):
+  """TODO: description"""
+  def DirName(self, package):
+    return '%s' % (str(package.artifactId))
+
+# TODO: lepsza nazwa?
 class ByVersion(Flat):
   """TODO: description"""
   def DirName(self, package):
@@ -55,3 +61,8 @@ class OnlyFileName(Flat):
   """TODO: description"""
   def DirName(self, package):
     return ''
+
+class PyPI(Flat):
+  """TODO: description"""
+  def DirName(self, package):
+    return 'packages/source/%s/%s' % (str(package.artifactId)[0], str(package.artifactId))

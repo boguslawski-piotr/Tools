@@ -34,6 +34,7 @@ __all__ = [
 
            'Exec',
            'PyExec',
+           'PyInstall',
 
            'Archive',
            'Zip',
@@ -47,6 +48,7 @@ from .tools import DefaultVarsExpander as DVE
 from .tools import VarsExpander as VE
 from .loggers import Logger as _Logger, Std
 from . import version as _version
+__version__ = _version.__version__
 
 class AttaError(RuntimeError):
   """Base class for all exceptions thrown by Atta."""
@@ -66,7 +68,7 @@ class Atta:
   description = 'Build tool in pure Python.'
 
   #: DOCTODO: description
-  version = _version.__version__
+  version = __version__
 
   #: DOCTODO: description
   versionInt = int(version.replace('.', ''))
@@ -203,9 +205,10 @@ Filter = Filter.Filter
 Copy = Copy.Copy
 Move = Move.Move
 
-from .tasks import Exec, PyExec
+from .tasks import Exec, PyExec, PyInstall
 Exec = Exec.Exec
 PyExec = PyExec.PyExec
+PyInstall = PyInstall.PyInstall
 
 from .tasks import Archive, Zip
 Archive = Archive.Archive

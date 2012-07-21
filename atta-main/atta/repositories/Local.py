@@ -114,7 +114,7 @@ class Repository(Base.Repository, Task):
   def PrepareInfoFileName(self, package):
     """TODO: description"""
     fileName = self.PrepareFileName(package)
-    return OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)) + Dict.infoExt
+    return OS.Path.JoinExt(OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)), Dict.infoExt)
 
   def GetInfoFileContents(self, package):
     infoFileName = self.PrepareInfoFileName(package)
@@ -167,7 +167,7 @@ class Repository(Base.Repository, Task):
       else:
         result = [self.NormPath(fileName)]
     else:
-      result = [self.NormPath(os.path.join(dirName, fn)) for fn in package.fileNames]
+      result = [self.NormPath(os.path.join(dirName, fn)) for fn in OS.Path.AsList(package.fileNames)]
     return result
 
   def CheckAndPrepareFilesForGet(self, package):
@@ -177,7 +177,7 @@ class Repository(Base.Repository, Task):
     allFiles = self.GetAll(package)
     for fn in allFiles:
       if not self.FileExists(fn):
-        raise IOError(Dict.errFileNotExists % fn)
+        raise IOError(Dict.errFileNotExists % (self.Url() + fn))
     if allFiles:
       package.stamp, _ = self.GetFileMarker(allFiles[0])
     return allFiles, dirName

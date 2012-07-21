@@ -124,7 +124,15 @@ class PackageId:
     return xml
 
   @staticmethod
-  def FromStr(packageStrId):
+  def __Override(package, **tparams):
+    if Dict.artifactId in tparams: package.artifactId = tparams.get(Dict.artifactId)
+    if Dict.groupId in tparams: package.groupId = tparams.get(Dict.groupId)
+    if Dict.version in tparams: package.version = tparams.get(Dict.version)
+    if Dict.type in tparams: package.type = tparams.get(Dict.type)
+    return package
+
+  @staticmethod
+  def FromStr(packageStrId, **tparams):
     """TODO: description"""
     groupId = artifactId = type = version = None
     try:
@@ -134,19 +142,15 @@ class PackageId:
         del items[0]
       artifactId = OS.Path.RemoveExt(items[0])
       type = OS.Path.Ext(items[0])
+      if type == Dict.gzExt and artifactId.endswith('.' + Dict.tarExt):
+        type = Dict.targzExt
+        artifactId = artifactId[:-4]
       if type.lower() == 'none': type = None
       version = items[1]
     except Exception:
       pass
-    return PackageId(groupId, artifactId, version, type)
-
-  @staticmethod
-  def __Override(package, **tparams):
-    if Dict.artifactId in tparams: package.artifactId = tparams.get(Dict.artifactId)
-    if Dict.groupId in tparams: package.groupId = tparams.get(Dict.groupId)
-    if Dict.version in tparams: package.version = tparams.get(Dict.version)
-    if Dict.type in tparams: package.type = tparams.get(Dict.type)
-    return package
+    newPackage = PackageId(groupId, artifactId, version, type)
+    return PackageId.__Override(newPackage, **tparams)
 
   @staticmethod
   def FromPackage(package, **tparams):

@@ -40,8 +40,12 @@ attaPropsFileName = 'atta.properties'
 defaultBuildFileName = 'build.py'
 
 attaExt = '.atta'
-infoExt = '.info'
+
+infoExt = 'info'
 sha1Ext = 'sha1'
+gzExt = 'gz'
+tarExt = 'tar'
+targzExt = 'tar.gz'
 
 PATH = 'PATH'
 
