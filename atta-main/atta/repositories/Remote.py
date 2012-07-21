@@ -1,17 +1,57 @@
 """.. no-user-reference:"""
 import ftplib
 import urllib2
+import tempfile
+from time import sleep
+from socket import _GLOBAL_DEFAULT_TIMEOUT
 
 from ..tools.internal.Misc import ObjectFromClass
 from ..tools.Misc import RemoveDuplicates, NamedFileLike
 from ..tools.Interfaces import AbstractMethod
+from ..loggers import Progress
 from .. import AttaError, OS, Dict, LogLevel
 from . import ArtifactNotFoundError
 from . import Styles
 from . import Local
 
+#: DOCTODO: description
+DEFAULT_TIMEOUT = _GLOBAL_DEFAULT_TIMEOUT
+
 class Repository(Local.Repository):
   """TODO: description"""
+  def __init__(self, **tparams):
+    Local.Repository.__init__(self, **tparams)
+
+  @staticmethod
+  def GetFileLikeForUrl(url, maxRetries, timeout = DEFAULT_TIMEOUT, logFn = None):
+    tempFile = tempfile.SpooledTemporaryFile(max_size = 1024 * 1024 * 5)
+    retries = 0
+    while retries < maxRetries:
+      try:
+        remoteFile = urllib2.urlopen(url, timeout = timeout)
+        bytesToDownload = int(remoteFile.info().get('Content-Length', 0))
+        progress = Progress.Bar(max = bytesToDownload)
+        while True:
+          data = remoteFile.read(8192)#(1024 * 256) # TODO: dobrac najlepsza wartosc
+          if not data:
+            break
+          progress.Feed(len(data))
+          tempFile.write(data)
+        tempFile.seek(0)
+        progress.End()
+        return tempFile
+
+      except urllib2.URLError as E:
+        if logFn: logFn("Error '%s' while downloading: %s" % (str(E), url), level = LogLevel.ERROR)
+        if isinstance(E, urllib2.HTTPError) and E.code == 404:
+          raise
+        else:
+          if logFn: logFn('Retry download (%d).' % (retries + 1), level = LogLevel.INFO)
+          tempFile.truncate()
+          retries += 1
+          if retries >= self.maxRetries:
+            raise
+          sleep(2.00)
 
   def _Get(self, package, scope, store, resolvedPackages):
     # First, look into the store (cache) if the required files
@@ -57,7 +97,7 @@ class Repository(Local.Repository):
             try:
               for fn in allFiles:
                 filesToDownload.append(NamedFileLike(fn, self.GetFileLike(fn, LogLevel.VERBOSE)))
-            except ftplib.Error, urllib2.URLError:
+            except (ftplib.Error, urllib2.URLError):
               problem = True
             except Exception as E:
               self.Log(Dict.errXWhileGettingY % (str(E), str(package)), level = LogLevel.ERROR)

@@ -19,6 +19,10 @@ class Repository(Remote.Repository):
     if not self.rootDirName:
       self.rootDirName = ''
 
+    self.maxRetries = self.data.get(Dict.maxRetries, 3)
+
+    self.timeout = self.data.get(Dict.timeout, Remote.DEFAULT_TIMEOUT)
+
   def NormPath(self, path):
     return OS.Path.NormUnix(path)
 
@@ -28,7 +32,7 @@ class Repository(Remote.Repository):
   def FileExists(self, fileName):
     url = self.Url() + fileName
     try:
-      urllib2.urlopen(url).close()
+      urllib2.urlopen(url, timeout = self.timeout).close()
       return True
     except urllib2.URLError as E:
       return False
@@ -43,9 +47,9 @@ class Repository(Remote.Repository):
     pass
 
   def GetFileLike(self, fileName, logLevel = LogLevel.VERBOSE):
-    self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
     url = self.Url() + fileName
-    return urllib2.urlopen(url)
+    self.Log(Dict.msgDownloading % url, level = logLevel)
+    return Remote.Repository.GetFileLikeForUrl(url, self.maxRetries, self.timeout, self.Log)
 
   def PutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     assert False

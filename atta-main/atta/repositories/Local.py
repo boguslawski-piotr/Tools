@@ -53,9 +53,10 @@ class Repository(Base.Repository, Task):
     return rc
 
   def PutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
-    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
+    self.Log(Dict.msgSaving % fileName, level = logLevel)
     self.MakeDirs(os.path.dirname(fileName))
     lf = open(fileName, 'wb')
+    # TODO: optimize, hash can be determined during read/write
     try:
       for chunk in iter(lambda: f.read(32768), b''):
         lf.write(chunk)
@@ -64,13 +65,14 @@ class Repository(Base.Repository, Task):
     return self.FileHash(fileName)
 
   def PutFile(self, srcFileName, destFileName, logLevel = LogLevel.VERBOSE):
-    self.Log(Dict.msgSavingFile % destFileName, level = logLevel)
+    self.Log(Dict.msgSaving % destFileName, level = logLevel)
     self.MakeDirs(os.path.dirname(destFileName))
+    # TODO: optimize, hash can be determined during copy
     OS.CopyFile(srcFileName, destFileName, force = True)
     return self.FileHash(destFileName)
 
   def PutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
-    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
+    self.Log(Dict.msgSaving % fileName, level = logLevel)
     f = open(fileName, 'wb')
     try:
       f.write(contents)

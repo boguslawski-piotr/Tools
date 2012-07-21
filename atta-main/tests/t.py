@@ -38,7 +38,16 @@ test = [{
   #'style' : '.repositories.Styles.OnlyFileName',
   'url' : 'http://slinky2.googlecode.com/svn/artifacts/2.1',
   'package' : MyPackage,
-  'fileNames' : ['slinky.jar']
+  'fileNames' : ['slinky.jar'],
+  'putIn' :
+      {
+      'repository' : 'atta.repositories.Ftp',
+      'style'      : 'atta.repositories.Styles.Flat',
+      'host'       : p.Get('host'),
+      'rootDirName': p.Get('rootDirName'),
+      'user'       : p.Get('user'),
+      'password'   : p.Get('password'),
+      },
 }]
 
 r = Project.ResolveDependencies(test)
@@ -69,7 +78,7 @@ test = [{
        }]
 
 r = Project.ResolveDependencies(test)
-sys.exit()
+#sys.exit()
 
 #test = [{
 #       'repository' : 'atta.repositories.Local',
@@ -83,22 +92,22 @@ sys.exit()
 
 #r = Project.ResolveDependencies(test)
 
-#test = [{
-#       'repository' : 'atta.repositories.Maven',
-#       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
-#       'package'    : 'commons-net.jar:3.0.1',
-#       'putIn' :
-#          {
-#           'repository' : 'atta.repositories.Ftp',
-#           'style'      : 'atta.repositories.Styles.Flat',
-#           'host'       : p.Get('host'),
-#           'rootDirName': p.Get('rootDirName'),
-#           'user'       : p.Get('user'),
-#           'password'   : p.Get('password'),
-#          },
-#        }]
-#
-#r = Project.ResolveDependencies(test)
+test = [{
+       'repository' : 'atta.repositories.Maven',
+       #'package'    : 'org.jvnet.libzfs:libzfs.jar:0.5',
+       'package'    : 'commons-net.jar:3.0.1',
+       'putIn' :
+          {
+           'repository' : 'atta.repositories.Ftp',
+           'style'      : 'atta.repositories.Styles.Flat',
+           'host'       : p.Get('host'),
+           'rootDirName': p.Get('rootDirName'),
+           'user'       : p.Get('user'),
+           'password'   : p.Get('password'),
+          },
+        }]
+
+r = Project.ResolveDependencies(test)
 #sys.exit()
 
 # Get any files from FTP...
@@ -122,7 +131,7 @@ test = [
     'password'   : p.Get('password'),
     'package'    : PP,
     'putIn'     : {'repository' : 'atta.repositories.Local',
-                   'rootDirName': Project.dirName + '/repository/PP',
+                   'rootDirName': Project.dirName + '/repository',
                    'lifeTime' : 15, # in seconds
                    'style' : 'atta.repositories.Styles.Flat',
                   },

@@ -5,6 +5,7 @@ import hashlib
 import tempfile
 from time import sleep
 
+from ..loggers import Progress
 from .. import AttaError, OS, Dict, LogLevel
 from . import Base, Local, Remote
 
@@ -22,9 +23,8 @@ class Repository(Remote.Repository):
     self.ftp = ftplib.FTP()
     self.ftp.set_debuglevel(0)
 
-    from socket import _GLOBAL_DEFAULT_TIMEOUT
     self.port = self.data.get(Dict.port, 21)
-    self.ftp.connect(self.host, self.port, self.data.get(Dict.timeout, _GLOBAL_DEFAULT_TIMEOUT))
+    self.ftp.connect(self.host, self.port, self.data.get(Dict.timeout, Remote.DEFAULT_TIMEOUT))
 
     user = self.data.get(Dict.user)
     passwd = self.data.get(Dict.pasword)
@@ -39,7 +39,7 @@ class Repository(Remote.Repository):
       self.cache = Local.Repository(style = self.data.get(Dict.style, Base.Repository.GetDefaultStyleImpl()),
                                     rootDirName = cacheDirName)
 
-    self.maxRetries = self.data.get(Dict.maxRetries, 5)
+    self.maxRetries = self.data.get(Dict.maxRetries, 3)
 
   def __del__(self):
     try:
@@ -90,31 +90,32 @@ class Repository(Remote.Repository):
 
   def _GetFileLikeCallback(self, data):
     self.tempFile.write(data)
+    self.progress.Feed(len(data))
 
   def GetFileLike(self, fileName, logLevel = LogLevel.VERBOSE):
-    self.tempFile = tempfile.SpooledTemporaryFile()
     fileName = self.NormPath(fileName)
-    self.Log(Dict.msgDownloadingFile % fileName, level = logLevel)
+    self.Log(Dict.msgDownloading % self.Url() + fileName, level = logLevel)
 
+    self.tempFile = tempfile.SpooledTemporaryFile(max_size = 1024 * 1024 * 5)
     retries = 0
     while retries < self.maxRetries:
       try:
+        self.progress = Progress.Bar(max = self.FileSize(fileName))
         self.ftp.retrbinary('RETR ' + fileName, self._GetFileLikeCallback)
-        break
+        self.tempFile.seek(0)
+        self.progress.End()
+        return self.tempFile
       except ftplib.Error as E:
-        self.Log("Error '%s' while downloading the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
+        self.Log("Error '%s' while downloading: %s" % (str(E), self.Url() + fileName), level = LogLevel.ERROR)
         if str(E).find('550') >= 0:
           raise
         else:
           self.Log('Retry download (%d).' % (retries + 1), level = LogLevel.WARNING)
-          self.tempFile.seek(0)
+          self.tempFile.truncate()
           retries += 1
           if retries >= self.maxRetries:
             raise
           sleep(2.00)
-
-    self.tempFile.seek(0)
-    return self.tempFile
 
   def _FileNameInCache(self, fileName):
     return os.path.join(str(self.cache.rootDirName), os.path.relpath(fileName, self.rootDirName))
@@ -139,6 +140,7 @@ class Repository(Remote.Repository):
     self.sha1.update(data)
     if self.fileInCache:
       self.fileInCache.write(data)
+    self.progress.Feed(len(data))
 
   def PutFileLike(self, f, fileName, logLevel = LogLevel.VERBOSE):
     self.fileInCache = None
@@ -150,20 +152,26 @@ class Repository(Remote.Repository):
       self.fileInCache = open(fileNameInCache, 'wb')
 
     fileName = self.NormPath(fileName)
-    self.Log(Dict.msgSavingFile % fileName, level = logLevel)
+    self.Log(Dict.msgSaving % self.Url() + fileName, level = logLevel)
 
+    bytesToSave = 0
     startPos = 0
     if 'tell' in dir(f):
       startPos = f.tell()
+      f.seek(0, os.SEEK_END)
+      bytesToSave = f.tell() - startPos
+      f.seek(startPos)
 
     retries = 0
     while retries < self.maxRetries:
       try:
+        self.progress = Progress.Bar('Saved', bytesToSave)
         self.sha1 = hashlib.sha1()
         self.ftp.storbinary('STOR ' + fileName, f, callback = self._PutFileLikeCallback) #, blocksize, callback, rest
+        self.progress.End()
         break
       except ftplib.Error as E:
-        self.Log("Error '%s' while saving the file: %s" % (str(E), fileName), level = LogLevel.ERROR)
+        self.Log("Error '%s' while saving: %s" % (str(E), self.Url() + fileName), level = LogLevel.ERROR)
         self.Log('Retry saving (%d).' % (retries + 1), level = LogLevel.WARNING)
         f.seek(startPos)
         if self.fileInCache:
@@ -192,7 +200,7 @@ class Repository(Remote.Repository):
     return rc
 
   def PutFileContents(self, contents, fileName, logLevel = LogLevel.DEBUG):
-    f = tempfile.SpooledTemporaryFile()
+    f = tempfile.SpooledTemporaryFile(max_size = 1024 * 1024)
     f.write(contents)
     f.seek(0)
     self.PutFileLike(f, fileName, logLevel)

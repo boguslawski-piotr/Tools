@@ -15,6 +15,7 @@ class Repository(Remote.Repository):
   def __init__(self, **tparams):
     Remote.Repository.__init__(self, **tparams)
     self._styleImpl = ObjectFromClass(Styles.Maven)
+    self.maxRetries = self.data.get(Dict.maxRetries, 1)
 
   def GetFileMarker(self, fileName):
     try:
@@ -71,18 +72,18 @@ class Repository(Remote.Repository):
 
       if download:
         # Get the artifact and put it into the store.
+        self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
         filesToDownload = []
         if pom:
           filesToDownload.append(NamedFileLike(Styles.Maven().FileName(PackageId.FromPackage(package, type = Dict.pom)),
                                  cStringIO.StringIO(pom)))
         if package.type != Dict.pom or not pom:
-          f = Repository.GetArtifactFile(package, pom, store.PrepareFileName(package), self.Log)
+          f = Repository.GetArtifactFile(package, pom, store.PrepareFileName(package), self.maxRetries, self.Log)
           if f is not None:
             filesToDownload.append(NamedFileLike(Styles.Maven().FileName(package), f))
           else:
             problem = True
         if not problem and filesToDownload:
-          self.Log(Dict.msgSendingXToY % (package.AsStrWithoutType(), store._Name()), level = LogLevel.INFO)
           try:
             filesInStore += store.Put('', filesToDownload, package)
           except Exception as E:
@@ -160,44 +161,42 @@ class Repository(Remote.Repository):
   resolvers = [Central()]
 
   @staticmethod
-  def GetArtifactFile(package, pom = None, excludedUrl = None, logFn = None):
+  def GetArtifactFile(package, pom = None, excludedUrl = None, maxRetries = 1, logFn = None):
     """TODO: description"""
     # Try to download the file from the repository(ies).
     resolvers = Repository.resolvers
     for resolver in resolvers:
       url = resolver.PackageUrl(package)
       if url and (not excludedUrl or url.find(excludedUrl) < 0):
-        if logFn:
-          logFn(Dict.msgDownloadingFile % url, level = LogLevel.VERBOSE)
+        if logFn: logFn(Dict.msgDownloading % url, level = LogLevel.VERBOSE)
         try:
-          return urllib2.urlopen(url)
-        except urllib2.URLError as E:
-          if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(package), url), level = LogLevel.ERROR)
+          return Remote.Repository.GetFileLikeForUrl(url, maxRetries, logFn = logFn)
+        except urllib2.URLError:
           continue
 
     # If the package is not found in any repository or when the error occurred,
     # check the alternate place(s) from which you can download the file.
 
-    def _AlternateDownload(url):
+    def _download(url):
       if url:
-        if logFn: logFn(Dict.msgDownloadingFile % url, level = LogLevel.VERBOSE)
+        if logFn: logFn(Dict.msgDownloading % url, level = LogLevel.VERBOSE)
         try:
-          return urllib2.urlopen(url)
-        except urllib2.HTTPError as E:
-          if logFn: logFn(Dict.errXWhileGettingYFromZ % (str(E), str(package), url), level = LogLevel.ERROR)
+          return Remote.Repository.GetFileLikeForUrl(url, maxRetries, logFn = logFn)
+        except urllib2.HTTPError:
+          pass
       return None
 
     if pom:
       # If is specified in the POM file.
-      f = _AlternateDownload(Repository.GetArtifactUrlFromPOM(pom, logFn))
+      f = _download(Repository.GetArtifactUrlFromPOM(pom, logFn))
       if f is not None:
         return f
     if package.downloadUrl:
       # If is specified in the package definition.
       if isinstance(package.downloadUrl, Repository.IResolver):
-        return _AlternateDownload(package.downloadUrl.PackageUrl(package))
+        return _download(package.downloadUrl.PackageUrl(package))
       else:
-        return _AlternateDownload(package.downloadUrl)
+        return _download(package.downloadUrl)
 
     return None
 
@@ -239,7 +238,7 @@ class Repository(Remote.Repository):
     pomFile = None if refresh else Repository.GetPOMFromCache(package, logFn)
     if pomFile is None:
       Repository.PutPOMIntoCache(package,
-                                 Repository.GetArtifactFile(package, None, None, logFn), logFn)
+                                 Repository.GetArtifactFile(package, None, None, 1, logFn), logFn)
     return Repository.GetPOMFromCache(package, logFn)
 
   @staticmethod
