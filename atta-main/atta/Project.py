@@ -7,6 +7,8 @@ from datetime import datetime
 from . import LogLevel, OS, Dict, Version, Env, PackageId
 from . import AttaError, Atta, File, _GetProject, _SetProject
 
+class NeedsRestartError(RuntimeError): pass
+
 class Project:
   """
   Project class
@@ -294,8 +296,12 @@ class Project:
 
       self._End(Project.SUCCESSFUL)
 
-    except Exception as e:
-      self._End(Project.FAILED, e)
+    except NeedsRestartError as E:
+      Atta.Log('\n' + str(E), project = self.fileName)
+      self._End(Project.SUCCESSFUL)
+
+    except Exception as E:
+      self._End(Project.FAILED, E)
       raise
 
     finally:

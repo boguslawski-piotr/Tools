@@ -28,7 +28,7 @@ public class main {
       config.setProperty("version", "(not known)");
     }
   }
-  
+
   public static void main(String[] args) throws Exception {
     Args parsedArgs = new Args();
     try {
@@ -40,18 +40,19 @@ public class main {
     }
     if (args.length == 0) {
       loadConfig();
-      jc.setProgramName( "main " + version.name + " (" + version.build + ")");
+      System.out.println("JavaMedium " + version.name + " (" + version.build + ")");
+      jc.setProgramName("JavaMedium");
       jc.usage();
       return;
     }
-    
+
     System.out.println("in main creating p1.c1");
     p1.c1 p1c1 = new p1.c1();
 		System.out.println("in main creating p2.c1");
     p2.c1 p2c1 = new p2.c1();
 		System.out.println("in main invoking p2.c1.run()");
     p2c1.run();
-    
+
     b1.c1 b1c1 = new b1.c1();
     b1c1.run();
 	}

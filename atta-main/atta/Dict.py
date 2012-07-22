@@ -43,6 +43,7 @@ attaExt = '.atta'
 
 infoExt = 'info'
 sha1Ext = 'sha1'
+zipExt = 'zip'
 gzExt = 'gz'
 tarExt = 'tar'
 targzExt = 'tar.gz'
@@ -146,8 +147,15 @@ paramDirName = 'dirName'
 #
 # Errors
 
-# TODO: jakos rozwiazac te powtorzenia Error...
+def FormatException(exception):
+  msg = str(exception)
+  if errError not in msg:
+    msg = errError + msg
+  return msg
 
+  # TODO: jakos rozwiazac te powtorzenia Error...
+
+errError = 'Error: '
 errNotImplemented = 'Error: Not implemented: {0}'
 errNotSpecified = 'Error: Not specified: {0}'
 errNotEnoughParams = 'Error: Not enough parameters.'

@@ -5,6 +5,19 @@ from .. import AttaError, OS, Dict, LogLevel
 from . import Local
 from . import Remote
 
+# basic auth:
+#from base64 import b64encode
+#
+#request = urllib2.Request('https://api.github.com/user')
+#request.add_header('Authorization', 'Basic ' + b64encode('user' + ':' + 'pass'))
+#r = urllib2.urlopen(request)
+#
+#print r.getcode()
+#print r.headers["content-type"]
+#print r.headers["X-RateLimit-Limit"]
+
+# use this?: https://github.com/bitprophet/requests
+
 class Repository(Remote.Repository):
   """TODO: description"""
   def __init__(self, **tparams):

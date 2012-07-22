@@ -1,8 +1,13 @@
 """.. TODO: TODO"""
 import os
+import sys
+import re
 import tarfile
+import zipfile
+from site import getsitepackages, getusersitepackages
 
-from .. import LogLevel, Dict, Task, OS, Delete
+from .. import AttaError, LogLevel, Dict, Task, OS, FileSet, DirFileSet, Delete, Version, PackageId
+from ..Project import NeedsRestartError
 from .Exec import Exec
 from .PyExec import PyExec
 
@@ -12,71 +17,251 @@ class VersionError(ImportError): pass
 class PyInstall(Task):
   """
   TODO: description
+  you may specify:
+   package:
+    fileNames (req)
+    importName (if not then artifactId)
+    siParams (params for install, def: none)
+
+  returns object with properties:
+
+  installedPackages
+  badPackages
+
+  they are a lists which each element is 5ple:
+    (package, importName, returnCode, errorMsg, output)
+
   """
   def __init__(self, packages, **tparams):
     # Parameters
     packages = OS.Path.AsList(packages)
+    failOnError = tparams.get(Dict.paramFailOnError, True)
+    force = tparams.get(Dict.paramForce, False)
+    upgrade = tparams.get('upgrade', True)
+    downgrade = tparams.get('downgrade', False)
+    sgParams = OS.SplitCmdLine(tparams.get('sgParams', []))
+    siParams = OS.SplitCmdLine(tparams.get('siParams', []))
 
+    self.installedPackages = []
+    self.badPackages = []
+    needsRestart = False
+
+    # Process all packages.
     for package in packages:
-      # Check whether the package is not already installed.
-      tryInstall = False
       importName = package.artifactId if not package.importName else package.importName
+      tryInstall = False
       try:
-        try:
-          m = __import__(importName.lower())
-        except ImportError as E:
-          if not importName.islower():
-            #print '***', E
-            m = __import__(importName)
-          else:
-            raise
-
-        v = m.__dict__.get('__version__')
-        if not v: v = m.__dict__.get('version')
-        if not v: v = m.__dict__.get(m, 'Version')
-        if not v:
-          raise NoVersionError('Package: %s does not contain information about the version.' % package.artifactId)
+        # Check whether the package is not already installed.
+        module, importName = self.TryImport(importName)
+        installedPackage = self.FindInPath(package)
+        if installedPackage is not None:
+          installedVersion = installedPackage.version
         else:
-          if str(v).strip().lower() == str(package.version).strip().lower():
-            self.Log('Package: %s already installed.' % package.AsStrWithoutType(), level = LogLevel.VERBOSE)
-          else:
-            raise VersionError('Package: %s already installed in version: %s' % (package.artifactId, str(v)))
+          installedVersion = self.FindVersion(module)
 
-      except NoVersionError as E:
-        print '@@@', E
-        tryInstall = True
-      except VersionError as E:
-        print '+++', E
-        tryInstall = True
-      except ImportError as E:
-        print '***', E
+        # Check installed version and required version.
+        if not installedVersion:
+          msg = 'Error: Package: %s does not provide information about the version comprehensible to Python.' % package.AsStrWithoutTypeAndVersion()
+          self.Log(msg, level = LogLevel.ERROR)
+          if force:
+            self.Log("Trying to install package: %s" % package.AsStrWithoutType(), level = LogLevel.INFO)
+            tryInstall = True
+        else:
+          pv = Version.FromStr(package.version, fileName = None)
+          iv = Version.FromStr(installedVersion, fileName = None)
+          tryReinstall = False
+          if pv == iv:
+            self.Log('Package: %s already installed.' % package.AsStrWithoutType(), level = LogLevel.VERBOSE)
+            if force:
+              tryReinstall = True
+          else:
+            self.Log('Package: %s already installed in version: %s' % (package.AsStrWithoutTypeAndVersion(), str(installedVersion)),
+                     level = LogLevel.INFO)
+            if force:
+              tryReinstall = True
+            else:
+              if pv > iv:
+                if upgrade:
+                  self.Log('Trying to upgrade to version: %s.' % str(package.version), level = LogLevel.INFO)
+                  tryInstall = True
+              else:
+                if downgrade:
+                  self.Log('Trying to downgrade to version: %s.' % str(package.version), level = LogLevel.INFO)
+                  tryInstall = True
+
+          if tryReinstall:
+            self.Log("Trying to reinstall package: %s" % package.AsStrWithoutType(), level = LogLevel.INFO)
+            tryInstall = True
+
+      except ImportError:
+        self.Log('Package: %s not installed. Trying to install.' % package.AsStrWithoutType(), level = LogLevel.INFO)
         tryInstall = True
 
       if tryInstall:
-        # The package is not installed or has a different version than required.
+        # The package is not installed, has a different version
+        # than required or parameter 'force' was specified.
         for fileName in OS.Path.AsList(package.fileNames):
           dirName = os.path.join(os.path.dirname(fileName), '.unpacked')
           installUsingDistUtils = False
-          installUsingWinInstaller = False
 
-          if OS.Path.Ext(fileName) == 'msi':
-            installUsingWinInstaller = True
-          elif tarfile.is_tarfile(fileName):
-            tarfile.open(fileName, 'r').extractall(dirName)
-            installUsingDistUtils = True
-
-          # Try to install.
-          if installUsingWinInstaller:
-            Exec(fileName)
-          elif installUsingDistUtils:
-            packageDirName = os.path.join(dirName, OS.Path.RemoveExt(OS.Path.RemoveExt(os.path.basename(fileName))))
-            setupFileName = os.path.join(packageDirName, 'setup.py')
-            if not os.path.exists(setupFileName):
-              raise RuntimeError('Package: %s does not include file: setup.py' % package.AsStrWithoutType())
+          # Prepare files for installation.
+          try:
+            if tarfile.is_tarfile(fileName):
+              tarfile.open(fileName, 'r').extractall(dirName)
+              installUsingDistUtils = True
+            elif zipfile.is_zipfile(fileName):
+              zipfile.ZipFile(fileName, mode = 'r', allowZip64 = True).extractall(dirName)
+              installUsingDistUtils = True
+          except Exception as E:
+            if failOnError:
+              raise
             else:
-              installSteps = 'install' if not package.installSteps else package.installSteps
-              for step in OS.Path.AsList(installSteps, ','):
-                #print dirName, setupFileName, step
-                PyExec(setupFileName, [step], dirName = packageDirName, **tparams)
+              self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
+              continue
 
-          Delete(dirName)
+          # Try install.
+          output = ''
+          returnCode = 0
+          installOK = False
+          if installUsingDistUtils:
+            files = FileSet(dirName, 'setup.py:*/setup.py', withRootDirName = True)
+            if not files:
+              msg = 'Package: %s does not contain file: setup.py' % package.AsStrWithoutType()
+              if failOnError:
+                raise AttaError(self, msg)
+              else:
+                self.Log(Dict.FormatException(msg), level = LogLevel.ERROR)
+                continue
+            else:
+              for setupFileName in files:
+                params  = sgParams[:]
+                params += ['install']
+                params += siParams if not package.siParams else OS.SplitCmdLine(package.siParams)
+                e = PyExec(setupFileName, params, dirName = os.path.dirname(setupFileName), **tparams)
+                output += e.output
+                returnCode = e.returnCode
+                installOK = returnCode == 0
+                if not installOK:
+                  break
+
+          if not installOK:
+            self.Log(Dict.FormatException('Package: %s NOT installed.' % (package.AsStrWithoutType())), level = LogLevel.ERROR)
+            self.badPackages.append((package, importName, returnCode, output, output))
+          else:
+            # The package was probably fully installed. Now try to modify
+            # the Python environment so that we can use installed package.
+            self.RemoveFromPath(package)
+            self.AddToPath(package)
+            try:
+              module, importName = self.TryImport(importName)
+              reload(module)
+
+              installedPackage = self.FindInPath(package)
+              if installedPackage is None:
+                installedVersion = self.FindVersion(module)
+              else:
+                installedVersion = installedPackage.version
+
+              self.Log('Package: %s installed in version: %s'
+                          % (package.AsStrWithoutTypeAndVersion(), str(installedVersion)), level = LogLevel.INFO)
+              self.installedPackages.append((package, importName, returnCode, '', output))
+
+            except ImportError as E:
+              self.badPackages.append((package, importName, -1, str(E), output))
+              needsRestart = True
+            except Exception as E:
+              if failOnError:
+                raise
+              else:
+                self.badPackages.append((package, importName, -1, str(E), output))
+                self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
+
+          # Delete temporary files and directories.
+          Delete(dirName, quiet = True, force = True, failOnError = failOnError)
+
+    if needsRestart:
+      msg = 'The following packages reported problems during the import:\n\n'
+      for package, importName, returnCode, errorMsg, output in self.badPackages:
+        msg += '  %s (%s)\n  Error: %s\n' % (package.AsStrWithoutType(), importName, errorMsg)
+      msg += "\nProbably 'distutils|setuptools' install other packages (dependencies).\nRestarting the build should fix the problem."
+      if failOnError:
+        raise NeedsRestartError(msg)
+      else:
+        self.Log(msg, level = LogLevel.ERROR)
+
+  def TryImport(self, importName):
+    module = None
+    try:
+      module = __import__(importName.lower())
+    except ImportError:
+      if not importName.islower():
+        module = __import__(importName)
+      else:
+        raise
+    else:
+      importName = importName.lower()
+    return module, importName
+
+  def FindVersion(self, module):
+    try:
+      v = module.__dict__.get('__version__')
+      if not v: v = module.__dict__.get('version')
+      if not v: v = module.__dict__.get('Version')
+      return v
+    except Exception:
+      return None
+
+  def FindInPath(self, package):
+    packageRegExp = re.compile(package.artifactId + r'-([a-zA-Z0-9\.]+)-')
+
+    paths = sys.path
+    for path in paths:
+      m = packageRegExp.search(path)
+      if m:
+        return PackageId.FromPackage(package, version = m.group(1))
+
+    sp = getsitepackages()
+    sp.append(getusersitepackages())
+    for path in sp:
+      for fn in FileSet(path, packageRegExp, useRegExp = True):
+        m = packageRegExp.search(fn)
+        if m:
+          return PackageId.FromPackage(package, version = m.group(1))
+
+  def RemoveFromPath(self, package):
+    paths = []
+    for path in sys.path:
+      m = re.search(package.artifactId + '-(.+)-', path)
+      if not m:
+        paths.append(path)
+    sys.path = paths
+
+  def AddToPath(self, package):
+    # Find all 'site-packages' directories.
+    sp = getsitepackages()
+    sp.append(getusersitepackages())
+    for path in sp:
+      if os.path.exists(path) and path not in sys.path:
+        sys.path.append(path)
+
+    # Add package to Python path.
+    for path in sp:
+      packageFileName = package.artifactId + '-' + package.version
+      files = DirFileSet(path, [packageFileName + '*.egg', packageFileName + '*.zip'], withRootDirName = True)
+      for fn in files:
+        if os.path.exists(fn) and fn not in sys.path:
+          sys.path.append(fn)
+
+    # Try to add all packages missing in path but existing in easy-install.pth.
+    for path in sp:
+      pth = os.path.join(path, 'easy-install.pth')
+      try:
+        pth = OS.LoadFile(pth)
+        pth = pth.split('\n')
+        for fn in pth:
+          if not fn.startswith(('#', "import ", "import\t")):
+            fn = os.path.realpath(os.path.join(path, fn))
+            if os.path.exists(fn) and fn not in sys.path:
+              sys.path.append(fn)
+      except Exception:
+        pass

@@ -84,7 +84,7 @@ class Repository(Base.Repository, Task):
     dirName = os.path.join(os.path.dirname(fileName), Dict.attaExt)
     return os.path.join(dirName, os.path.basename(fileName) + Dict.attaExt)
 
-  def GetFileMarker(self, fileName):
+  def GetFileMarker(self, fileName, forGet):
     """TODO: description"""
     markerFileName = self.PrepareMarkerFileName(fileName)
     try:
@@ -116,7 +116,7 @@ class Repository(Base.Repository, Task):
     fileName = self.PrepareFileName(package)
     return OS.Path.JoinExt(OS.Path.RemoveExt(self.PrepareMarkerFileName(fileName)), Dict.infoExt)
 
-  def GetInfoFileContents(self, package):
+  def GetInfoFileContents(self, package, forGet):
     infoFileName = self.PrepareInfoFileName(package)
     if self.FileExists(infoFileName):
       return self.GetFileContents(infoFileName)
@@ -155,12 +155,12 @@ class Repository(Base.Repository, Task):
     else:
       return os.path.join(self.rootDirName, self._styleImpl.GetObject().FullFileName(package))
 
-  def GetAll(self, package):
+  def GetAll(self, package, forGet):
     fileName = self.PrepareFileName(package)
     dirName = os.path.dirname(fileName)
     result = []
     if not package.fileNames:
-      infoFile = self.GetInfoFileContents(package)
+      infoFile = self.GetInfoFileContents(package, forGet)
       if infoFile is not None:
         result = infoFile.split('\n')
         result = [self.NormPath(os.path.join(dirName, fn.strip())) for fn in result if fn.strip()]
@@ -174,12 +174,12 @@ class Repository(Base.Repository, Task):
     """Check and prepare the artifact files and get the artifact stamp if available."""
     fileName = self.PrepareFileName(package)
     dirName = os.path.dirname(fileName)
-    allFiles = self.GetAll(package)
+    allFiles = self.GetAll(package, True)
     for fn in allFiles:
       if not self.FileExists(fn):
         raise IOError(Dict.errFileNotExists % (self.Url() + fn))
     if allFiles:
-      package.stamp, _ = self.GetFileMarker(allFiles[0])
+      package.stamp, _ = self.GetFileMarker(allFiles[0], True)
     return allFiles, dirName
 
   def _Get(self, package, scope, store, resolvedPackages):
@@ -187,7 +187,7 @@ class Repository(Base.Repository, Task):
     '''returns: list of filesNames'''
     # Get the dependencies.
     additionalFiles = []
-    for p in self.GetDependencies(package, scope) or ():
+    for p in self.GetDependencies(package, scope, True) or ():
       if not package.Excludes(p):
         if p not in resolvedPackages:
           resolvedPackages.append(p)
@@ -199,7 +199,7 @@ class Repository(Base.Repository, Task):
     try:
       allFiles, baseDirName = self.CheckAndPrepareFilesForGet(package)
     except Exception as E:
-      self.Log(str(E), level = LogLevel.ERROR)
+      self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
       problem = True
     else:
       # Put the artifact files into store if specified.
@@ -234,11 +234,11 @@ class Repository(Base.Repository, Task):
       store.SetOptionalAllowed(self.OptionalAllowed())
     return self._Get(package, scope, store, [])
 
-  def GetDependencies(self, package, scope):
+  def GetDependencies(self, package, scope, forGet):
     # TODO: zrobic to jakims uniwersalnym mechanizmem, ktory pozwoli
     # rejestrowac rozne rodzaje plikow z zaleznosciami pakietow
 
-    allFiles = self.GetAll(package)
+    allFiles = self.GetAll(package, forGet)
 
     packageHasPOMFile =  Dict.pom in [OS.Path.Ext(fileName).lower() for fileName in allFiles]
     if packageHasPOMFile:
@@ -254,13 +254,13 @@ class Repository(Base.Repository, Task):
     """returns: None or list of filesNames"""
     self.Log(Dict.msgCheckingWithX.format(str(package), package.stamp), level = LogLevel.VERBOSE)
 
-    allFiles = self.GetAll(package)
+    allFiles = self.GetAll(package, False)
     for fileName in allFiles:
       if not self.FileExists(fileName):
         #print '***1', fileName
         return None
 
-      storedStamp, storedSha1 = self.GetFileMarker(fileName)
+      storedStamp, storedSha1 = self.GetFileMarker(fileName, False)
       if storedStamp is None:
         #print '***2'
         return None
@@ -291,7 +291,7 @@ class Repository(Base.Repository, Task):
 
     # Check dependencies.
     additionalFiles = []
-    for p in self.GetDependencies(package, scope) or ():
+    for p in self.GetDependencies(package, scope, False) or ():
       if not package.Excludes(p):
         if p not in checkedPackages:
           checkedPackages.append(p)

@@ -50,6 +50,6 @@ class Deployer(Task):
         if failOnError:
           raise
         else:
-          self.Log(str(E), level = LogLevel.ERROR)
+          self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
 
     return result

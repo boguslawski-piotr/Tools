@@ -12,16 +12,22 @@ if Project is not None:
   Project.vcs = Git()
 
   # Install all needed dependencies.
-  packages = {
+  packages = [
+    {
     'repository': '.repositories.Http',
+    'style'     : '.repositories.Styles.OnlyFileName',
     'url'       : 'http://prdownloads.sourceforge.net/cx-freeze',
-    'package'   : 'cx_Freeze:4.3',
-    'fileNames' : 'cx_Freeze-4.3.tar.gz'
-  }
+    'package'   : 'cx_Freeze.tar.gz:4.3',
+    #'fileNames' : 'cx_Freeze-4.3.tar.gz'
+    },
+    {
+    'repository': '.repositories.PyPI',
+    'package'   : 'Sphinx.tar.gz:1.1.3'
+    }
+  ]
 
   _, packages = Project.ResolveDependencies(packages)
-  PyInstall(packages, logOutput = (Atta.LogLevel() <= LogLevel.VERBOSE))
-
+  PyInstall(packages, failOnError = False, logOutput = (Atta.LogLevel() <= LogLevel.VERBOSE))
 
 #------------------------------------------------------------------------------
 
@@ -63,21 +69,15 @@ class tests(Target):
 #------------------------------------------------------------------------------
 
 class unittests(Target):
-  """ Run Atta unit tests.
-  """
+  """ Run Atta unit tests."""
   def Run(self):
     from datetime import datetime
     Echo('\n\nSTARTED at: %s\n======================================================================\n\n' % datetime.today(),
           file = 'unittests.log', append = True)
-
     t = PyExec('-m', ['unittest', 'discover', '-v', '-p', '*', '-s', 'tests\unittest'], failOnError = False, useShell = False)
-
     Echo(t.output, file = 'unittests.log', append = True)
-
     if t.returnCode:
       raise AttaError(self, 'Unit tests are not performed correctly.')
-
-    return
 
 #------------------------------------------------------------------------------
 
@@ -276,5 +276,3 @@ class nextBuild(Target):
       Project.vcs.SetTag('v' + Atta.version)
       Project.version.NextPatch()
       Project.vcs.CommitAndPublishAllChanges('Next build number', remotes = 'origin sf')
-
-

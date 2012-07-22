@@ -2,6 +2,7 @@
 import os
 
 from .. import Dict
+from .Misc import isstring
 from . import OS
 
 class FileSet(list):
@@ -89,8 +90,7 @@ class FileSet(list):
     # Prepare parameters.
     includes = OS.Path.AsList(includes)
     excludes = OS.Path.AsList(excludes)
-    if tparams.get('useDefaultExcludes', True):
-      excludes.extend(FileSet.DEFAULT_EXCLUDES)
+    useDefaultExcludes = tparams.get('useDefaultExcludes', True)
     useRegExp = tparams.get('useRegExp', False)
     realPaths = tparams.get('realPaths', False)
     withRootDirName = tparams.get('withRootDirName', False)
@@ -111,9 +111,10 @@ class FileSet(list):
     # Optimize simple calls.
     useWalk = False
     for pattern in includes:
-      if OS.Path.HasAntStyleWildcards(pattern) or pattern.find('/') >= 0 or pattern.find('\\') >= 0:
-        useWalk = True
-        break
+      if isstring(pattern):
+        if OS.Path.HasAntStyleWildcards(pattern) or pattern.find('/') >= 0 or pattern.find('\\') >= 0:
+          useWalk = True
+          break
     if not useWalk:
       # If there are no subdirectories and/or Ant-style wildcards
       # in includes then use the simplest directory list.
@@ -158,6 +159,11 @@ class FileSet(list):
         if nameToAdd:
           for pattern in excludes:
             if OS.Path.Match(pattern, nameToAdd, useRegExp):
+              nameToAdd = None
+              break
+        if nameToAdd and useDefaultExcludes:
+          for pattern in FileSet.DEFAULT_EXCLUDES:
+            if OS.Path.Match(pattern, nameToAdd, False):
               nameToAdd = None
               break
         if nameToAdd:

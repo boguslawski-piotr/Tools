@@ -66,3 +66,20 @@ class PyPI(Flat):
   """TODO: description"""
   def DirName(self, package):
     return 'packages/source/%s/%s' % (str(package.artifactId)[0], str(package.artifactId))
+
+class GitHub(Flat):
+  """TODO: description"""
+  def DirName(self, package):
+    #https://github.com/boguslawski-piotr/atta/tarball/v0.2.2
+    #https://github.com/boguslawski-piotr/atta/zipball/v0.2.2
+    #https://github.com/boguslawski-piotr/atta/tarball/master
+    #https://github.com/boguslawski-piotr/atta/zipball/master
+    dirName = '%s/%s' % (str(package.groupId), str(package.artifactId))
+    if package.type == Dict.targzExt:
+      dirName += '/tarball/'
+    elif package.type == Dict.zipExt:
+      dirName += '/zipball/'
+    if package.version != 'master':
+      dirName += 'v'
+    dirName += str(package.version)
+    return dirName

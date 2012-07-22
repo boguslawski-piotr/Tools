@@ -65,7 +65,7 @@ class Repository(Local.Repository):
       try:
         allFiles, baseDirName = self.CheckAndPrepareFilesForGet(package)
       except Exception as E:
-        self.Log(str(E), level = LogLevel.ERROR)
+        self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
         problem = True
       else:
         if package.stamp is not None:
@@ -76,7 +76,7 @@ class Repository(Local.Repository):
           filesInStore = []
 
           # Get the dependencies.
-          packages = self.GetDependencies(package, scope)
+          packages = self.GetDependencies(package, scope, True)
           for p in packages or ():
             if not package.Excludes(p):
               if p not in resolvedPackages:

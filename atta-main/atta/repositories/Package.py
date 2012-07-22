@@ -75,6 +75,13 @@ class PackageId:
     else:
       return '%s:%s:%s' % (str(self.groupId), str(self.artifactId), str(self.version))
 
+  def AsStrWithoutTypeAndVersion(self):
+    """TODO: description"""
+    if not self.groupId or self.groupId == self.artifactId:
+      return '%s' % str(self.artifactId)
+    else:
+      return '%s:%s' % (str(self.groupId), str(self.artifactId))
+
   def AsFileName(self, style):
     """TODO: description"""
     style = ObjectFromClass(style)

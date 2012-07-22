@@ -350,7 +350,7 @@ class Filter(Task):
       if err:
         self.Log(Dict.errOSErrorForX % (err, os.strerror(err), str(fileName)), level = LogLevel.ERROR)
       else:
-        self.Log(str(E), level = LogLevel.ERROR)
+        self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
 
   def Log(self, msg = '', **args):
     if not Dict.paramLevel in args:

@@ -17,7 +17,7 @@ class Repository(Remote.Repository):
     self._styleImpl = ObjectFromClass(Styles.Maven)
     self.maxRetries = self.data.get(Dict.maxRetries, 1)
 
-  def GetFileMarker(self, fileName):
+  def GetFileMarker(self, fileName, forGet):
     try:
       sha1 = self.GetFileContents(OS.Path.JoinExt(fileName, Dict.sha1Ext))
       sha1 = sha1[:40]
@@ -35,7 +35,7 @@ class Repository(Remote.Repository):
   def CompleteFileName(self, fileName):
     return os.path.normpath(os.path.join(os.path.expanduser('~'), '.m2', fileName))
 
-  def GetAll(self, package):
+  def GetAll(self, package, forGet):
     result = [self.PrepareFileName(package)]
     if package.type != Dict.pom:
       result.append(self.PrepareFileName(PackageId.FromPackage(package, type = Dict.pom)))

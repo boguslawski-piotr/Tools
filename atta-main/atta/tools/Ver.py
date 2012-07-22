@@ -122,6 +122,26 @@ class Version(Observable, Task):
 
     self.NotifyObservers(Version.Events.AfterConfigure)
 
+  @staticmethod
+  def FromStr(vstr, **tparams):
+    v = Version(**tparams)
+    vstr = [c if c.isdigit() else '.' + c if c != '.' else '.' for c in vstr]
+    vstr = ''.join(vstr)
+    vlist = vstr.split('.')
+    def _int(s):
+      # Change all not numeric chars to int.
+      s = [c if c.isdigit() else str((ord(c.lower())-97)) if c.isalpha() else '0' for c in s]
+      s = ''.join(s)
+      return int(s)
+    try:
+      v.major = _int(vlist[0])
+      v.minor = _int(vlist[1])
+      v.patch = _int(vlist[2])
+      v.build = _int(vlist[3])
+    except Exception:
+      pass
+    return v
+
   def AsStr(self):
     """TODO: description"""
     return str(self)
@@ -208,6 +228,20 @@ class Version(Observable, Task):
                     prefix = self.prefix,
                     postfix = self.postfix)
 
+
+  def __eq__(self, other):
+    return self._AsInt() == other._AsInt()
+  def __ne__(self, other):
+    return self._AsInt() != other._AsInt()
+  def __lt__(self, other):
+    return self._AsInt() < other._AsInt()
+  def __le__(self, other):
+    return self._AsInt() <= other._AsInt()
+  def __gt__(self, other):
+    return self._AsInt() > other._AsInt()
+  def __ge__(self, other):
+    return self._AsInt() >= other._AsInt()
+
   def _Changed(self, forceUpdate, old = None):
     if forceUpdate:
       self._ForceUpdate()
@@ -218,8 +252,9 @@ class Version(Observable, Task):
       self.changed = True
 
   def _CreateIfNotExists(self):
-    if not os.path.exists(self.fileName):
-      self._ForceUpdate()
+    if self.fileName:
+      if not os.path.exists(self.fileName):
+        self._ForceUpdate()
 
   def _ForceUpdate(self):
     self.changed = True
@@ -231,6 +266,8 @@ class Version(Observable, Task):
     return re.compile('(\s*version\s*=\s*(.+))\s*$')
 
   def _Read(self):
+    if not self.fileName:
+      return True
     if not os.path.exists(self.fileName):
       return False
     f = open(self.fileName, 'r')
@@ -257,6 +294,8 @@ class Version(Observable, Task):
     return fo
 
   def _UpdateExisting(self):
+    if not self.fileName:
+      return None
     found = False
     fo = cStringIO.StringIO()
     f = open(self.fileName, 'r')
@@ -283,7 +322,7 @@ class Version(Observable, Task):
     return fo
 
   def _Update(self):
-    if not self.changed:
+    if not self.changed or not self.fileName:
       return True
     self.NotifyObservers(Version.Events.BeforeUpdate)
 
@@ -302,6 +341,9 @@ class Version(Observable, Task):
     self.changed = False
     self.NotifyObservers(Version.Events.AfterUpdate)
     return True
+
+  def _AsInt(self):
+    return self.major * 100000000 + self.minor * 1000000 + self.patch * 5000 + self.build
 
   def _AsStr(self):
     return '%d.%d.%d.%d' % (self.major, self.minor, self.patch, self.build)
