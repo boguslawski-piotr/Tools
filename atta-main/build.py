@@ -27,7 +27,7 @@ if Project is not None:
   ]
 
   _, packages = Project.ResolveDependencies(packages)
-  PyInstall(packages, failOnError = False, logOutput = (Atta.LogLevel() <= LogLevel.VERBOSE))
+  PyInstall(packages, siParams = '--user', failOnError = False, logOutput = (Atta.LogLevel() <= LogLevel.VERBOSE))
 
 #------------------------------------------------------------------------------
 
@@ -258,7 +258,9 @@ class build(Target):
     from buildexeprops import installBaseDirName, installDirName, platformInstallDirName, archiveFileName
     zipFileName = os.path.join(installBaseDirName, archiveFileName)
     Zip(zipFileName, FileSet(platformInstallDirName, includes = '**/*'))
-    Delete(installDirName)
+    Delete(installDirName, force = True)
+    if OS.IsUnix():
+      Delete(installBaseDirName + '/bin', force = True)
 
 #------------------------------------------------------------------------------
 

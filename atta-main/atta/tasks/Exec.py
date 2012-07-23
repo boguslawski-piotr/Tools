@@ -59,7 +59,7 @@ class Exec(Task):
     exeExt = '.exe' if OS.IsWindows() else ''
     executable = DefaultVarsExpander.Expander().Expand(executable, bat = batExt, cmd = cmdExt, exe = exeExt, sh = shExt)
 
-    _params = [os.path.normpath(executable)]
+    _params = [executable]
     _params.extend(params)
     if env is None:
       env = self.Env()

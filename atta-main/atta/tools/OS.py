@@ -15,6 +15,18 @@ def IsWindows():
   """Returns `True` if the code is executed in Windows."""
   return platform.system() == 'Windows'
 
+def IsLinux():
+  """Returns `True` if the code is executed in Linux (any version)."""
+  return platform.system() in ('Linux',)
+
+def IsOSX():
+  """Returns `True` if the code is executed in Mac OSX (any version)."""
+  return platform.system() == 'MacOS'
+
+def IsUnix():
+  """Returns `True` if the code is executed in Linux (any version)."""
+  return IsLinux() or IsOSX()
+
 #
 # Path Tools
 
