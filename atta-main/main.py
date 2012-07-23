@@ -7,6 +7,7 @@ import sys
 import os
 
 from atta.tools.internal.Misc import AttaClassOrModule
+from atta.tools.Misc import isstring
 from atta import Atta, LogLevel, Properties, OS, Dict
 
 def _ParseArgv(argv):
@@ -66,7 +67,7 @@ Bugs, comments and suggestions please report on page\nhttps://github.com/bogusla
 
   args, argv = argsParser.parse_known_args(argv)
   if argv:
-    print(Atta.name + ': error: unrecognized arguments: %s\n' % ' '.join(argv))
+    print((Atta.name + ': error: unrecognized arguments: %s\n' % ' '.join(argv)))
     argsParser.print_help()
     return None
 
@@ -100,7 +101,7 @@ def Main():
   # Setup environment
   minPythonVersion = '2.7.0'
   if int(platform.python_version().replace('.', '')) < int(minPythonVersion.replace('.', '')):
-    print('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version()))
+    print(('Wrong version of Python. Requires {0}+ and {1} were detected.'.format(minPythonVersion, platform.python_version())))
     return 1
 
   Atta.dirName = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -154,13 +155,13 @@ def Main():
   # Handle settings.
 
   def Bool(v):
-    if isinstance(v, basestring):
+    if isstring(v):
       v = v.lower()
       return v == '1' or v == Dict.true or v == Dict.yes
     return bool(v)
 
   # -Dname=value definitions
-  for N, V in props.items():
+  for N, V in list(props.items()):
     if N.startswith('D'):
       environ[N[1:]] = '1' if len(V) <= 0 else V
 
@@ -212,8 +213,8 @@ def Main():
       lines = traceback.extract_tb(exc_traceback)
       lines = lines[-5:] # only last five
       for line in lines:
-        print('%s: %d' % (line[0], line[1]))
-        print('  %s' % line[3])
+        print(('%s: %d' % (line[0], line[1])))
+        print(('  %s' % line[3]))
       print('')
       for line in traceback.format_exception_only(exc_type, exc_value):
         print(line)

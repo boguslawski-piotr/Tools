@@ -3,6 +3,7 @@ import os
 import zipfile
 from datetime import datetime
 
+from .Misc import isstring
 from .Interfaces import IArchiveFile
 from .. import AttaError
 
@@ -19,7 +20,7 @@ class ZipFile(IArchiveFile):
     return True
 
   def write(self, file_, arcName):
-    if isinstance(file_, basestring):
+    if isstring(file_):
       return self.zip.write(file_, arcName)
     else:
       raise AttaError(self, 'TODO: Not implemented.')

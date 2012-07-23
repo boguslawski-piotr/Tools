@@ -139,7 +139,8 @@ class Path:
     """
     path = path.replace('\\', '/')
     if useRegExp:
-      if isinstance(pattern, basestring):
+      from .Misc import isstring
+      if isstring(pattern):
         return re.match(pattern, path) is not None
       else:
         return pattern.match(path) is not None
@@ -304,8 +305,8 @@ class Path:
     """TODO: description"""
     if paths is None:
       return []
-    from .Misc import isiterable
-    if isinstance(paths, basestring):
+    from .Misc import isiterable, isstring
+    if isstring(paths):
       if sep == ':' and IsWindows():
         # This is a very ugly solution, but works.
         r = re.compile('[a-zA-Z]{1,1}(\\:)\\\\')

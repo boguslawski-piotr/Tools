@@ -4,6 +4,7 @@ import os
 import types
 from datetime import datetime
 
+from .tools.Misc import isstring
 from . import LogLevel, OS, Dict, Version, Env, PackageId
 from . import AttaError, Atta, File, _GetProject, _SetProject
 
@@ -322,7 +323,7 @@ class Project:
     return
 
   def _GetTargetClass(self, targetClass):
-    if isinstance(targetClass, basestring):
+    if isstring(targetClass):
       targetClass = targetClass.replace('/', '.').replace('\\', '.')
       tryTargetInProject = True
       while True:

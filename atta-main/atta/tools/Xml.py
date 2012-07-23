@@ -2,6 +2,7 @@
 import re
 import xml.etree.ElementTree as ET
 
+from .Misc import isstring
 from . import OS
 
 class XmlElement(ET.Element):
@@ -182,7 +183,7 @@ class Xml:
   def read(self, src):
     """src can be: xml data (as string), filename or filelike object"""
     parser = ET.XMLParser(target = _TreeBuilderEx(XmlElement))
-    if isinstance(src, basestring) and src.lstrip().startswith('<'):
+    if isstring(src) and src.lstrip().startswith('<'):
       self._root = ET.XML(src, parser)
     else:
       self._root = ET.parse(src, parser).getroot()

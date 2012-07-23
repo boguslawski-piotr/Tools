@@ -1,7 +1,7 @@
 """.. Miscellaneous: Echoes a message: echo"""
 import os
 
-from ..tools.Misc import isiterable
+from ..tools.Misc import isiterable, isstring
 from .. import Dict, LogLevel, Task, OS
 
 class Echo(Task):
@@ -30,13 +30,13 @@ class Echo(Task):
     file = tparams.get('file', None)
     expandVars = tparams.get('expandVars', True)
 
-    if isinstance(msg, basestring) and expandVars:
+    if isstring(msg) and expandVars:
       msg = self.ExpandVars(msg, **tparams)
 
     if file is None:
       if isiterable(msg):
         for line in msg:
-          if isinstance(line, basestring) and expandVars:
+          if isstring(line) and expandVars:
             line = self.ExpandVars(line, **tparams)
           self.Log(line, level = level)
       else:
@@ -45,7 +45,7 @@ class Echo(Task):
       append = tparams.get('append', False)
       force = tparams.get('force', False)
 
-      if isinstance(file, basestring):
+      if isstring(file):
         if force:
           OS.SetReadOnly(file, False)
         if append: mode = 'a+b'
@@ -58,11 +58,11 @@ class Echo(Task):
 
       if isiterable(msg):
         for line in msg:
-          if isinstance(line, basestring) and expandVars:
+          if isstring(line) and expandVars:
             line = self.ExpandVars(line, **tparams)
           _f.write(line)
       else:
         _f.write(msg)
 
-      if isinstance(file, basestring):
+      if isstring(file):
         _f.close()

@@ -4,7 +4,7 @@ import os
 from ..tools.internal.Misc import ObjectFromClass
 from ..compilers.Strategies import SrcNewerStrategy
 from ..compilers.JavaStd import JavaStdCompiler
-from ..tools.Misc import RemoveDuplicates
+from ..tools.Misc import RemoveDuplicates, isstring
 from .. import Dict, OS, FileSet, LogLevel, Task
 
 class Javac(Task):
@@ -79,7 +79,7 @@ class Javac(Task):
           if os.path.isdir(src):
             sourcePath.append(src)
             srcExts = self._compilerImpl.GetObject().SourceExts(**tparams)
-            if isinstance(srcExts, basestring):
+            if isstring(srcExts):
               srcExts = [srcExts]
             includes = []
             for srcExt in srcExts:

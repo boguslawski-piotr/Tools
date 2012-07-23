@@ -6,7 +6,7 @@ def isstring(obj):
 
 def isiterable(obj):
   """TODO: description"""
-  return not isinstance(obj, basestring)\
+  return not isstring(obj)\
          and (getattr(obj, '__getitem__', False) or getattr(obj, '__iter__', False))
 
 def RemoveDuplicates(iterable, preserveOrder = True):

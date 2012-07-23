@@ -46,7 +46,8 @@ class test(Target):
 
     class RegExReplace:
       def __init__(self, regex, to, count = 0):
-        if isinstance(regex, basestring):
+        from atta.tools.Misc import isstring
+        if isstring(regex):
           self.regex = re.compile(regex)
         else:
           self.regex = regex

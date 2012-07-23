@@ -7,6 +7,8 @@ import os
 
 from atta import *
 
+# python c:\python\tools\scripts\2to3.py -n -w -o atta3 atta >2to3.log
+
 if Project is not None:
   Project.version.Configure(fileName = 'atta/version.py', format = Version.Formats.MMP)
   Project.vcs = Git()
@@ -241,7 +243,7 @@ class makedocs(Target):
 
     # Show documentation
     if self.Env().get('SHOW'):
-      Exec(os.path.join('html', 'index.html'))
+      Exec(os.path.join('html', 'index.html'), failOnError = False)
 
 #------------------------------------------------------------------------------
 

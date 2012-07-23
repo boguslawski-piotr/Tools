@@ -1,5 +1,7 @@
 """.. no-user-reference:"""
 import sys
+
+from ..Misc import isstring
 from .. import OS
 
 def AttaClassOrModule(name):
@@ -27,7 +29,7 @@ class ObjectFromClass:
     self._object = None
     if type(_class) == type(CLS) or type(_class) == type(CLSO):
       self._class = _class
-    elif isinstance(_class, basestring):
+    elif isstring(_class):
       _class = AttaClassOrModule(_class)
       self._class = sys.modules[OS.Path.RemoveExt(_class)].__dict__[OS.Path.Ext(_class, False)]
     else:
