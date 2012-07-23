@@ -103,7 +103,7 @@ class Project:
         fullModuleName = OS.Path.RemoveExt(orgFileName).replace('\\', '.').replace('/', '.')
 
       packageFileName = None
-      if sys.modules.has_key(moduleName):
+      if moduleName in sys.modules:
         lastDOT = fullModuleName.rfind('.')
         if lastDOT >= 0:
           lastDOT = fullModuleName.rfind('.', 0, lastDOT - 1)
@@ -126,8 +126,7 @@ class Project:
         __import__(moduleName)
         module = sys.modules[moduleName]
 
-        if fullModuleName != moduleName \
-           and not sys.modules.has_key(fullModuleName):
+        if fullModuleName != moduleName and fullModuleName not in sys.modules:
           sys.modules[fullModuleName] = module
 
         if packageFileName is not None:
@@ -168,7 +167,7 @@ class Project:
   def RunTarget(self, targetClass, force = False):
     """TODO: description"""
     targetClass = self._GetTargetClass(targetClass)
-    if force or not self._executedTargets.has_key(targetClass):
+    if force or targetClass not in self._executedTargets:
       if types.FunctionType == type(targetClass):
         # Target is a normal function.
         self._executedTargetsList.append([targetClass, self._targetsLevel])
@@ -350,7 +349,7 @@ class Project:
               else:
                 key = targetPackage
             if key:
-              if self.targetsMap.has_key(key):
+              if key in self.targetsMap:
                 targetClass = self.targetsMap[key]
               else:
                 raise AttaError(self, 'Can not find: %s target.' % targetClassName)

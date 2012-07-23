@@ -17,17 +17,17 @@ class Bar:
     if sys.stdout.isatty():
       self.count += count
 
-      bps = int(self.count / max(1, (time() - self.startTime)))
+      bps = int(self.count // max(1, (time() - self.startTime)))
       self.bpsArray.append(bps)
       if len(self.bpsArray) > 100:
         del self.bpsArray[0]
-      bps = sum(self.bpsArray, 0) / len(self.bpsArray) / 1024
-      count = self.count / 1024 / 1024.0
+      bps = sum(self.bpsArray, 0) // len(self.bpsArray) // 1024
+      count = self.count // 1024 // 1024
 
       if self.max > 0:
         percet = min(100.0, math.ceil(float(self.count) / float(self.max) * 100.0))
         print("{4}: {2}% ({3}KB/s) ({0:.2f}MB / {1:.2f}MB)".format(count,
-                                                                   self.max / 1024 / 1024.0,
+                                                                   self.max // 1024 // 1024,
                                                                    int(percet),
                                                                    bps,
                                                                    self.title),

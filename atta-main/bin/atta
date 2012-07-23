@@ -23,4 +23,4 @@ cd "${oldpwd}"
 unset oldpwd
 
 # Run Atta.
-python $ATTA_HOME/main.py $@
+python -3 $ATTA_HOME/main.py $@
