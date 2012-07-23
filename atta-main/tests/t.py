@@ -73,7 +73,7 @@ test = []
 #  }]
 
 CryptPkg = PackageId.FromStr('pycrypto.tar.gz:2.6')
-CryptPkg.importName = 'Crypto'
+#CryptPkg.importName = 'Crypto'
 #CryptPkg.siParams = '--user'
 test += [{
   'repository': '.repositories.PyPI',
@@ -88,7 +88,7 @@ test += [{
   'fileNames' : 'pysftp-0.2.2.tar.gz'
 }]
 
-test += ['Jinja2.tar.gz:2.6', 'Pygments.tar.gz:1.5', 'pep8.tar.gz:1.3.3']
+test += ['Jinja2.tar.gz:2.6', 'Pygments.tar.gz:1.5', 'pep8.tar.gz:1.3.3', 'logilab-astng.tar.gz:0.23.1']
 
 #cx_FreezePkg = PackageId.FromStr('cx_Freeze:4.3')
 #cx_FreezePkg.siParams = '--user'
@@ -102,7 +102,7 @@ test += ['Jinja2.tar.gz:2.6', 'Pygments.tar.gz:1.5', 'pep8.tar.gz:1.3.3']
 #]
 
 files, packages = Project.ResolveDependencies(test, defaultRepository = '.repositories.PyPI')
-py = PyInstall(packages, failOnError = False, logOutput = False, downgrade = True, force = False)
+py = PyInstall(packages, sgParams = '--quiet', failOnError = False, logOutput = False, downgrade = True, force = False)
 #if py.badPackages:
 #  for package, importName, returnCode, errorMsg, output in py.badPackages:
 #    print output

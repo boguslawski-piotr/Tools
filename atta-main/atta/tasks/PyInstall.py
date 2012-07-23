@@ -146,7 +146,7 @@ class PyInstall(Task):
 
           if not installOK:
             self.Log(Dict.FormatException('Package: %s NOT installed.' % (package.AsStrWithoutType())), level = LogLevel.ERROR)
-            self.badPackages.append((package, importName, returnCode, output, output))
+            self.badPackages.append((package, importName, returnCode, '', output))
           else:
             # The package was probably fully installed. Now try to modify
             # the Python environment so that we can use installed package.
@@ -173,8 +173,8 @@ class PyInstall(Task):
               if failOnError:
                 raise
               else:
-                self.badPackages.append((package, importName, -1, str(E), output))
                 self.Log(Dict.FormatException(E), level = LogLevel.ERROR)
+                self.badPackages.append((package, importName, -1, str(E), output))
 
           # Delete temporary files and directories.
           Delete(dirName, quiet = True, force = True, failOnError = failOnError)
@@ -182,77 +182,110 @@ class PyInstall(Task):
     if needsRestart:
       msg = 'The following packages reported problems during the import:\n\n'
       for package, importName, returnCode, errorMsg, output in self.badPackages:
-        msg += '  %s (%s)\n  Error: %s\n' % (package.AsStrWithoutType(), importName, errorMsg)
-      msg += "\nProbably 'distutils|setuptools' install other packages (dependencies).\nRestarting the build should fix the problem."
+        msg += '  %s (%s)\n  %s\n' % (package.AsStrWithoutType(), importName, Dict.FormatException(errorMsg))
+      msg += "\nProbably were installed the packages of which Atta knows nothing.\nRestarting the build should fix the problem."
       if failOnError:
         raise NeedsRestartError(msg)
       else:
         self.Log(msg, level = LogLevel.ERROR)
 
   def TryImport(self, importName):
+    importName = importName.replace('-', '.')
+    names = [importName,
+             importName.lower() if not importName.islower() else '',
+             importName.capitalize() if not importName[0].isupper() else '',
+             importName.replace('py', '') if 'py' in importName else '',
+             importName.replace('py', '').capitalize() if 'py' in importName and not importName[0].isupper() else '',
+            ]
+
+    def _TryImport(name):
+      try:
+        module = __import__(name)
+        return module, name
+      except ImportError as E:
+        return None, name
+
     module = None
-    try:
-      module = __import__(importName.lower())
-    except ImportError:
-      if not importName.islower():
-        module = __import__(importName)
-      else:
-        raise
-    else:
-      importName = importName.lower()
-    return module, importName
+    badNames = []
+    for name in names:
+      if name:
+        module, name = _TryImport(name)
+        if module:
+          return module, name
+        else:
+          badNames.append(str(name))
+
+    raise ImportError('No module(s) named: ' + ', '.join(badNames))
 
   def FindVersion(self, module):
     try:
       v = module.__dict__.get('__version__')
       if not v: v = module.__dict__.get('version')
+      if not v: v = module.__dict__.get('_version')
       if not v: v = module.__dict__.get('Version')
+      if not v: v = module.__dict__.get('_Version')
+      if not v: v = module.__dict__.get('VERSION')
+      if not v: v = module.__dict__.get('_VERSION')
       return v
     except Exception:
       return None
 
   def FindInPath(self, package):
-    packageRegExp = re.compile(package.artifactId + r'-([a-zA-Z0-9\.]+)-')
+    def _FindInPath(name, package):
+      packageRegExp = re.compile(name + r'-([a-zA-Z0-9\._]+)-')
 
-    paths = sys.path
-    for path in paths:
-      m = packageRegExp.search(path)
-      if m:
-        return PackageId.FromPackage(package, version = m.group(1))
-
-    sp = getsitepackages()
-    sp.append(getusersitepackages())
-    for path in sp:
-      for fn in FileSet(path, packageRegExp, useRegExp = True):
-        m = packageRegExp.search(fn)
+      for path in sys.path:
+        m = packageRegExp.search(path)
         if m:
           return PackageId.FromPackage(package, version = m.group(1))
 
+      sp = getsitepackages()
+      sp.append(getusersitepackages())
+      for path in sp:
+        for fn in DirFileSet(path, packageRegExp, useRegExp = True):
+          m = packageRegExp.search(fn)
+          if m:
+            return PackageId.FromPackage(package, version = m.group(1))
+
+    p = _FindInPath(package.artifactId, package)
+    if p is None:
+      p = _FindInPath(package.artifactId.replace('-', '_'), package)
+    return p
+
   def RemoveFromPath(self, package):
-    paths = []
-    for path in sys.path:
-      m = re.search(package.artifactId + '-(.+)-', path)
-      if not m:
-        paths.append(path)
-    sys.path = paths
+    def _RemoveFromPath(name, package):
+      packageRegExp = re.compile(name + r'-([a-zA-Z0-9\._]+)-')
+      newsyspath = []
+      for path in sys.path:
+        m = packageRegExp.search(path)
+        if not m:
+          newsyspath.append(path)
+      sys.path = newsyspath
+
+    _RemoveFromPath(package.artifactId, package)
+    _RemoveFromPath(package.artifactId.replace('-', '_'), package)
 
   def AddToPath(self, package):
     # Find all 'site-packages' directories.
     sp = getsitepackages()
     sp.append(getusersitepackages())
     for path in sp:
-      if os.path.exists(path) and path not in sys.path:
+      if path not in sys.path and os.path.exists(path):
         sys.path.append(path)
 
-    # Add package to Python path.
-    for path in sp:
-      packageFileName = package.artifactId + '-' + package.version
-      files = DirFileSet(path, [packageFileName + '*.egg', packageFileName + '*.zip'], withRootDirName = True)
-      for fn in files:
-        if os.path.exists(fn) and fn not in sys.path:
-          sys.path.append(fn)
+    # Add package to sys.path.
+    def _AddToPath(name, version):
+      for path in sp:
+        packageFileName = name + '-' + version
+        files = DirFileSet(path, [packageFileName + '*.egg', packageFileName + '*.zip'], withRootDirName = True)
+        for fn in files:
+          if fn not in sys.path and os.path.exists(fn):
+            sys.path.append(fn)
+    _AddToPath(package.artifactId, package.version)
+    _AddToPath(package.artifactId.replace('-', '_'), package.version)
 
-    # Try to add all packages missing in path but existing in easy-install.pth.
+    # Try to add all the packages that are missing in
+    # sys.path but are listed in: easy-install.pth.
     for path in sp:
       pth = os.path.join(path, 'easy-install.pth')
       try:
@@ -261,7 +294,8 @@ class PyInstall(Task):
         for fn in pth:
           if not fn.startswith(('#', "import ", "import\t")):
             fn = os.path.realpath(os.path.join(path, fn))
-            if os.path.exists(fn) and fn not in sys.path:
+            if fn not in sys.path and os.path.exists(fn):
               sys.path.append(fn)
-      except Exception:
+      except Exception as E:
+        #self.Log(str(E), level = LogLevel.VERBOSE)
         pass
