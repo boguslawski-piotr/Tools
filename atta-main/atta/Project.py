@@ -18,6 +18,7 @@ class Project:
   """
   SUCCESSFUL = 0
   FAILED = 1
+  WARNING = 2
 
   def __init__(self, parent = None):
     #: DOCTODO: description
@@ -298,7 +299,7 @@ class Project:
 
     except NeedsRestartError as E:
       Atta.Log('\n' + str(E), project = self.fileName)
-      self._End(Project.SUCCESSFUL)
+      self._End(Project.WARNING)
 
     except Exception as E:
       self._End(Project.FAILED, E)
@@ -315,7 +316,9 @@ class Project:
       Atta.Log(
             project = self.fileName,
             end = True,
-            status = ('SUCCESSFUL' if status == Project.SUCCESSFUL else 'FAILED!'),
+            status = ('SUCCESSFUL' if status == Project.SUCCESSFUL
+                      else 'WITH WARNING' if status == Project.WARNING
+                      else 'FAILED!'),
             at = self.endTime,
             time = self.endTime - self.startTime,
             exception = exception,
