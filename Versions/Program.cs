@@ -44,14 +44,14 @@ namespace Versions
 				}
 				else
 				{
-					Console.WriteLine($"Loading {arg} for process {whichNumber}");
+					Console.WriteLine($"Loading: {arg} to process: {whichNumber}");
 					try
 					{
 						using (StreamReader s = File.OpenText(arg))
 						{
 							string json = s.ReadToEnd();
-							foreach (Version _v in JsonConvert.DeserializeObject<List<Version>>(json))
-								Process(_v, whichNumber);
+							foreach (Version v in JsonConvert.DeserializeObject<List<Version>>(json))
+								Process(v, whichNumber);
 						}
 					}
 					catch (Exception ex)
@@ -67,7 +67,7 @@ namespace Versions
 
 		static void Process(Version v, Number whichNumber)
 		{
-			Console.WriteLine($"  Processing {whichNumber} in {v.FileName}");
+			Console.WriteLine($"  Processing: {whichNumber} in: {v.FileName}");
 
 			int groupToProcess = -1;
 			if (whichNumber == Number.Major) groupToProcess = v.MajorGroup;
@@ -76,46 +76,48 @@ namespace Versions
 			if (whichNumber == Number.Revision) groupToProcess = v.RevisionGroup;
 			if (groupToProcess == -1)
 			{
-				Console.WriteLine($"    {whichNumber} has no assigned group, skiping");
+				Console.WriteLine($"    {whichNumber} has no assigned group");
 				return;
 			}
 
 			string d = null;
-			using (StreamReader s = File.OpenText(v.FileName))
-				d = s.ReadToEnd();
+			using (StreamReader reader = File.OpenText(v.FileName))
+				d = reader.ReadToEnd();
 
-			foreach (var i in v.Items)
+			foreach (var pattern in v.Items)
 			{
-				Match m = Regex.Match(d, i);
-				if (m.Success)
+				Match m = Regex.Match(d, pattern);
+				if (!m.Success)
 				{
-					Console.WriteLine($"    Found: {m.ToString()}");
-					int group = 0;
-					foreach (var gs in m.Groups)
+					Console.WriteLine($"    No match for: {pattern}");
+					continue;
+				}
+
+				Console.WriteLine($"    Found: {m.ToString()}");
+
+				int currentGroup = 0;
+				foreach (Group g in m.Groups)
+				{
+					// first group equals to whole match
+					if (currentGroup > 0 && currentGroup - 1 == groupToProcess)
 					{
-						if (group > 0) // first group equals to whole match
+						if (int.TryParse(g.ToString(), out int n))
 						{
-							if (group - 1 == groupToProcess && gs is Group g)
-							{
-								if (int.TryParse(g.ToString(), out int n))
-								{
-									Console.WriteLine($"      for group {group - 1} changing {n} to {n + 1}");
+							Console.WriteLine($"      For group: {currentGroup - 1} changing: {n} to {n + 1}");
 
-									n++;
-									string ds = d.Substring(0, g.Index);
-									string de = d.Substring(g.Index + g.Length);
-									d = ds + n.ToString() + de;
+							n++;
+							string ds = d.Substring(0, g.Index);
+							string de = d.Substring(g.Index + g.Length);
+							d = ds + n.ToString() + de;
 
-									using (StreamWriter writer = File.CreateText(v.FileName))
-										writer.Write(d);
-								}
-								else
-									Console.WriteLine($"      group {group} has incorrect number: {g.ToString()}");
-							}
+							using (StreamWriter writer = File.CreateText(v.FileName))
+								writer.Write(d);
 						}
-
-						group++;
+						else
+							Console.WriteLine($"      Group {currentGroup}: has incorrect number: {g.ToString()}");
 					}
+
+					currentGroup++;
 				}
 			}
 		}
