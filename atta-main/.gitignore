@@ -4,6 +4,8 @@
 *.pyc
 *.class
 
+.DS_Store
+
 .settings
 .atta
 .repository
