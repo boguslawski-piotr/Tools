@@ -146,7 +146,7 @@ namespace Versions
 					if (number == Number.Minor) groupToProcess = entry.MinorGroup;
 					if (number == Number.Build) groupToProcess = entry.BuildGroup;
 					if (number == Number.Revision) groupToProcess = entry.RevisionGroup;
-					if (groupToProcess == -1)
+					if (groupToProcess < 0)
 					{
 						_msgOut.WriteLine($"Pattern: {entry.Pattern} has no assigned group for: {number}");
 						continue;
@@ -158,46 +158,56 @@ namespace Versions
 						_msgOut.WriteLine($"No match for pattern: {entry.Pattern}");
 						continue;
 					}
+					if (groupToProcess > m.Groups.Count - 2)
+					{
+						_msgOut.WriteLine($"Entry with pattern: {entry.Pattern} has invalid group for: {number}");
+						continue;
+					}
 
 					_msgOut.WriteLine($"Found: {m.ToString()}");
 
-					int currentGroup = 0;
-					foreach (Group g in m.Groups)
+					Group g = m.Groups[groupToProcess + 1]; // first group equals to whole match
+					string lvalue = value;
+
+					if (operation != Operation.Set)
 					{
-						// first group equals to whole match
-						if (currentGroup > 0 && currentGroup - 1 == groupToProcess)
+						if (int.TryParse(g.ToString(), out int n))
 						{
-							if (operation != Operation.Set)
+							switch (operation)
 							{
-								if (int.TryParse(g.ToString(), out int n))
-								{
-									if (operation == Operation.Inc)
-										n++;
-									else
-										n--;
-									value = n.ToString();
-								}
-								else
-								{
-									_errOut.WriteLine($"Group {currentGroup - 1}: has incorrect number: {g.ToString()}");
-									value = null;
-								}
+								case Operation.Inc:
+									n++;
+									break;
+								case Operation.Dec:
+									n--;
+									break;
+								case Operation.Add:
+									n = n + int.Parse(lvalue);
+									break;
+								case Operation.Sub:
+									n = n - int.Parse(lvalue);
+									break;
 							}
 
-							if (value != null)
-							{
-								_msgOut.WriteLine($"For group: {currentGroup - 1} changing: {g.ToString()} to {value}");
-
-								string ds = d.Substring(0, g.Index);
-								string de = d.Substring(g.Index + g.Length);
-								d = ds + value + de;
-
-								using (StreamWriter writer = System.IO.File.CreateText(fileName))
-									writer.Write(d);
-							}
+							lvalue = n.ToString();
 						}
+						else
+						{
+							_errOut.WriteLine($"Group {groupToProcess}: has incorrect number: {g.ToString()}");
+							lvalue = null;
+						}
+					}
 
-						currentGroup++;
+					if (lvalue != null)
+					{
+						_msgOut.WriteLine($"For group: {groupToProcess} changing: {g.ToString()} to {lvalue}");
+
+						string ds = d.Substring(0, g.Index);
+						string de = d.Substring(g.Index + g.Length);
+						d = ds + lvalue + de;
+
+						using (StreamWriter writer = System.IO.File.CreateText(fileName))
+							writer.Write(d);
 					}
 				}
 			}
