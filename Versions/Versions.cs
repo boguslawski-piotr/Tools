@@ -59,6 +59,9 @@ namespace Versions
 
 			foreach (var arg in args)
 			{
+				if (string.IsNullOrWhiteSpace(arg))
+					continue;
+
 				if (arg.StartsWith("--", StringComparison.Ordinal))
 				{
 					if (!Enum.TryParse<Number>(arg.Substring(2), true, out Number number))
@@ -84,7 +87,7 @@ namespace Versions
 					else
 					{
 						string currentValueDesc = (currentOperation == Operation.Set) ? "to " + currentValue : null;
-						_msgOut.WriteLine($"Loading: {Path.GetFullPath(arg)} to process: {currentNumber} {currentOperation} {currentValueDesc}");
+						_msgOut.WriteLine($"Loading: \"{Path.GetFullPath(arg)}\" to process: {currentNumber} {currentOperation} {currentValueDesc}");
 						try
 						{
 							using (StreamReader s = System.IO.File.OpenText(arg))
@@ -130,7 +133,7 @@ namespace Versions
 			foreach (var vfn in fileNames)
 			{
 				string fileName = Path.GetFullPath(Path.Combine(path, vfn));
-				_msgOut.WriteLine($"Processing: {fileName}");
+				_msgOut.WriteLine($"Processing: \"{fileName}\"");
 
 				string d = null;
 				using (StreamReader reader = System.IO.File.OpenText(fileName))

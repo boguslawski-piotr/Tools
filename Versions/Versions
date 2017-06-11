@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$VERSIONS" ] ; then
+	export VERSIONS="$HOME/Projects/Tools/Versions/Versions.exe"
+	if [ ! -f $VERSIONS ] ; then
+		export VERSIONS=$(find -d $HOME -name "Versions.exe")
+		echo "Found: $VERSIONS"
+	fi
+fi
+
+mono $VERSIONS "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
