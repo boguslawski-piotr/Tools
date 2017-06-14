@@ -6,6 +6,12 @@ namespace Versions
 	{
 		public static void Main(string[] args)
 		{
+			if(args.Length <= 0)
+			{
+				DisplayHelp();
+				return;
+			}
+
 			foreach (var arg in args)
 			{
 				if (arg == "--help" || arg == "--?")
