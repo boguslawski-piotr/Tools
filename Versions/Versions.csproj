@@ -45,5 +45,11 @@
     <None Include="packages.config" />
     <None Include="Versions.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\pbX\pbXNet.NET\pbXNet.NET.csproj">
+      <Project>{BA60D111-A7E1-4455-B192-450846976D49}</Project>
+      <Name>pbXNet.NET</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

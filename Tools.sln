@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Versions", "Versions\Versions.csproj", "{D7C99F6F-2C91-4054-B8CB-339E47663A04}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "pbXNet.Shared", "..\pbX\pbXNet\pbXNet.Shared.shproj", "{0F24CC4F-7A9B-4835-8F00-4DC291773539}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pbXNet.NET", "..\pbX\pbXNet.NET\pbXNet.NET.csproj", "{BA60D111-A7E1-4455-B192-450846976D49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,5 +17,9 @@ Global
 		{D7C99F6F-2C91-4054-B8CB-339E47663A04}.Debug|x86.Build.0 = Debug|x86
 		{D7C99F6F-2C91-4054-B8CB-339E47663A04}.Release|x86.ActiveCfg = Release|x86
 		{D7C99F6F-2C91-4054-B8CB-339E47663A04}.Release|x86.Build.0 = Release|x86
+		{BA60D111-A7E1-4455-B192-450846976D49}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA60D111-A7E1-4455-B192-450846976D49}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA60D111-A7E1-4455-B192-450846976D49}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA60D111-A7E1-4455-B192-450846976D49}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
