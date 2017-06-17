@@ -8,8 +8,8 @@ namespace Versions
 {
 	public class Versions
 	{
-		TextWriter _msgOut;
-		TextWriter _errOut;
+		readonly TextWriter _msgOut;
+		readonly TextWriter _errOut;
 
 		class File
 		{
@@ -67,7 +67,7 @@ namespace Versions
 					if (!Enum.TryParse<Number>(arg.Substring(2), true, out Number number))
 					{
 						if (!Enum.TryParse<Operation>(arg.Substring(2), true, out Operation operation))
-							_errOut.WriteLine($"Incorrect parameter: {arg}");
+							_errOut?.WriteLine($"Incorrect parameter: {arg}");
 						else
 						{
 							if (operation > Operation.Dec) nextShouldBeValue = true;
@@ -87,7 +87,7 @@ namespace Versions
 					else
 					{
 						string currentValueDesc = (currentOperation == Operation.Set) ? "to " + currentValue : null;
-						_msgOut.WriteLine($"Loading: \"{Path.GetFullPath(arg)}\" to process: {currentNumber} {currentOperation} {currentValueDesc}");
+						_msgOut?.WriteLine($"Loading: \"{Path.GetFullPath(arg)}\" to process: {currentNumber} {currentOperation} {currentValueDesc}");
 						try
 						{
 							using (StreamReader s = System.IO.File.OpenText(arg))
@@ -102,7 +102,7 @@ namespace Versions
 									}
 									catch (FileNotFoundException ex)
 									{
-										_errOut.WriteLine(ex.Message);
+										_errOut?.WriteLine(ex.Message);
 										continue;
 									}
 								}
@@ -110,7 +110,7 @@ namespace Versions
 						}
 						catch (Exception ex)
 						{
-							_errOut.WriteLine(ex.Message);
+							_errOut?.WriteLine(ex.Message);
 							continue;
 						}
 
@@ -133,7 +133,7 @@ namespace Versions
 			foreach (var vfn in fileNames)
 			{
 				string fileName = Path.GetFullPath(Path.Combine(path, vfn));
-				_msgOut.WriteLine($"Processing: \"{fileName}\"");
+				_msgOut?.WriteLine($"Processing: \"{fileName}\"");
 
 				string d = null;
 				using (StreamReader reader = System.IO.File.OpenText(fileName))
@@ -148,23 +148,23 @@ namespace Versions
 					if (number == Number.Revision) groupToProcess = entry.RevisionGroup;
 					if (groupToProcess < 0)
 					{
-						_msgOut.WriteLine($"Pattern: {entry.Pattern} has no assigned group for: {number}");
+						_msgOut?.WriteLine($"Pattern: {entry.Pattern} has no assigned group for: {number}");
 						continue;
 					}
 
 					Match m = Regex.Match(d, entry.Pattern);
 					if (!m.Success)
 					{
-						_msgOut.WriteLine($"No match for pattern: {entry.Pattern}");
+						_msgOut?.WriteLine($"No match for pattern: {entry.Pattern}");
 						continue;
 					}
 					if (groupToProcess > m.Groups.Count - 2)
 					{
-						_msgOut.WriteLine($"Entry with pattern: {entry.Pattern} has invalid group for: {number}");
+						_msgOut?.WriteLine($"Entry with pattern: {entry.Pattern} has invalid group for: {number}");
 						continue;
 					}
 
-					_msgOut.WriteLine($"Found: {m.ToString()}");
+					_msgOut?.WriteLine($"Found: {m.ToString()}");
 
 					Group g = m.Groups[groupToProcess + 1]; // first group equals to whole match
 					string lvalue = value;
@@ -193,14 +193,14 @@ namespace Versions
 						}
 						else
 						{
-							_errOut.WriteLine($"Group {groupToProcess}: has incorrect number: {g.ToString()}");
+							_errOut?.WriteLine($"Group {groupToProcess}: has incorrect number: {g.ToString()}");
 							lvalue = null;
 						}
 					}
 
 					if (lvalue != null)
 					{
-						_msgOut.WriteLine($"For group: {groupToProcess} changing: {g.ToString()} to {lvalue}");
+						_msgOut?.WriteLine($"For group: {groupToProcess} changing: {g.ToString()} to {lvalue}");
 
 						string ds = d.Substring(0, g.Index);
 						string de = d.Substring(g.Index + g.Length);
