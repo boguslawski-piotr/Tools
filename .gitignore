@@ -40,3 +40,10 @@ Thumbs.db
 
 # dotCover
 *.dotCover
+Versions/Microsoft.Data.Edm.xml
+Versions/Microsoft.Data.OData.xml
+Versions/Microsoft.Data.Services.Client.xml
+Versions/Microsoft.WindowsAzure.Storage.pdb
+Versions/Microsoft.WindowsAzure.Storage.xml
+Versions/pbXNet.dll.config
+Versions/System.Spatial.xml
