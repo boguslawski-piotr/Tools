@@ -1,8 +1,0 @@
-<project name="a">
-  <target name="test">
-    <delete file="test_sets.out" />
-    <zip destfile="test_sets.out">
-      <fileset dir="." includes="**/test/**"/>
-    </zip>
-  </target>
-</project>
