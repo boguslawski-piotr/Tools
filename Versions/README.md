@@ -18,7 +18,7 @@ where:
     --inc (default), --dec
     --set value, --add value, --sub value
   and FILE is a simple json file with detailed
-  definition of what and how will be processed.
+  definition of how and what will be processed.
 ```
 
 ### Examples:
