@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -46,7 +46,7 @@
     <None Include="Versions.json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\pbX\pbXNet.NET\pbXNet.NET.csproj">
+    <ProjectReference Include="..\..\DotNet-PbEssentials\pbXNet.NET\pbXNet.NET.csproj">
       <Project>{BA60D111-A7E1-4455-B192-450846976D49}</Project>
       <Name>pbXNet.NET</Name>
     </ProjectReference>
