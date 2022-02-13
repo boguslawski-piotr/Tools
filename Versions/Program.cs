@@ -1,21 +1,15 @@
 ﻿using System;
 
-namespace Versions
-{
-	class MainClass
-	{
-		public static void Main(string[] args)
-		{
-			if(args.Length <= 0)
-			{
+namespace Versions {
+	class MainClass {
+		public static void Main(string[] args) {
+			if(args.Length <= 0) {
 				DisplayHelp();
 				return;
 			}
 
-			foreach (var arg in args)
-			{
-				if (arg == "--help" || arg == "--?")
-				{
+			foreach (var arg in args) {
+				if (arg == "--help" || arg == "--?") {
 					DisplayHelp();
 					return;
 				}
