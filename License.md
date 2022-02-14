@@ -1,4 +1,4 @@
-# Safe Notebooks license
+# Tools license
 
 The MIT License (MIT)
 
